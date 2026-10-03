@@ -19,6 +19,9 @@
   .big-ball{width:clamp(9rem,38vmin,16rem);height:clamp(9rem,38vmin,16rem)}
   .big-ball .bl{font-size:clamp(1.4rem,5vmin,2.25rem)}
   .big-ball .bn{font-size:clamp(3rem,13vmin,5rem)}
+  .big-ball.letter-only .bl{font-size:clamp(4rem,15vmin,7rem);line-height:1}
+  .big-ball.letter-only .bn{display:none}
+  .big-ball.ball-awaiting-reveal{cursor:pointer;outline:3px solid rgba(251,191,36,.45);outline-offset:4px}
   @keyframes roll{0%,100%{transform:translate(0,0) rotate(0)}15%{transform:translate(-14px,6px) rotate(-14deg)}30%{transform:translate(12px,-8px) rotate(12deg)}45%{transform:translate(-10px,-4px) rotate(-10deg)}60%{transform:translate(14px,8px) rotate(14deg)}80%{transform:translate(-6px,2px) rotate(-6deg)}}
   .ball-rolling{animation:roll .45s linear infinite}
   @keyframes reveal{0%{transform:scale(.4);opacity:.2}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
@@ -87,7 +90,10 @@
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-2"><h2 class="font-display font-bold text-sm sm:text-base">Your Active Cards</h2>
           <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>Auto-Daub</span></div>
-        <button id="btn-claim-bingo" disabled class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-slate-950 font-display font-bold shadow-lg">AUTO BINGO DETECTION</button>
+        <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <button id="btn-player-patterns" type="button" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-200 font-display font-bold shadow-lg active:scale-95 transition-transform">▦ PATTERNS</button>
+          <button id="btn-claim-bingo" disabled class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-slate-950 font-display font-bold shadow-lg">AUTO BINGO DETECTION</button>
+        </div>
       </div>
       <div id="cards-container" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4 pb-10"></div>
     </section>
@@ -114,7 +120,7 @@
           <span id="gm-total-drawn-pill" class="bg-slate-800 px-3 py-1 rounded-full border border-slate-700 font-mono">0 / 75 Balls</span>
         </div>
         <div class="my-4 sm:my-6">
-          <div id="big-bingo-ball" style="--ball-color:#3b82f6" class="big-ball ball-3d rounded-full flex flex-col items-center justify-center text-white border-4 border-white/25">
+          <div id="big-bingo-ball" role="button" tabindex="0" aria-label="Bingo ball" title="Roll a letter first" style="--ball-color:#3b82f6" class="big-ball ball-3d rounded-full flex flex-col items-center justify-center text-white border-4 border-white/25">
             <span id="big-ball-letter" class="bl font-display font-bold text-amber-300 drop-shadow">READY</span>
             <span id="big-ball-num" class="bn font-display font-bold leading-none drop-shadow-lg">--</span>
           </div>
@@ -398,7 +404,7 @@ const state = {
   autoRollTimer: null, isRolling: false, round: 0, seenWinTs: null, dismissedWinTs: null,
   players: [], roomState: { drawnNumbers: [], lastDrawn: null, lastWinner: null, winners: [] },
   rosterUnsub: null, announcingWinnerIds: new Set(), roundInitialized: false, roundChoicePending: false, roundAddCount: 1,
-  currentView: 'player', isResetting: false, gameId: null
+  currentView: 'player', isResetting: false, gameId: null, pendingBall: null
 };
 
 const normalizeRoomId = value => {
@@ -520,7 +526,7 @@ async function initializeRoomIfMissing() {
   if (roomInitPromise) return roomInitPromise;
   roomInitPromise = fb.runTransaction(db, async tx => {
     const snap = await tx.get(roomRef());
-    if (!snap.exists()) tx.set(roomRef(), { gameId: newGameId(), drawnNumbers: [], lastDrawn: null, pricePerCard: state.pricePerCard, lastWinner: null, winners: [], started: false, round: 0 });
+    if (!snap.exists()) tx.set(roomRef(), { gameId: newGameId(), drawnNumbers: [], lastDrawn: null, pricePerCard: state.pricePerCard, lastWinner: null, winners: [], pendingBall: null, started: false, round: 0 });
   }).finally(() => { roomInitPromise = null; });
   return roomInitPromise;
 }
@@ -531,7 +537,7 @@ async function ensureRoomGameId() {
     const snap = await tx.get(roomRef());
     if (!snap.exists()) return;
     const d = snap.data();
-    if (!d.gameId) tx.set(roomRef(), { gameId: newGameId(), drawnNumbers: [], lastDrawn: null, lastWinner: null, winners: [], started: false, round: 0 }, { merge: true });
+    if (!d.gameId) tx.set(roomRef(), { gameId: newGameId(), drawnNumbers: [], lastDrawn: null, lastWinner: null, winners: [], pendingBall: null, started: false, round: 0 }, { merge: true });
   }).finally(() => { gameIdInitPromise = null; });
   return gameIdInitPromise;
 }
@@ -765,8 +771,12 @@ function stopAutoRoll() {
 function switchStaffView(v) {
   if (v !== 'gm') stopAutoRoll();
   switchView(v);
-  if (v === 'admin' || v === 'gm') { ensureRosterListener(); renderPlayers(); startStaffMusic(); }
-  else { stopRosterListener(); stopStaffMusic(); }
+  if (v === 'admin' || v === 'gm') {
+    ensureRosterListener();
+    if (v === 'gm' && state.roomState) updateRoom(state.roomState);
+    else renderPlayers();
+    startStaffMusic();
+  } else { stopRosterListener(); stopStaffMusic(); }
 }
 
 
@@ -1014,12 +1024,14 @@ function handleFullGameReset(nextGameId, freshRoomData = null) {
     lastDrawn: null,
     lastWinner: null,
     winners: [],
+    pendingBall: null,
     started: false,
     round: 0,
     pricePerCard: 10
   };
   state.gameId = nextGameId;
   state.roomState = freshRoom;
+  state.pendingBall = null;
   state.started = false;
   state.pricePerCard = Number(freshRoom.pricePerCard) > 0 ? Number(freshRoom.pricePerCard) : 10;
   state.players = []; state.joined = false; state.isAdmin = false; state.playerName = ''; state.playerAvatar = '🎯'; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false; state.roundAddCount = 1; state.round = Number(freshRoom.round || 0); state.roundInitialized = true; state.lastSpokenNum = null; state.seenWinTs = null; state.dismissedWinTs = null; state.announcingWinnerIds.clear();
@@ -1031,6 +1043,7 @@ function handleFullGameReset(nextGameId, freshRoomData = null) {
   $('gm-total-drawn-pill').textContent = '0 / 75 Balls';
   $('player-ball-letter').textContent = 'CES'; $('player-ball-num').textContent = '--'; $('player-caller-text').textContent = 'Waiting for Game Master...';
   $('big-ball-letter').textContent = 'READY'; $('big-ball-num').textContent = '--'; $('gm-announce-msg').textContent = 'Ready to draw ball';
+  $('big-bingo-ball').classList.remove('letter-only', 'ball-awaiting-reveal'); $('big-bingo-ball').title = 'Roll a letter first';
   $('recent-balls-bar').innerHTML = '<span class="text-xs text-slate-500 italic">None</span>';
   const priceInput = $('admin-card-price-input'); if (priceInput) priceInput.value = state.pricePerCard;
   switchView('player'); renderAllPlayerCards(); refreshJoinPrice(); renderPlayers(); refreshJoinGate(); openJoin();
@@ -1041,7 +1054,9 @@ function updateRoom(data) {
   else if (incomingGameId && incomingGameId !== state.gameId) handleFullGameReset(incomingGameId, data);
   state.roomState = data;
   const drawn = data.drawnNumbers || [];
-  state.started = !!data.started || drawn.length > 0;
+  const pendingBall = Number(data.pendingBall) || null;
+  state.pendingBall = pendingBall;
+  state.started = !!data.started || drawn.length > 0 || !!pendingBall;
 
   const incomingRound = data.round || 0;
   if (!state.roundInitialized) {
@@ -1070,6 +1085,22 @@ function updateRoom(data) {
     $('player-ball-letter').textContent = 'CES'; $('player-ball-num').textContent = '--'; $('player-caller-text').textContent = 'Waiting for Game Master...';
     if (big) { $('big-ball-letter').textContent = 'READY'; $('big-ball-num').textContent = '--'; $('gm-announce-msg').textContent = 'Ready to draw ball'; }
   }
+  const gmBall = $('big-bingo-ball');
+  if (pendingBall && state.currentView === 'gm' && !state.isRolling) {
+    const pendingLetter = getLetter(pendingBall), pendingColor = getColor(pendingLetter);
+    gmBall.style.setProperty('--ball-color', pendingColor);
+    gmBall.classList.add('letter-only', 'ball-awaiting-reveal');
+    gmBall.title = `Tap to reveal the ${pendingLetter} number`;
+    $('big-ball-letter').textContent = pendingLetter;
+    $('big-ball-num').textContent = '';
+    $('gm-announce-msg').textContent = `Letter ${pendingLetter} — tap the ball to reveal the number`;
+  } else if (!state.isRolling) {
+    gmBall.classList.remove('letter-only', 'ball-awaiting-reveal');
+    gmBall.title = 'Roll a letter first';
+  }
+  const drawButton = $('btn-draw-ball');
+  if (drawButton) drawButton.disabled = state.isRolling || state.isResetting || !!pendingBall;
+
   const bar = $('recent-balls-bar'); bar.innerHTML = '';
   if (drawn.length) drawn.slice(-6).reverse().forEach(n => { const L = getLetter(n), c = document.createElement('span'); c.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-black text-white font-mono'; c.style.backgroundColor = getColor(L); c.textContent = `${L}-${n}`; bar.appendChild(c); });
   else bar.innerHTML = '<span class="text-xs text-slate-500 italic">None</span>';
@@ -1141,12 +1172,13 @@ function refreshJoinPrice() {
 /* ---------- Game Master: fast, transaction-safe ball draw ---------- */
 async function drawNextBall() {
   if (state.isRolling || state.isResetting) return;
+  if (state.pendingBall || Number(state.roomState.pendingBall)) { showToast('Reveal the current letter first by tapping the big ball.', true); return; }
   if (!state.connected || !fb || !(await authReady)) { showToast('Not connected to the server. Cannot roll.', true); return; }
   if ((state.roomState.drawnNumbers || []).length >= 75) { showToast('All 75 balls drawn!', true); return; }
   state.isRolling = true;
   const expectedRound = state.round, expectedGameId = state.gameId, btn = $('btn-draw-ball'), resetBtn = $('btn-trigger-clear-room'), ball = $('big-bingo-ball');
-  btn.disabled = true; resetBtn.disabled = true; ball.classList.remove('ball-reveal'); ball.classList.add('ball-rolling');
-  $('big-ball-letter').textContent = 'ROLLING'; $('big-ball-num').textContent = '?'; $('gm-announce-msg').textContent = 'Rolling the balls...';
+  btn.disabled = true; resetBtn.disabled = true; ball.classList.remove('ball-reveal', 'letter-only', 'ball-awaiting-reveal'); ball.classList.add('ball-rolling');
+  $('big-ball-letter').textContent = 'ROLLING'; $('big-ball-num').textContent = ''; $('gm-announce-msg').textContent = 'Rolling the balls...';
   playBottleShake();
   await new Promise(r => setTimeout(r, ROLL_DELAY));
   let picked = null;
@@ -1154,24 +1186,75 @@ async function drawNextBall() {
     picked = await fb.runTransaction(db, async tx => {
       const snap = await tx.get(roomRef()), d = snap.exists() ? snap.data() : {};
       if (d.gameId !== expectedGameId || Number(d.round || 0) !== Number(expectedRound)) throw Object.assign(new Error('Game or round changed'), { code: 'stale-round' });
+      if (Number(d.pendingBall)) return Number(d.pendingBall);
       const drawn = Array.isArray(d.drawnNumbers) ? d.drawnNumbers : [], avail = [];
       for (let i = 1; i <= 75; i++) if (!drawn.includes(i)) avail.push(i);
       if (!avail.length) return null;
       const n = avail[Math.floor(Math.random() * avail.length)];
-      tx.set(roomRef(), { drawnNumbers: [...drawn, n], lastDrawn: n, started: true }, { merge: true });
+      // Reserve the ball and lock the room now, but do not broadcast the number
+      // into drawnNumbers until the Game Master taps the large ball.
+      tx.set(roomRef(), { pendingBall: n, started: true }, { merge: true });
       return n;
     });
   } catch (e) {
     if (e.code !== 'stale-round') showToast('Roll failed: ' + errMsg(e), true);
   } finally {
-    state.isRolling = false; ball.classList.remove('ball-rolling'); btn.disabled = false; resetBtn.disabled = false;
+    state.isRolling = false; ball.classList.remove('ball-rolling'); resetBtn.disabled = false;
   }
   if (picked) {
+    state.pendingBall = picked;
     const L = getLetter(picked), col = getColor(L);
-    $('big-bingo-ball').style.setProperty('--ball-color', col); $('big-ball-letter').textContent = L; $('big-ball-num').textContent = picked; $('gm-announce-msg').textContent = `Just Drawn: ${L}-${picked}`;
-    ball.classList.add('ball-reveal');
+    ball.style.setProperty('--ball-color', col);
+    ball.classList.add('letter-only', 'ball-awaiting-reveal', 'ball-reveal');
+    ball.title = `Tap to reveal the ${L} number`;
+    $('big-ball-letter').textContent = L; $('big-ball-num').textContent = '';
+    $('gm-announce-msg').textContent = `Letter ${L} — tap the ball to reveal the number`;
+    btn.disabled = true;
+    playBeep(760, 'triangle', 0.14);
+  } else {
+    btn.disabled = false;
   }
 }
+
+async function revealPendingBall() {
+  if (state.isRolling || state.isResetting || state.currentView !== 'gm') return;
+  const localPending = Number(state.pendingBall || state.roomState.pendingBall);
+  if (!localPending) { showToast('Roll a letter first.'); return; }
+  if (!state.connected || !fb || !(await authReady)) { showToast('Not connected to the server. Cannot reveal.', true); return; }
+  const expectedRound = state.round, expectedGameId = state.gameId, ball = $('big-bingo-ball'), btn = $('btn-draw-ball'), resetBtn = $('btn-trigger-clear-room');
+  ball.classList.remove('letter-only', 'ball-awaiting-reveal');
+  ball.classList.add('ball-reveal');
+  resetBtn.disabled = true;
+  let revealed = null;
+  try {
+    revealed = await fb.runTransaction(db, async tx => {
+      const snap = await tx.get(roomRef()), d = snap.exists() ? snap.data() : {};
+      if (d.gameId !== expectedGameId || Number(d.round || 0) !== Number(expectedRound)) throw Object.assign(new Error('Game or round changed'), { code: 'stale-round' });
+      const n = Number(d.pendingBall);
+      if (!n) return null;
+      const drawn = Array.isArray(d.drawnNumbers) ? d.drawnNumbers : [];
+      const nextDrawn = drawn.includes(n) ? drawn : [...drawn, n];
+      tx.set(roomRef(), { drawnNumbers: nextDrawn, lastDrawn: n, pendingBall: null, started: true }, { merge: true });
+      return n;
+    });
+  } catch (e) {
+    if (e.code !== 'stale-round') showToast('Reveal failed: ' + errMsg(e), true);
+  } finally {
+    resetBtn.disabled = false;
+  }
+  if (revealed) {
+    state.pendingBall = null;
+    const localDrawn = Array.isArray(state.roomState.drawnNumbers) ? state.roomState.drawnNumbers : [];
+    state.roomState = { ...state.roomState, pendingBall: null, lastDrawn: revealed, drawnNumbers: localDrawn.includes(revealed) ? localDrawn : [...localDrawn, revealed], started: true };
+    const L = getLetter(revealed), col = getColor(L);
+    ball.style.setProperty('--ball-color', col); ball.title = 'Roll a letter first';
+    $('big-ball-letter').textContent = L; $('big-ball-num').textContent = revealed;
+    $('gm-announce-msg').textContent = `Just Drawn: ${L}-${revealed}`;
+    $('gm-total-drawn-pill').textContent = `${state.roomState.drawnNumbers.length} / 75 Balls`;
+    btn.disabled = false;
+  }
+}
+
 async function resetRound() {
   if (state.isRolling || state.isResetting) throw Object.assign(new Error('A ball is still rolling.'), { code: 'busy' });
   state.isResetting = true;
@@ -1182,7 +1265,7 @@ async function resetRound() {
     await fb.runTransaction(db, async tx => {
       const snap = await tx.get(roomRef()), d = snap.exists() ? snap.data() : {};
       const nextRound = Number(d.round || 0) + 1;
-      tx.set(roomRef(), { drawnNumbers: [], lastDrawn: null, lastWinner: null, winners: [], started: false, pricePerCard: state.pricePerCard, round: nextRound }, { merge: true });
+      tx.set(roomRef(), { drawnNumbers: [], lastDrawn: null, lastWinner: null, winners: [], pendingBall: null, started: false, pricePerCard: state.pricePerCard, round: nextRound }, { merge: true });
     });
     state.announcingWinnerIds.clear();
   } finally {
@@ -1206,6 +1289,7 @@ async function fullResetGame() {
         lastDrawn: null,
         lastWinner: null,
         winners: [],
+        pendingBall: null,
         started: false,
         round: 0,
         pricePerCard: 10,
@@ -1359,10 +1443,13 @@ function init() {
   });
 
   on('btn-draw-ball', 'click', drawNextBall);
+  on('big-bingo-ball', 'click', revealPendingBall);
+  on('big-bingo-ball', 'keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && state.currentView === 'gm') { e.preventDefault(); revealPendingBall(); } });
   const setAuto = () => {
     clearInterval(state.autoRollTimer); state.autoRollTimer = null;
     if ($('gm-auto-roll-toggle').checked) state.autoRollTimer = setInterval(() => {
-      if ((state.roomState.drawnNumbers || []).length >= 75) stopAutoRoll(); else drawNextBall();
+      if ((state.roomState.drawnNumbers || []).length >= 75) stopAutoRoll();
+      else if (!state.pendingBall && !Number(state.roomState.pendingBall)) drawNextBall();
     }, parseInt($('gm-auto-roll-speed').value, 10));
   };
   on('gm-auto-roll-toggle', 'change', setAuto); on('gm-auto-roll-speed', 'change', setAuto);
@@ -1379,6 +1466,7 @@ function init() {
   const showQR = () => { const l = shareLink(); $('qr-modal-room-id').textContent = state.roomId; drawQR(l); showModal('modal-qr'); };
   on('btn-admin-show-qr', 'click', showQR); on('btn-gm-share-modal', 'click', showQR);
   on('btn-gm-help', 'click', () => { setGMHelpPage('mechanics'); showModal('modal-gm-help'); });
+  on('btn-player-patterns', 'click', () => { setGMHelpPage('patterns'); showModal('modal-gm-help'); });
   on('btn-gm-help-next', 'click', () => setGMHelpPage('patterns'));
   on('btn-gm-help-prev', 'click', () => setGMHelpPage('mechanics'));
   on('btn-close-gm-help', 'click', () => hideModal('modal-gm-help'));
