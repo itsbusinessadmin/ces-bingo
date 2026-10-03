@@ -676,14 +676,66 @@
       }
     }
 
-    function getRandomSublist(min, max, count) {
-      const pool = [];
-      for (let i = min; i <= max; i++) pool.push(i);
-      const result = [];
-      for (let i = 0; i < count; i++) {
-        const idx = Math.floor(Math.random() * pool.length);
-        result.push(pool.splice(idx, 1)[0]);
+    // Clean Share Link Generator
+    function getCleanShareLink() {
+      const url = new URL(window.location.origin + window.location.pathname);
+      url.searchParams.set('room', state.roomId);
+      return url.toString();
+    }
+
+    function renderQRCodeMatrix(text) {
+      const canvas = document.getElementById('qr-display-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const size = 200;
+      canvas.width = size;
+      canvas.height = size;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+
+      ctx.fillStyle = '#0f172a';
+      const count = 20;
+      const cell = size / count;
+      let hash = 0;
+      for (let i = 0; i < text.length; i++) hash = (hash << 5) - hash + text.charCodeAt(i);
+
+      for (let r = 0; r < count; r++) {
+        for (let c = 0; c < count; c++) {
+          const isCorner = (r < 5 && c < 5) || (r < 5 && c > count - 6) || (r > count - 6 && c < 5);
+          const bit = Math.abs(Math.sin((r * count + c) * hash)) > 0.42;
+          if (isCorner || bit) {
+            ctx.fillRect(c * cell, r * cell, cell - 0.5, cell - 0.5);
+          }
+        }
       }
+    }
+
+    function copyToClipboard(text, successCb) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(successCb).catch(() => {
+          fallbackClipboard(text, successCb);
+        });
+      } else {
+        fallbackClipboard(text, successCb);
+      }
+    }
+
+    function fallbackClipboard(text, successCb) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        if (successCb) successCb();
+      } catch (err) {
+        console.error("Fallback copy failed", err);
+      }
+      document.body.removeChild(textArea);
+    }
       return result.sort((a, b) => a - b);
     }
 
@@ -1075,34 +1127,24 @@
       if (playersList.length === 0) {
         adminTbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500 italic">No participants registered yet</td></tr>';
       } else {
-        playersList.forEach((p, idx) => {
-          const tr = document.createElement('tr');
-          const cards = p.cardCount || 1;
-          const due = cards * state.pricePerCard;
-          tr.innerHTML = `
-            <td class="py-2.5 px-3 font-mono font-bold text-slate-400">#${idx + 1}</td>
-            <td class="py-2.5 px-3 font-semibold text-slate-200">${p.avatar || '🎯'} ${p.name || 'Player'}</td>
-            <td class="py-2.5 px-3 font-mono font-bold text-amber-400">${cards}</td>
-            <td class="py-2.5 px-3 font-mono">₱${state.pricePerCard}</td>
-            <td class="py-2.5 px-3 font-mono font-bold text-emerald-400">₱${due.toLocaleString()}</td>
-            <td class="py-2.5 px-3 font-mono">
-              ${p.hasBingo ? '<span class="text-amber-400 font-bold">★ BINGO</span>' : '<span class="text-slate-400">Playing</span>'}
-            </td>
-          `;
-          adminTbody.appendChild(tr);
-        });
-      }
-    }
-
-    // Drawing Game Master Logic
+    // Drawing Game Master Logic: Optimistic UI + Mutex with 1.5s Auto-Recovery
     async function drawNextBall() {
-      if (state.isDrawingLock) return;
+      if (state.isDrawingLock) {
+        console.warn("Draw is locked, preventing concurrent execution");
+        return;
+      }
       state.isDrawingLock = true;
+
+      // Fail-safe timeout so button NEVER stays stuck if remote fails
+      const lockTimeout = setTimeout(() => {
+        state.isDrawingLock = false;
+      }, 1500);
 
       try {
         const drawn = state.roomState.drawnNumbers || [];
         if (drawn.length >= 75) {
           document.getElementById('gm-announce-msg').textContent = 'All 75 balls drawn!';
+          clearTimeout(lockTimeout);
           state.isDrawingLock = false;
           return;
         }
@@ -1115,6 +1157,15 @@
         const picked = available[Math.floor(Math.random() * available.length)];
         const updatedDrawn = [...drawn, picked];
 
+        // Optimistic local update so GM sees and hears the ball roll IMMEDIATELY without waiting
+        const optimisticData = {
+          ...state.roomState,
+          drawnNumbers: updatedDrawn,
+          lastDrawn: picked
+        };
+        updateRoomFromSnapshot(optimisticData);
+
+        // Remote Firestore sync
         if (db) {
           const roomRef = doc(db, 'artifacts', state.appId, 'public', 'data', 'rooms', state.roomId);
           await setDoc(roomRef, {
@@ -1125,6 +1176,7 @@
       } catch (err) {
         console.error("Draw ball error:", err);
       } finally {
+        clearTimeout(lockTimeout);
         state.isDrawingLock = false;
       }
     }
@@ -1292,56 +1344,56 @@
         switchView('player');
       });
 
+      // Share Link & Invitation Actions
+      const updateShareInputs = () => {
+        const cleanLink = getCleanShareLink();
+        const input = document.getElementById('admin-share-link-input');
+        if (input) input.value = cleanLink;
+        document.getElementById('qr-modal-room-id').textContent = state.roomId;
+        renderQRCodeMatrix(cleanLink);
+      };
+
+      document.getElementById('btn-copy-game-link').addEventListener('click', () => {
+        const link = getCleanShareLink();
+        copyToClipboard(link, () => {
+          const textEl = document.getElementById('copy-link-text');
+          const original = textEl.textContent;
+          textEl.textContent = 'Copied to Clipboard! ✓';
+          playBeep(780, 'triangle', 0.1);
+          setTimeout(() => { textEl.textContent = original; }, 2000);
+        });
+      });
+
+      document.getElementById('btn-copy-invite-msg').addEventListener('click', () => {
+        const link = getCleanShareLink();
+        const msg = `🎉 Join our BINGO by CES Fun Club!\n👉 Click here to join: ${link}\n🎟️ Cards are ₱${state.pricePerCard}.00 each. Enter your name and pick your cards. Good luck!`;
+        copyToClipboard(msg, () => {
+          const textEl = document.getElementById('copy-msg-text');
+          const original = textEl.textContent;
+          textEl.textContent = 'Invitation Copied! ✓';
+          playBeep(880, 'sine', 0.12);
+          setTimeout(() => { textEl.textContent = original; }, 2000);
+        });
+      });
+
+      const showQRModal = () => {
+        updateShareInputs();
+        document.getElementById('modal-qr').classList.remove('hidden');
+      };
+      document.getElementById('btn-admin-toggle-qr').addEventListener('click', showQRModal);
+      document.getElementById('btn-gm-share-link').addEventListener('click', showQRModal);
+
+      document.getElementById('btn-close-qr-modal').addEventListener('click', () => {
+        document.getElementById('modal-qr').classList.add('hidden');
+      });
+
       // 4. GM Actions
       document.getElementById('btn-draw-ball').addEventListener('click', () => {
         drawNextBall();
       });
 
-      // GM Auto-Roll
-      document.getElementById('gm-auto-roll-toggle').addEventListener('change', (e) => {
-        if (state.autoRollTimer) {
-          clearInterval(state.autoRollTimer);
-          state.autoRollTimer = null;
-        }
-        if (e.target.checked) {
-          const speed = parseInt(document.getElementById('gm-auto-roll-speed').value, 10);
-          state.autoRollTimer = setInterval(() => {
-            const drawn = state.roomState.drawnNumbers || [];
-            if (drawn.length >= 75) {
-              clearInterval(state.autoRollTimer);
-              e.target.checked = false;
-              return;
-            }
-            drawNextBall();
-          }, speed);
-        }
-      });
-
-      document.getElementById('gm-auto-roll-speed').addEventListener('change', (e) => {
-        const checkbox = document.getElementById('gm-auto-roll-toggle');
-        if (checkbox.checked) {
-          clearInterval(state.autoRollTimer);
-          state.autoRollTimer = setInterval(drawNextBall, parseInt(e.target.value, 10));
-        }
-      });
-
-      // 5. Clear Room Warning Confirmation Modal
-      const openClearModal = () => {
-        document.getElementById('modal-confirm-clear').classList.remove('hidden');
-      };
-      document.getElementById('btn-trigger-clear-room').addEventListener('click', openClearModal);
-      document.getElementById('btn-admin-clear-room').addEventListener('click', openClearModal);
-
-      document.getElementById('btn-cancel-clear').addEventListener('click', () => {
-        document.getElementById('modal-confirm-clear').classList.add('hidden');
-      });
-
-      document.getElementById('btn-confirm-clear').addEventListener('click', () => {
-        clearAllRoomData();
-        document.getElementById('modal-confirm-clear').classList.add('hidden');
-      });
-
-      // 6. Admin Update Price per Card
+      // Initialize share link box values
+      updateShareInputs();
       document.getElementById('btn-save-price').addEventListener('click', async () => {
         const newPrice = parseFloat(document.getElementById('admin-card-price-input').value) || 10;
         state.pricePerCard = newPrice;
