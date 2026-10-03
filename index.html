@@ -102,6 +102,7 @@
         <button id="btn-gm-music" class="text-xs font-semibold px-3 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 rounded-xl text-emerald-300 active:scale-95" title="Game Master background music">🎵 Music On</button>
         <button id="btn-gm-help" aria-label="Game mechanics and patterns" title="Game Mechanics & Patterns" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-300 font-black text-base flex items-center justify-center active:scale-95">?</button>
         <button id="btn-open-admin-from-gm" class="text-xs font-semibold px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-amber-400 active:scale-95">Admin Desk</button>
+        <button id="btn-gm-reset-game" class="text-xs font-bold px-3 py-2 bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 rounded-xl text-rose-300 active:scale-95">⚠ Reset Game</button>
         <button id="btn-exit-gm-mode" class="text-xs font-semibold px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl active:scale-95">Exit</button>
       </div>
     </div>
@@ -161,6 +162,8 @@
       <div><h2 class="font-display font-bold text-xl text-amber-400">Admin Dashboard</h2><p class="text-xs text-slate-400">Card prices, roster and invites</p></div>
       <div class="flex flex-wrap gap-2">
         <button id="btn-admin-music" class="px-3 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs active:scale-95" title="Admin background music">🎵 Music On</button>
+        <button id="btn-admin-change-pin" class="px-3 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-bold text-xs active:scale-95">🔑 Change Passcode</button>
+        <button id="btn-admin-reset-game" class="px-3 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 font-bold text-xs active:scale-95">⚠ Reset Game</button>
         <button id="btn-launch-gm-from-admin" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 text-slate-950 font-display font-bold text-xs active:scale-95">Launch Game Master</button>
         <button id="btn-exit-admin" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 font-semibold text-xs border border-slate-700 active:scale-95">Exit Admin</button>
       </div>
@@ -198,7 +201,7 @@
 <!-- JOIN MODAL -->
 <div id="modal-join" class="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-950/85 backdrop-blur-sm">
   <div class="modal-box bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-5 sm:p-8 shadow-2xl">
-    <div class="text-center mb-4"><div class="w-14 h-14 mx-auto mb-2 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-indigo-600 flex items-center justify-center text-3xl">🎱</div>
+    <div class="text-center mb-4"><div id="join-logo-trigger" title="Triple-click for Admin Access" class="w-14 h-14 mx-auto mb-2 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-indigo-600 flex items-center justify-center text-3xl cursor-pointer select-none active:scale-95 transition-transform">🎱</div>
       <h2 class="font-display font-bold text-2xl">BINGO by CES Fun Club</h2><p class="text-xs text-slate-400 mt-1">Enter your name and pick your cards</p></div>
     <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 mb-4 flex items-start gap-3"><span class="text-xl">⚠️</span>
       <div class="text-xs text-slate-300"><span class="font-bold text-amber-400 block mb-0.5">Card Price Notice:</span>Each card costs <span id="modal-unit-price-text" class="font-bold text-white bg-slate-800 px-1 rounded">₱10.00</span>. More cards, better chances.</div></div>
@@ -215,7 +218,6 @@
       <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-3 flex items-center justify-between"><span class="text-xs text-slate-400">Total Payment Due:</span><span id="join-total-due-text" class="font-mono font-black text-lg text-emerald-400">₱10.00</span></div>
       <p id="join-gate-msg" class="hidden text-xs font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-xl p-3"></p>
       <button id="btn-confirm-join" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 font-display font-bold text-lg hover:brightness-110 shadow-lg active:scale-95">GET CARDS &amp; ENTER</button>
-      <button id="btn-join-admin-access" type="button" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-300 text-xs font-bold active:scale-95">🔒 ADMIN ACCESS — NO PLAYER ACCOUNT</button>
       <button id="btn-close-join" type="button" class="hidden w-full py-2 text-xs text-slate-400 hover:text-white">Cancel</button>
     </div>
   </div>
@@ -226,9 +228,35 @@
   <div class="modal-box bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-6 shadow-2xl text-center">
     <div class="w-12 h-12 mx-auto mb-2 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-2xl">🔒</div>
     <h3 class="font-display font-bold text-lg mb-1">Staff Access</h3><p class="text-xs text-slate-400 mb-4">Enter Secret PIN to manage room</p>
-    <input type="password" id="pin-input" maxlength="8" placeholder="PIN" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-center tracking-widest font-mono font-bold text-lg focus:outline-none focus:border-amber-400 mb-3">
+    <input type="password" id="pin-input" maxlength="16" placeholder="Passcode" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-center tracking-widest font-mono font-bold text-lg focus:outline-none focus:border-amber-400 mb-3">
     <p id="pin-error-msg" class="text-[11px] text-rose-400 hidden mb-3 font-bold">Incorrect PIN code</p>
     <div class="grid grid-cols-2 gap-2"><button id="btn-cancel-pin" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold active:scale-95">Cancel</button><button id="btn-submit-pin" class="py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold active:scale-95">Unlock</button></div>
+  </div>
+</div>
+
+<!-- CHANGE ADMIN PASSCODE MODAL -->
+<div id="modal-change-pin" class="fixed inset-0 z-[60] hidden items-center justify-center p-3 bg-slate-950/90 backdrop-blur-sm">
+  <div class="modal-box bg-slate-900 border border-indigo-500/30 w-full max-w-sm rounded-3xl p-6 shadow-2xl">
+    <div class="text-center mb-5"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-3xl">🔑</div><h3 class="font-display font-bold text-xl">Change Admin Passcode</h3><p class="text-xs text-slate-400 mt-1">This changes the passcode used after triple-clicking the logo.</p></div>
+    <div class="space-y-3">
+      <input type="password" id="change-pin-current" maxlength="16" placeholder="Current passcode" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 font-mono font-bold focus:outline-none focus:border-indigo-400">
+      <input type="password" id="change-pin-new" maxlength="16" placeholder="New passcode (4–16 characters)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 font-mono font-bold focus:outline-none focus:border-indigo-400">
+      <input type="password" id="change-pin-confirm" maxlength="16" placeholder="Confirm new passcode" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 font-mono font-bold focus:outline-none focus:border-indigo-400">
+      <p id="change-pin-error" class="hidden text-xs font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-xl p-3"></p>
+      <div class="grid grid-cols-2 gap-2 pt-1"><button id="btn-cancel-change-pin" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold">Cancel</button><button id="btn-save-change-pin" class="py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-slate-950 text-xs font-black">Save Passcode</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- FULL GAME RESET MODAL -->
+<div id="modal-reset-game" class="fixed inset-0 z-[65] hidden items-center justify-center p-3 bg-slate-950/90 backdrop-blur-sm">
+  <div class="modal-box bg-slate-900 border border-rose-500/40 w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center">
+    <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-3xl">⚠️</div>
+    <h3 class="font-display font-bold text-xl mb-1">Reset the entire game?</h3>
+    <p class="text-xs text-slate-400 mb-4">This starts a completely fresh game with 0 players, 0 cards, no drawn numbers, no winner, and the default ₱10 card price. All connected players return to the join screen.</p>
+    <input type="password" id="reset-game-pin" maxlength="16" placeholder="Enter admin passcode" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-center tracking-wider font-mono font-bold focus:outline-none focus:border-rose-400">
+    <p id="reset-game-error" class="hidden text-xs font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-xl p-3 mt-3"></p>
+    <div class="grid grid-cols-2 gap-2 mt-4"><button id="btn-cancel-reset-game" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold">Cancel</button><button id="btn-confirm-reset-game" class="py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-black">RESET EVERYTHING</button></div>
   </div>
 </div>
 
@@ -310,7 +338,7 @@
 <script type="module">
 const $ = id => document.getElementById(id);
 const ROLL_DELAY = 350; // brief animation while keeping live number delivery fast
-const PINS = ['1234', 'CES2026', 'ces'];
+const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
 const BGM_VOLUME = 0.20;
 const SFX_VOLUME = 0.80;
@@ -346,7 +374,7 @@ const state = {
   autoRollTimer: null, isRolling: false, round: 0, seenWinTs: null, dismissedWinTs: null,
   players: [], roomState: { drawnNumbers: [], lastDrawn: null, lastWinner: null, winners: [] },
   rosterUnsub: null, announcingWinnerIds: new Set(), roundInitialized: false, roundChoicePending: false, roundAddCount: 1,
-  currentView: 'player', isResetting: false
+  currentView: 'player', isResetting: false, gameId: null
 };
 
 const normalizeRoomId = value => {
@@ -358,6 +386,18 @@ $('header-room-id').textContent = state.roomId;
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const on = (id, evt, fn) => { const el = $(id); if (el) el.addEventListener(evt, fn); else console.warn('Missing element:', id); };
+const newGameId = () => (globalThis.crypto?.randomUUID?.() || `game-${Date.now()}-${Math.random().toString(36).slice(2,10)}`);
+async function hashAdminPin(pin) {
+  if (!globalThis.crypto?.subtle) throw new Error('Secure passcode hashing is not supported by this browser.');
+  const data = new TextEncoder().encode(`ces-bingo|${state.roomId}|${String(pin)}`);
+  const buf = await crypto.subtle.digest('SHA-256', data);
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function verifyAdminPin(pin) {
+  const stored = state.roomState?.adminPinHash;
+  if (stored) return (await hashAdminPin(pin)) === stored;
+  return DEFAULT_ADMIN_PINS.includes(String(pin));
+}
 
 /* ---------- Connection status + join gate ---------- */
 function setStatus(kind, msg) {
@@ -371,6 +411,7 @@ function setStatus(kind, msg) {
 function joinGateMessage() {
   if (!CONFIGURED) return 'Multiplayer server is not set up. The host must add the Firebase config at the top of the script (see setup notes).';
   if (!state.connected) return state.statusMsg || 'Connecting to the game server...';
+  if (!state.gameId) return 'Preparing the game session...';
   if (state.started && !state.joined) return '🔒 This game has already started. New players cannot enter until the host starts a new round.';
   return '';
 }
@@ -392,9 +433,20 @@ async function initializeRoomIfMissing() {
   if (roomInitPromise) return roomInitPromise;
   roomInitPromise = fb.runTransaction(db, async tx => {
     const snap = await tx.get(roomRef());
-    if (!snap.exists()) tx.set(roomRef(), { drawnNumbers: [], lastDrawn: null, pricePerCard: state.pricePerCard, lastWinner: null, winners: [], started: false, round: 0 });
+    if (!snap.exists()) tx.set(roomRef(), { gameId: newGameId(), drawnNumbers: [], lastDrawn: null, pricePerCard: state.pricePerCard, lastWinner: null, winners: [], started: false, round: 0 });
   }).finally(() => { roomInitPromise = null; });
   return roomInitPromise;
+}
+let gameIdInitPromise = null;
+async function ensureRoomGameId() {
+  if (gameIdInitPromise) return gameIdInitPromise;
+  gameIdInitPromise = fb.runTransaction(db, async tx => {
+    const snap = await tx.get(roomRef());
+    if (!snap.exists()) return;
+    const d = snap.data();
+    if (!d.gameId) tx.set(roomRef(), { gameId: newGameId(), drawnNumbers: [], lastDrawn: null, lastWinner: null, winners: [], started: false, round: 0 }, { merge: true });
+  }).finally(() => { gameIdInitPromise = null; });
+  return gameIdInitPromise;
 }
 
 async function initFirebase() {
@@ -418,7 +470,9 @@ async function initFirebase() {
         return;
       }
       setStatus(cached ? 'connecting' : 'live', cached ? 'Reconnecting...' : 'Live');
-      updateRoom(snap.data());
+      const roomData = snap.data();
+      if (!roomData.gameId) { if (!cached) ensureRoomGameId().catch(onErr); return; }
+      updateRoom(roomData);
       if (!state.restoreTried) { state.restoreTried = true; tryRestore(); }
     }, onErr);
 
@@ -437,7 +491,9 @@ function decodeGrid(value) {
 function ensureRosterListener() {
   if (!fb || state.rosterUnsub || (state.currentView !== 'admin' && state.currentView !== 'gm')) return;
   const onErr = e => { console.error(e); showToast('Roster sync error: ' + errMsg(e), true); };
-  state.rosterUnsub = fb.onSnapshot(playersCol(), snap => {
+  if (!state.gameId) return;
+  const activePlayers = fb.query(playersCol(), fb.where('gameId', '==', state.gameId));
+  state.rosterUnsub = fb.onSnapshot(activePlayers, snap => {
     state.players = snap.docs.map(d => {
       const raw = { id: d.id, ...d.data() };
       raw._decodedGrids = Array.isArray(raw.grids) ? raw.grids.map(decodeGrid).filter(Boolean) : [];
@@ -459,6 +515,7 @@ async function syncPlayer(extra = {}) {
       grids: state.playerCards.map(c => c.grid.join(',')),
       hasBingo: state.hasClaimedBingo,
       roundAck: state.round,
+      gameId: state.gameId,
       updatedAt: Date.now(),
       ...extra
     }, { merge: true });
@@ -469,13 +526,13 @@ async function syncPlayer(extra = {}) {
 const storeKey = () => `ces-bingo:${state.appId}:${state.roomId}`;
 function persist() {
   if (!state.joined) return;
-  try { localStorage.setItem(storeKey(), JSON.stringify({ uid: state.userId, round: state.round, pending: state.roundChoicePending, name: state.playerName, avatar: state.playerAvatar, won: state.hasClaimedBingo, grids: state.playerCards.map(c => c.grid) })); } catch (e) {}
+  try { localStorage.setItem(storeKey(), JSON.stringify({ uid: state.userId, gameId: state.gameId, round: state.round, pending: state.roundChoicePending, name: state.playerName, avatar: state.playerAvatar, won: state.hasClaimedBingo, grids: state.playerCards.map(c => c.grid) })); } catch (e) {}
 }
 function tryRestore() {
   if (state.joined) return;
   try {
     const saved = JSON.parse(localStorage.getItem(storeKey()) || 'null');
-    if (!saved || saved.uid !== state.userId || !Array.isArray(saved.grids) || !saved.grids.length) return;
+    if (!saved || saved.uid !== state.userId || saved.gameId !== state.gameId || !Array.isArray(saved.grids) || !saved.grids.length) return;
     const grids = saved.grids.map(decodeGrid).filter(Boolean);
     if (!grids.length) return;
     const savedRound = Number(saved.round || 0);
@@ -748,7 +805,7 @@ function checkWin(card) {
 
 async function celebrate(patternName = 'BINGO', cardNo = 1) {
   if (state.hasClaimedBingo || !state.joined || !fb) return;
-  const expectedRound = state.round;
+  const expectedRound = state.round, expectedGameId = state.gameId;
   state.hasClaimedBingo = true;
   const ts = Date.now(), winner = { uid: state.userId, name: state.playerName, avatar: state.playerAvatar, pattern: patternName, cardNo, round: expectedRound, timestamp: ts };
   state.seenWinTs = ts;
@@ -760,11 +817,11 @@ async function celebrate(patternName = 'BINGO', cardNo = 1) {
   try {
     await fb.runTransaction(db, async tx => {
       const snap = await tx.get(roomRef()), data = snap.exists() ? snap.data() : {};
-      if (Number(data.round || 0) !== Number(expectedRound)) throw Object.assign(new Error('Round changed'), { code: 'stale-round' });
+      if (data.gameId !== expectedGameId || Number(data.round || 0) !== Number(expectedRound)) throw Object.assign(new Error('Game or round changed'), { code: 'stale-round' });
       const winners = Array.isArray(data.winners) ? data.winners : [];
       const next = winners.some(w => w.uid === state.userId) ? winners : [...winners, winner];
       tx.set(roomRef(), { lastWinner: winner, winners: next }, { merge: true });
-      tx.set(playerRef(), { hasBingo: true, bingoRound: expectedRound, winningPattern: patternName, winningCard: cardNo, roundAck: expectedRound, updatedAt: ts }, { merge: true });
+      tx.set(playerRef(), { gameId: expectedGameId, hasBingo: true, bingoRound: expectedRound, winningPattern: patternName, winningCard: cardNo, roundAck: expectedRound, updatedAt: ts }, { merge: true });
     });
   } catch (e) {
     state.hasClaimedBingo = false; persist();
@@ -776,14 +833,14 @@ async function celebrate(patternName = 'BINGO', cardNo = 1) {
 
 function maybeAnnounceDerivedWinner(player, progress) {
   if (!state.isAdmin || !progress.won || !fb || state.announcingWinnerIds.has(player.id)) return;
-  const expectedRound = state.round;
+  const expectedRound = state.round, expectedGameId = state.gameId;
   const winners = Array.isArray(state.roomState.winners) ? state.roomState.winners : [];
   if (winners.some(w => w.uid === player.id)) return;
   state.announcingWinnerIds.add(player.id);
   const winner = { uid: player.id, name: player.name || 'Player', avatar: player.avatar || '🎉', pattern: progress.name, cardNo: progress.cardNo, round: expectedRound, timestamp: Date.now() };
   fb.runTransaction(db, async tx => {
     const snap = await tx.get(roomRef()), data = snap.exists() ? snap.data() : {};
-    if (Number(data.round || 0) !== Number(expectedRound)) return;
+    if (data.gameId !== expectedGameId || Number(data.round || 0) !== Number(expectedRound)) return;
     const current = Array.isArray(data.winners) ? data.winners : [];
     if (current.some(w => w.uid === player.id)) return;
     tx.set(roomRef(), { lastWinner: winner, winners: [...current, winner] }, { merge: true });
@@ -825,17 +882,17 @@ async function stayForNewRound(addCount = 0) {
     if (adding > 0) {
       await fb.runTransaction(db, async tx => {
         const roomSnap = await tx.get(roomRef()), room = roomSnap.exists() ? roomSnap.data() : {};
-        if (room.started || (room.drawnNumbers || []).length || Number(room.round || 0) !== Number(state.round)) {
+        if (room.gameId !== state.gameId || room.started || (room.drawnNumbers || []).length || Number(room.round || 0) !== Number(state.round)) {
           throw Object.assign(new Error('The next round has already started.'), { code: 'started' });
         }
         tx.set(playerRef(), {
           name: state.playerName, avatar: state.playerAvatar, cardCount: candidateCards.length,
-          grids: candidateCards.map(c => c.grid.join(',')), hasBingo: false, bingoRound: null,
+          grids: candidateCards.map(c => c.grid.join(',')), gameId: state.gameId, hasBingo: false, bingoRound: null,
           winningPattern: null, winningCard: null, roundAck: state.round, updatedAt: Date.now()
         }, { merge: true });
       });
     } else {
-      await fb.setDoc(playerRef(), { hasBingo: false, bingoRound: null, winningPattern: null, winningCard: null, roundAck: state.round, updatedAt: Date.now() }, { merge: true });
+      await fb.setDoc(playerRef(), { gameId: state.gameId, hasBingo: false, bingoRound: null, winningPattern: null, winningCard: null, roundAck: state.round, updatedAt: Date.now() }, { merge: true });
     }
   } catch (e) {
     const started = e.code === 'started' || e.code === 'permission-denied';
@@ -862,7 +919,19 @@ function resetLocalRound() {
   state.playerCards.forEach(c => c.stamped = new Set([12]));
   renderAllPlayerCards(); $('player-win-banner').classList.add('hidden');
 }
+function handleFullGameReset(nextGameId) {
+  stopAutoRoll(); stopRosterListener(); stopStaffMusic();
+  state.gameId = nextGameId; state.players = []; state.joined = false; state.isAdmin = false; state.playerName = ''; state.playerAvatar = '🎯'; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false; state.roundAddCount = 1; state.round = 0; state.roundInitialized = true; state.lastSpokenNum = null; state.seenWinTs = null; state.dismissedWinTs = null; state.announcingWinnerIds.clear();
+  try { localStorage.removeItem(storeKey()); } catch (e) {}
+  ['modal-pin','modal-change-pin','modal-reset-game','modal-confirm-clear','modal-qr','modal-gm-help','modal-round-options'].forEach(hideModal);
+  $('player-profile-badge').classList.add('hidden'); $('player-profile-badge').classList.remove('flex'); $('player-win-banner').classList.add('hidden');
+  $('join-name-input').value = `Player${Math.floor(100 + Math.random() * 900)}`;
+  switchView('player'); renderAllPlayerCards(); refreshJoinPrice(); renderPlayers(); openJoin();
+}
 function updateRoom(data) {
+  const incomingGameId = data.gameId || null;
+  if (!state.gameId) state.gameId = incomingGameId;
+  else if (incomingGameId && incomingGameId !== state.gameId) handleFullGameReset(incomingGameId);
   state.roomState = data;
   const drawn = data.drawnNumbers || [];
   state.started = !!data.started || drawn.length > 0;
@@ -875,7 +944,7 @@ function updateRoom(data) {
     state.round = incomingRound; state.announcingWinnerIds.clear(); resetLocalRound();
     if (wasJoined) { state.roundChoicePending = true; showRoundOptions(); persist(); }
   }
-  if (data.pricePerCard && data.pricePerCard !== state.pricePerCard) { state.pricePerCard = data.pricePerCard; refreshJoinPrice(); if (state.roundChoicePending) refreshRoundOptions(); if (state.currentView === 'admin' || state.currentView === 'gm') renderPlayers(); }
+  if (data.pricePerCard && data.pricePerCard !== state.pricePerCard) { state.pricePerCard = data.pricePerCard; const priceInput = $('admin-card-price-input'); if (priceInput) priceInput.value = data.pricePerCard; refreshJoinPrice(); if (state.roundChoicePending) refreshRoundOptions(); if (state.currentView === 'admin' || state.currentView === 'gm') renderPlayers(); }
 
   $('player-balls-count').textContent = `${drawn.length} / 75`;
   $('gm-total-drawn-pill').textContent = `${drawn.length} / 75 Balls`;
@@ -968,7 +1037,7 @@ async function drawNextBall() {
   if (!state.connected || !fb || !(await authReady)) { showToast('Not connected to the server. Cannot roll.', true); return; }
   if ((state.roomState.drawnNumbers || []).length >= 75) { showToast('All 75 balls drawn!', true); return; }
   state.isRolling = true;
-  const expectedRound = state.round, btn = $('btn-draw-ball'), resetBtn = $('btn-trigger-clear-room'), ball = $('big-bingo-ball');
+  const expectedRound = state.round, expectedGameId = state.gameId, btn = $('btn-draw-ball'), resetBtn = $('btn-trigger-clear-room'), ball = $('big-bingo-ball');
   btn.disabled = true; resetBtn.disabled = true; ball.classList.remove('ball-reveal'); ball.classList.add('ball-rolling');
   $('big-ball-letter').textContent = 'ROLLING'; $('big-ball-num').textContent = '?'; $('gm-announce-msg').textContent = 'Rolling the balls...';
   playBottleShake();
@@ -977,7 +1046,7 @@ async function drawNextBall() {
   try {
     picked = await fb.runTransaction(db, async tx => {
       const snap = await tx.get(roomRef()), d = snap.exists() ? snap.data() : {};
-      if (Number(d.round || 0) !== Number(expectedRound)) throw Object.assign(new Error('Round changed'), { code: 'stale-round' });
+      if (d.gameId !== expectedGameId || Number(d.round || 0) !== Number(expectedRound)) throw Object.assign(new Error('Game or round changed'), { code: 'stale-round' });
       const drawn = Array.isArray(d.drawnNumbers) ? d.drawnNumbers : [], avail = [];
       for (let i = 1; i <= 75; i++) if (!drawn.includes(i)) avail.push(i);
       if (!avail.length) return null;
@@ -1013,10 +1082,45 @@ async function resetRound() {
     state.isResetting = false; drawBtn.disabled = false; resetBtn.disabled = false;
   }
 }
+async function fullResetGame() {
+  if (!fb || !(await authReady)) throw new Error('Not connected to the server');
+  stopAutoRoll();
+  const oldGameId = state.gameId, nextGameId = newGameId();
+  await fb.runTransaction(db, async tx => {
+    const snap = await tx.get(roomRef());
+    const d = snap.exists() ? snap.data() : {};
+    tx.set(roomRef(), {
+      gameId: nextGameId, drawnNumbers: [], lastDrawn: null, lastWinner: null, winners: [], started: false, round: 0, pricePerCard: 10, gameResetAt: Date.now(),
+      ...(d.adminPinHash ? { adminPinHash: d.adminPinHash } : {})
+    }, { merge: true });
+  });
+  // Once the room moves to a new gameId, the security rules treat all previous
+  // player documents as stale. Delete those stale records in safe-size batches.
+  if (oldGameId) {
+    try {
+      const staleQuery = fb.query(playersCol(), fb.where('gameId', '==', oldGameId));
+      const stale = await fb.getDocs(staleQuery), docs = stale.docs;
+      for (let i = 0; i < docs.length; i += 400) {
+        const batch = fb.writeBatch(db);
+        docs.slice(i, i + 400).forEach(d => batch.delete(d.ref));
+        await batch.commit();
+      }
+    } catch (e) { console.warn('Old player cleanup skipped:', errMsg(e)); }
+  }
+  state.pricePerCard = 10;
+  handleFullGameReset(nextGameId);
+}
+async function changeAdminPasscode(currentPin, newPin) {
+  if (!(await verifyAdminPin(currentPin))) throw Object.assign(new Error('Current passcode is incorrect.'), { code: 'wrong-pin' });
+  if (String(newPin).length < 4 || String(newPin).length > 16) throw Object.assign(new Error('New passcode must be 4–16 characters.'), { code: 'bad-pin' });
+  const adminPinHash = await hashAdminPin(newPin);
+  await roomWrite({ adminPinHash, adminPinChangedAt: Date.now() });
+  state.roomState = { ...state.roomState, adminPinHash };
+}
 
 /* ---------- Init ---------- */
 function init() {
-  ['modal-pin', 'modal-confirm-clear', 'modal-qr', 'modal-gm-help', 'modal-round-options'].forEach(hideModal);
+  ['modal-pin', 'modal-change-pin', 'modal-reset-game', 'modal-confirm-clear', 'modal-qr', 'modal-gm-help', 'modal-round-options'].forEach(hideModal);
   switchView('player'); renderAllPlayerCards();
   authReady = initFirebase();
   refreshJoinGate();
@@ -1048,11 +1152,12 @@ function init() {
       const joinedRound = await fb.runTransaction(db, async tx => {
         const rs = await tx.get(roomRef()), rd = rs.exists() ? rs.data() : {};
         if (rd.started || (rd.drawnNumbers || []).length) throw Object.assign(new Error('started'), { code: 'started' });
-        const round = Number(rd.round || 0), now = Date.now();
-        tx.set(playerRef(), { name, avatar: state.playerAvatar, cardCount: grids.length, grids: grids.map(g => g.join(',')), hasBingo: false, bingoRound: null, roundAck: round, joinedAt: now, updatedAt: now });
-        return round;
+        const round = Number(rd.round || 0), gameId = rd.gameId, now = Date.now();
+        if (!gameId) throw new Error('Game session is still initializing.');
+        tx.set(playerRef(), { name, avatar: state.playerAvatar, cardCount: grids.length, grids: grids.map(g => g.join(',')), gameId, hasBingo: false, bingoRound: null, roundAck: round, joinedAt: now, updatedAt: now });
+        return { round, gameId };
       });
-      state.round = joinedRound; state.roundInitialized = true; state.roundChoicePending = false;
+      state.round = joinedRound.round; state.gameId = joinedRound.gameId; state.roundInitialized = true; state.roundChoicePending = false;
       applyJoin(name, state.playerAvatar, grids, false);
     } catch (e) {
       const locked = e.code === 'started' || e.code === 'permission-denied';
@@ -1063,24 +1168,53 @@ function init() {
   });
 
   const openPin = () => { $('pin-input').value = ''; $('pin-error-msg').classList.add('hidden'); showModal('modal-pin'); setTimeout(() => $('pin-input').focus(), 50); };
-  on('btn-join-admin-access', 'click', openPin);
   let clicks = 0, timer;
-  on('brand-logo-trigger', 'click', () => { clicks++; clearTimeout(timer); timer = setTimeout(() => clicks = 0, 600); if (clicks >= 3) { clicks = 0; openPin(); } });
+  const logoAdminTrigger = () => { clicks++; clearTimeout(timer); timer = setTimeout(() => clicks = 0, 650); if (clicks >= 3) { clicks = 0; openPin(); } };
+  on('brand-logo-trigger', 'click', logoAdminTrigger);
+  on('join-logo-trigger', 'click', logoAdminTrigger);
   window.addEventListener('keydown', e => { if (e.altKey && e.key.toLowerCase() === 'a') { e.preventDefault(); openPin(); } });
-  const submitPin = () => {
-    if (PINS.includes($('pin-input').value.trim())) { state.isAdmin = true; hideModal('modal-pin'); if (!state.joined) hideModal('modal-join'); ensureRosterListener(); switchStaffView('admin'); }
-    else $('pin-error-msg').classList.remove('hidden');
+  const submitPin = async () => {
+    const b = $('btn-submit-pin'); b.disabled = true;
+    try {
+      if (await verifyAdminPin($('pin-input').value.trim())) { state.isAdmin = true; hideModal('modal-pin'); if (!state.joined) hideModal('modal-join'); switchStaffView('admin'); }
+      else $('pin-error-msg').classList.remove('hidden');
+    } catch (e) { $('pin-error-msg').textContent = errMsg(e); $('pin-error-msg').classList.remove('hidden'); }
+    finally { b.disabled = false; }
   };
   on('btn-submit-pin', 'click', submitPin);
   on('pin-input', 'keydown', e => { if (e.key === 'Enter') submitPin(); });
   on('btn-cancel-pin', 'click', () => hideModal('modal-pin'));
 
   on('btn-launch-gm-from-admin', 'click', () => { ensureRosterListener(); switchStaffView('gm'); });
-  on('btn-exit-admin', 'click', () => switchStaffView('player'));
+  on('btn-exit-admin', 'click', () => { state.isAdmin = false; switchStaffView('player'); if (!state.joined) openJoin(); });
   on('btn-open-admin-from-gm', 'click', () => { ensureRosterListener(); switchStaffView('admin'); });
-  on('btn-exit-gm-mode', 'click', () => switchStaffView('player'));
+  on('btn-exit-gm-mode', 'click', () => { state.isAdmin = false; switchStaffView('player'); if (!state.joined) openJoin(); });
   on('btn-gm-music', 'click', toggleStaffMusic);
   on('btn-admin-music', 'click', toggleStaffMusic);
+  const openResetGame = () => { $('reset-game-pin').value = ''; $('reset-game-error').classList.add('hidden'); showModal('modal-reset-game'); setTimeout(() => $('reset-game-pin').focus(), 50); };
+  on('btn-gm-reset-game', 'click', openResetGame);
+  on('btn-admin-reset-game', 'click', openResetGame);
+  on('btn-cancel-reset-game', 'click', () => hideModal('modal-reset-game'));
+  on('btn-confirm-reset-game', 'click', async () => {
+    const b = $('btn-confirm-reset-game'), err = $('reset-game-error'); err.classList.add('hidden'); b.disabled = true; b.textContent = 'RESETTING...';
+    try {
+      if (!(await verifyAdminPin($('reset-game-pin').value.trim()))) throw Object.assign(new Error('Incorrect admin passcode.'), { code: 'wrong-pin' });
+      await fullResetGame();
+      showToast('Game completely reset. The active game now has 0 players and is ready for a fresh start.');
+    } catch (e) { err.textContent = errMsg(e); err.classList.remove('hidden'); }
+    finally { b.disabled = false; b.textContent = 'RESET EVERYTHING'; }
+  });
+  on('btn-admin-change-pin', 'click', () => { ['change-pin-current','change-pin-new','change-pin-confirm'].forEach(id => $(id).value = ''); $('change-pin-error').classList.add('hidden'); showModal('modal-change-pin'); setTimeout(() => $('change-pin-current').focus(), 50); });
+  on('btn-cancel-change-pin', 'click', () => hideModal('modal-change-pin'));
+  on('btn-save-change-pin', 'click', async () => {
+    const current = $('change-pin-current').value, next = $('change-pin-new').value, confirm = $('change-pin-confirm').value, err = $('change-pin-error'), b = $('btn-save-change-pin');
+    err.classList.add('hidden');
+    if (next !== confirm) { err.textContent = 'The new passcodes do not match.'; err.classList.remove('hidden'); return; }
+    b.disabled = true; b.textContent = 'SAVING...';
+    try { await changeAdminPasscode(current, next); hideModal('modal-change-pin'); showToast('Admin passcode changed successfully.'); }
+    catch (e) { err.textContent = errMsg(e); err.classList.remove('hidden'); }
+    finally { b.disabled = false; b.textContent = 'Save Passcode'; }
+  });
 
   on('btn-draw-ball', 'click', drawNextBall);
   const setAuto = () => {
@@ -1120,7 +1254,7 @@ function init() {
   on('btn-round-leave', 'click', leaveGame);
   on('btn-admin-copy-link', 'click', () => copyText(shareLink(), () => showToast('Link copied!')));
   on('btn-admin-copy-invite', 'click', () => copyText(`🎉 Join our BINGO by CES Fun Club!\n👉 ${shareLink()}\n🎟️ Cards are ₱${state.pricePerCard}.00 each. Join before the first ball is rolled, because the room locks once the game starts!`, () => showToast('Invitation copied!')));
-  ['modal-qr', 'modal-confirm-clear', 'modal-pin', 'modal-gm-help'].forEach(id => on(id, 'click', e => { if (e.target.id === id) hideModal(id); }));
+  ['modal-qr', 'modal-confirm-clear', 'modal-pin', 'modal-change-pin', 'modal-reset-game', 'modal-gm-help'].forEach(id => on(id, 'click', e => { if (e.target.id === id) hideModal(id); }));
 
   on('btn-save-price', 'click', async () => {
     const p = parseFloat($('admin-card-price-input').value);
