@@ -309,8 +309,11 @@
 
 <script type="module">
 const $ = id => document.getElementById(id);
-const ROLL_DELAY = 700; // short suspense; Firestore update follows immediately for fast player sync
+const ROLL_DELAY = 350; // brief animation while keeping live number delivery fast
 const PINS = ['1234', 'CES2026', 'ces'];
+const MAX_CARDS = 20;
+const BGM_VOLUME = 0.20;
+const SFX_VOLUME = 0.80;
 
 /* ====================================================================
    SERVER SETUP (required for multiplayer across different devices)
@@ -342,10 +345,15 @@ const state = {
   connected: false, statusMsg: '', started: false, restoreTried: false,
   autoRollTimer: null, isRolling: false, round: 0, seenWinTs: null, dismissedWinTs: null,
   players: [], roomState: { drawnNumbers: [], lastDrawn: null, lastWinner: null, winners: [] },
-  rosterUnsub: null, announcingWinnerIds: new Set(), roundInitialized: false, roundChoicePending: false, roundAddCount: 1
+  rosterUnsub: null, announcingWinnerIds: new Set(), roundInitialized: false, roundChoicePending: false, roundAddCount: 1,
+  currentView: 'player', isResetting: false
 };
 
-try { const r = new URLSearchParams(location.search).get('room'); if (r && r.trim()) state.roomId = r.trim().toLowerCase(); } catch (e) {}
+const normalizeRoomId = value => {
+  const cleaned = String(value || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '-').replace(/-+/g, '-').slice(0, 48);
+  return cleaned || 'room-1';
+};
+try { state.roomId = normalizeRoomId(new URLSearchParams(location.search).get('room') || state.roomId); } catch (e) { state.roomId = 'room-1'; }
 $('header-room-id').textContent = state.roomId;
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -379,6 +387,15 @@ const roomRef = () => fb.doc(db, ...basePath(), state.roomId);
 const playersCol = () => fb.collection(db, ...basePath(), state.roomId, 'players');
 const playerRef = () => fb.doc(db, ...basePath(), state.roomId, 'players', state.userId);
 const errMsg = e => (e && (e.code || e.message)) || 'unknown error';
+let roomInitPromise = null;
+async function initializeRoomIfMissing() {
+  if (roomInitPromise) return roomInitPromise;
+  roomInitPromise = fb.runTransaction(db, async tx => {
+    const snap = await tx.get(roomRef());
+    if (!snap.exists()) tx.set(roomRef(), { drawnNumbers: [], lastDrawn: null, pricePerCard: state.pricePerCard, lastWinner: null, winners: [], started: false, round: 0 });
+  }).finally(() => { roomInitPromise = null; });
+  return roomInitPromise;
+}
 
 async function initFirebase() {
   if (!CONFIGURED) { setStatus('error', 'Server not configured'); return false; }
@@ -395,15 +412,17 @@ async function initFirebase() {
     const onErr = e => { console.error(e); setStatus('error', 'Server error: ' + errMsg(e)); };
     fb.onSnapshot(roomRef(), { includeMetadataChanges: true }, snap => {
       const cached = snap.metadata.fromCache;
-      setStatus(cached ? 'connecting' : 'live', cached ? 'Reconnecting...' : 'Live');
       if (!snap.exists()) {
-        if (!cached) fb.setDoc(roomRef(), { drawnNumbers: [], lastDrawn: null, pricePerCard: state.pricePerCard, lastWinner: null, winners: [], started: false, round: 0 }, { merge: true }).catch(onErr);
+        setStatus('connecting', cached ? 'Waiting for server...' : 'Initializing room...');
+        if (!cached) initializeRoomIfMissing().catch(onErr);
         return;
       }
+      setStatus(cached ? 'connecting' : 'live', cached ? 'Reconnecting...' : 'Live');
       updateRoom(snap.data());
       if (!state.restoreTried) { state.restoreTried = true; tryRestore(); }
     }, onErr);
 
+    if (state.isAdmin && (state.currentView === 'admin' || state.currentView === 'gm')) ensureRosterListener();
     return true;
   } catch (e) { console.error(e); setStatus('error', 'Cannot connect: ' + errMsg(e)); return false; }
 }
@@ -411,14 +430,24 @@ async function roomWrite(data) {
   if (!fb || !(await authReady)) throw new Error('Not connected to the server');
   await fb.setDoc(roomRef(), data, { merge: true });
 }
+function decodeGrid(value) {
+  const grid = Array.isArray(value) ? value.map(Number) : String(value || '').split(',').map(Number);
+  return grid.length === 25 && grid.every(Number.isFinite) ? grid : null;
+}
 function ensureRosterListener() {
-  if (!fb || state.rosterUnsub) return;
+  if (!fb || state.rosterUnsub || (state.currentView !== 'admin' && state.currentView !== 'gm')) return;
   const onErr = e => { console.error(e); showToast('Roster sync error: ' + errMsg(e), true); };
-  state.rosterUnsub = fb.onSnapshot(playersCol(), { includeMetadataChanges: true }, snap => {
-    if (snap.metadata.fromCache && !state.connected) return;
-    state.players = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  state.rosterUnsub = fb.onSnapshot(playersCol(), snap => {
+    state.players = snap.docs.map(d => {
+      const raw = { id: d.id, ...d.data() };
+      raw._decodedGrids = Array.isArray(raw.grids) ? raw.grids.map(decodeGrid).filter(Boolean) : [];
+      return raw;
+    });
     renderPlayers();
   }, onErr);
+}
+function stopRosterListener() {
+  if (state.rosterUnsub) { try { state.rosterUnsub(); } catch (e) {} state.rosterUnsub = null; }
 }
 async function syncPlayer(extra = {}) {
   if (!state.joined || !fb) return;
@@ -429,6 +458,7 @@ async function syncPlayer(extra = {}) {
       cardCount: state.playerCards.length,
       grids: state.playerCards.map(c => c.grid.join(',')),
       hasBingo: state.hasClaimedBingo,
+      roundAck: state.round,
       updatedAt: Date.now(),
       ...extra
     }, { merge: true });
@@ -439,21 +469,32 @@ async function syncPlayer(extra = {}) {
 const storeKey = () => `ces-bingo:${state.appId}:${state.roomId}`;
 function persist() {
   if (!state.joined) return;
-  try { localStorage.setItem(storeKey(), JSON.stringify({ uid: state.userId, round: state.round, name: state.playerName, avatar: state.playerAvatar, won: state.hasClaimedBingo, grids: state.playerCards.map(c => c.grid) })); } catch (e) {}
+  try { localStorage.setItem(storeKey(), JSON.stringify({ uid: state.userId, round: state.round, pending: state.roundChoicePending, name: state.playerName, avatar: state.playerAvatar, won: state.hasClaimedBingo, grids: state.playerCards.map(c => c.grid) })); } catch (e) {}
 }
 function tryRestore() {
   if (state.joined) return;
   try {
-    const s = JSON.parse(localStorage.getItem(storeKey()) || 'null');
-    if (!s || s.uid !== state.userId || !s.grids || !s.grids.length) return;
-    applyJoin(s.name, s.avatar, s.grids, !!s.won);
-    syncPlayer();
-  } catch (e) {}
+    const saved = JSON.parse(localStorage.getItem(storeKey()) || 'null');
+    if (!saved || saved.uid !== state.userId || !Array.isArray(saved.grids) || !saved.grids.length) return;
+    const grids = saved.grids.map(decodeGrid).filter(Boolean);
+    if (!grids.length) return;
+    const savedRound = Number(saved.round || 0);
+    const needsChoice = !!saved.pending || savedRound !== Number(state.round || 0);
+    state.roundChoicePending = needsChoice;
+    applyJoin(saved.name || 'Player', saved.avatar || '🎯', grids, needsChoice ? false : !!saved.won);
+    if (needsChoice) { resetLocalRound(); persist(); showRoundOptions(); }
+    else syncPlayer({ roundAck: state.round });
+  } catch (e) { console.warn('Restore failed', e); }
 }
 
 /* ---------- Audio ---------- */
-let audioCtx = null;
-try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+let audioCtx = null, sfxMaster = null;
+try {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  sfxMaster = audioCtx.createGain();
+  sfxMaster.gain.value = SFX_VOLUME;
+  sfxMaster.connect(audioCtx.destination);
+} catch (e) {}
 const resumeAudio = () => { if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); };
 ['click', 'touchstart', 'keydown'].forEach(e => window.addEventListener(e, resumeAudio, { passive: true }));
 function playBeep(freq = 520, type = 'sine', dur = 0.12, delay = 0) {
@@ -462,27 +503,27 @@ function playBeep(freq = 520, type = 'sine', dur = 0.12, delay = 0) {
     resumeAudio();
     const t = audioCtx.currentTime + delay, o = audioCtx.createOscillator(), g = audioCtx.createGain();
     o.type = type; o.frequency.setValueAtTime(freq, t);
-    g.gain.setValueAtTime(0.1, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t + dur);
+    g.gain.setValueAtTime(0.42, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g); g.connect(sfxMaster || audioCtx.destination); o.start(t); o.stop(t + dur);
   } catch (e) {}
 }
 function playBottleShake() {
   if (!state.soundEnabled || !audioCtx) return;
   try {
     resumeAudio();
-    const now = audioCtx.currentTime, dur = 0.95, n = Math.floor(audioCtx.sampleRate * dur);
+    const now = audioCtx.currentTime, dur = 0.42, n = Math.floor(audioCtx.sampleRate * dur);
     const buf = audioCtx.createBuffer(1, n, audioCtx.sampleRate), d = buf.getChannelData(0);
     for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
     const src = audioCtx.createBufferSource(); src.buffer = buf;
-    const f = audioCtx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1400; f.Q.value = 3.5;
+    const f = audioCtx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1500; f.Q.value = 3.2;
     const g = audioCtx.createGain(); g.gain.setValueAtTime(0.01, now);
-    [[0.12, .15], [0.28, .02], [0.42, .2], [0.58, .02], [0.7, .25], [0.9, .001]].forEach(([t, v]) => g.gain.exponentialRampToValueAtTime(v, now + t));
-    src.connect(f); f.connect(g); g.connect(audioCtx.destination); src.start(now); src.stop(now + dur);
-    for (let i = 0; i < 12; i++) {
-      const t = now + 0.02 + i * 0.06, o = audioCtx.createOscillator(), og = audioCtx.createGain();
-      o.type = 'triangle'; o.frequency.setValueAtTime(2200 + Math.random() * 1500, t); o.frequency.exponentialRampToValueAtTime(1000, t + 0.03);
-      og.gain.setValueAtTime(0.05 + Math.random() * 0.05, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
-      o.connect(og); og.connect(audioCtx.destination); o.start(t); o.stop(t + 0.04);
+    [[0.06,.28],[0.14,.05],[0.22,.32],[0.30,.06],[0.38,.26],[0.42,.001]].forEach(([t,v]) => g.gain.exponentialRampToValueAtTime(v, now + t));
+    src.connect(f); f.connect(g); g.connect(sfxMaster || audioCtx.destination); src.start(now); src.stop(now + dur);
+    for (let i = 0; i < 6; i++) {
+      const t = now + 0.03 + i * 0.055, o = audioCtx.createOscillator(), og = audioCtx.createGain();
+      o.type = 'triangle'; o.frequency.setValueAtTime(2200 + Math.random() * 1200, t); o.frequency.exponentialRampToValueAtTime(1100, t + 0.025);
+      og.gain.setValueAtTime(0.04, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
+      o.connect(og); og.connect(sfxMaster || audioCtx.destination); o.start(t); o.stop(t + 0.035);
     }
   } catch (e) {}
 }
@@ -538,7 +579,10 @@ function copyText(text, ok) {
   };
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok).catch(fallback); else fallback();
 }
-const switchView = v => ['player', 'gm', 'admin'].forEach(n => { const el = $('view-' + n), show = n === v; el.classList.toggle('hidden', !show); el.classList.toggle('flex', show); });
+const switchView = v => {
+  state.currentView = v;
+  ['player', 'gm', 'admin'].forEach(n => { const el = $('view-' + n), show = n === v; el.classList.toggle('hidden', !show); el.classList.toggle('flex', show); });
+};
 
 /* ---------- Admin / Game Master background music ---------- */
 let bgMusic = null, bgMusicEnabled = true;
@@ -547,7 +591,7 @@ function ensureBgMusic() {
     bgMusic = new Audio('game-music.mp3');
     bgMusic.loop = true;
     bgMusic.preload = 'auto';
-    bgMusic.volume = 0.35;
+    bgMusic.volume = BGM_VOLUME;
   }
   return bgMusic;
 }
@@ -569,9 +613,16 @@ function toggleStaffMusic() {
   if (bgMusicEnabled) startStaffMusic(); else if (bgMusic) bgMusic.pause();
   updateMusicButtons();
 }
+function stopAutoRoll() {
+  if (state.autoRollTimer) clearInterval(state.autoRollTimer);
+  state.autoRollTimer = null;
+  const toggle = $('gm-auto-roll-toggle'); if (toggle) toggle.checked = false;
+}
 function switchStaffView(v) {
+  if (v !== 'gm') stopAutoRoll();
   switchView(v);
-  if (v === 'admin' || v === 'gm') startStaffMusic(); else stopStaffMusic();
+  if (v === 'admin' || v === 'gm') { ensureRosterListener(); renderPlayers(); startStaffMusic(); }
+  else { stopRosterListener(); stopStaffMusic(); }
 }
 
 
@@ -674,14 +725,14 @@ function patternProgress(grid, drawnSet) {
 }
 
 function playerProgress(player, drawn = state.roomState.drawnNumbers || []) {
-  const grids = Array.isArray(player.grids) ? player.grids.map(g => Array.isArray(g) ? g : String(g).split(',').map(Number)) : [];
+  const grids = Array.isArray(player._decodedGrids) ? player._decodedGrids : (Array.isArray(player.grids) ? player.grids.map(decodeGrid).filter(Boolean) : []);
   const set = new Set(drawn);
   let best = null, bestCard = 0;
   grids.forEach((grid, i) => {
     const p = patternProgress(grid, set);
     if (!best || p.missing < best.missing || (p.missing === best.missing && p.pct > best.pct)) { best = p; bestCard = i + 1; }
   });
-  return best ? { ...best, cardNo: bestCard } : { name: 'Waiting for card data', matched: 0, missing: 99, pct: 0, size: 0, won: !!player.hasBingo, cardNo: 0 };
+  return best ? { ...best, cardNo: bestCard } : { name: 'Waiting for card data', matched: 0, missing: 99, pct: 0, size: 0, won: false, cardNo: 0 };
 }
 
 function checkWin(card) {
@@ -696,9 +747,10 @@ function checkWin(card) {
 }
 
 async function celebrate(patternName = 'BINGO', cardNo = 1) {
-  if (state.hasClaimedBingo) return;
+  if (state.hasClaimedBingo || !state.joined || !fb) return;
+  const expectedRound = state.round;
   state.hasClaimedBingo = true;
-  const ts = Date.now(), winner = { uid: state.userId, name: state.playerName, avatar: state.playerAvatar, pattern: patternName, cardNo, timestamp: ts };
+  const ts = Date.now(), winner = { uid: state.userId, name: state.playerName, avatar: state.playerAvatar, pattern: patternName, cardNo, round: expectedRound, timestamp: ts };
   state.seenWinTs = ts;
   if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
   playWinFanfare();
@@ -707,22 +759,32 @@ async function celebrate(patternName = 'BINGO', cardNo = 1) {
   persist();
   try {
     await fb.runTransaction(db, async tx => {
-      const snap = await tx.get(roomRef()), data = snap.exists() ? snap.data() : {}, winners = Array.isArray(data.winners) ? data.winners : [];
+      const snap = await tx.get(roomRef()), data = snap.exists() ? snap.data() : {};
+      if (Number(data.round || 0) !== Number(expectedRound)) throw Object.assign(new Error('Round changed'), { code: 'stale-round' });
+      const winners = Array.isArray(data.winners) ? data.winners : [];
       const next = winners.some(w => w.uid === state.userId) ? winners : [...winners, winner];
       tx.set(roomRef(), { lastWinner: winner, winners: next }, { merge: true });
-      tx.set(playerRef(), { hasBingo: true, winningPattern: patternName, winningCard: cardNo, updatedAt: ts }, { merge: true });
+      tx.set(playerRef(), { hasBingo: true, bingoRound: expectedRound, winningPattern: patternName, winningCard: cardNo, roundAck: expectedRound, updatedAt: ts }, { merge: true });
     });
-  } catch (e) { console.warn('Winner sync failed', errMsg(e)); }
+  } catch (e) {
+    state.hasClaimedBingo = false; persist();
+    if (e.code === 'stale-round') { $('player-win-banner').classList.add('hidden'); return; }
+    console.warn('Winner sync failed', errMsg(e));
+    showToast('Bingo detected, but winner sync is reconnecting. The app will verify it again.', true);
+  }
 }
 
 function maybeAnnounceDerivedWinner(player, progress) {
   if (!state.isAdmin || !progress.won || !fb || state.announcingWinnerIds.has(player.id)) return;
+  const expectedRound = state.round;
   const winners = Array.isArray(state.roomState.winners) ? state.roomState.winners : [];
   if (winners.some(w => w.uid === player.id)) return;
   state.announcingWinnerIds.add(player.id);
-  const winner = { uid: player.id, name: player.name || 'Player', avatar: player.avatar || '🎉', pattern: progress.name, cardNo: progress.cardNo, timestamp: Date.now() };
+  const winner = { uid: player.id, name: player.name || 'Player', avatar: player.avatar || '🎉', pattern: progress.name, cardNo: progress.cardNo, round: expectedRound, timestamp: Date.now() };
   fb.runTransaction(db, async tx => {
-    const snap = await tx.get(roomRef()), data = snap.exists() ? snap.data() : {}, current = Array.isArray(data.winners) ? data.winners : [];
+    const snap = await tx.get(roomRef()), data = snap.exists() ? snap.data() : {};
+    if (Number(data.round || 0) !== Number(expectedRound)) return;
+    const current = Array.isArray(data.winners) ? data.winners : [];
     if (current.some(w => w.uid === player.id)) return;
     tx.set(roomRef(), { lastWinner: winner, winners: [...current, winner] }, { merge: true });
   }).catch(e => console.warn('Winner announcement failed', errMsg(e))).finally(() => state.announcingWinnerIds.delete(player.id));
@@ -743,24 +805,47 @@ function refreshRoundOptions() {
   const total = state.playerCards.length, add = state.roundAddCount;
   $('round-current-cards').textContent = `${total} ${total === 1 ? 'Card' : 'Cards'}`;
   $('round-add-count').textContent = add;
-  $('round-add-cost').textContent = `+₱${(add * state.pricePerCard).toFixed(2)}`;
-  $('btn-round-add-plus').disabled = total + add >= 20;
-  $('btn-round-add-minus').disabled = add <= 1;
+  const locked = state.started;
+  const atLimit = total >= MAX_CARDS;
+  $('btn-round-add-plus').disabled = locked || total + add >= MAX_CARDS;
+  $('btn-round-add-minus').disabled = locked || add <= 1;
+  $('btn-round-add-confirm').disabled = locked || atLimit;
+  $('round-add-cost').textContent = locked ? 'LOCKED' : `+₱${(add * state.pricePerCard).toFixed(2)}`;
 }
 function showRoundOptions() {
   if (!state.joined || state.isAdmin) return;
   state.roundChoicePending = true; state.roundAddCount = 1; refreshRoundOptions(); showModal('modal-round-options');
 }
 async function stayForNewRound(addCount = 0) {
-  if (!state.joined) return;
-  for (let i = 0; i < addCount && state.playerCards.length < 20; i++) {
-    state.playerCards.push({ cardId: 'card-' + (state.playerCards.length + 1), grid: generateCard(), stamped: new Set([12]) });
+  if (!state.joined || !fb) return;
+  const adding = Math.max(0, Math.min(Number(addCount) || 0, MAX_CARDS - state.playerCards.length));
+  const newCards = Array.from({ length: adding }, () => ({ cardId: '', grid: generateCard(), stamped: new Set([12]) }));
+  const candidateCards = [...state.playerCards, ...newCards].map((c, i) => ({ ...c, cardId: 'card-' + (i + 1) }));
+  try {
+    if (adding > 0) {
+      await fb.runTransaction(db, async tx => {
+        const roomSnap = await tx.get(roomRef()), room = roomSnap.exists() ? roomSnap.data() : {};
+        if (room.started || (room.drawnNumbers || []).length || Number(room.round || 0) !== Number(state.round)) {
+          throw Object.assign(new Error('The next round has already started.'), { code: 'started' });
+        }
+        tx.set(playerRef(), {
+          name: state.playerName, avatar: state.playerAvatar, cardCount: candidateCards.length,
+          grids: candidateCards.map(c => c.grid.join(',')), hasBingo: false, bingoRound: null,
+          winningPattern: null, winningCard: null, roundAck: state.round, updatedAt: Date.now()
+        }, { merge: true });
+      });
+    } else {
+      await fb.setDoc(playerRef(), { hasBingo: false, bingoRound: null, winningPattern: null, winningCard: null, roundAck: state.round, updatedAt: Date.now() }, { merge: true });
+    }
+  } catch (e) {
+    const started = e.code === 'started' || e.code === 'permission-denied';
+    showToast(started ? 'The next round has already started. You can keep your current cards, but no new cards can be added.' : 'Could not update your cards: ' + errMsg(e), true);
+    state.started = state.started || started; refreshRoundOptions(); return;
   }
-  state.cardCount = state.playerCards.length; state.hasClaimedBingo = false; state.roundChoicePending = false;
+  state.playerCards = candidateCards; state.cardCount = candidateCards.length; state.hasClaimedBingo = false; state.roundChoicePending = false;
   $('player-cards-badge').textContent = `${state.cardCount} ${state.cardCount === 1 ? 'Card' : 'Cards'}`;
-  renderAllPlayerCards(); persist(); hideModal('modal-round-options');
-  await syncPlayer({ hasBingo: false, winningPattern: null, winningCard: null });
-  showToast(addCount ? `${addCount} new card${addCount > 1 ? 's' : ''} added. You're ready for the next round!` : 'You kept your cards for the next round.');
+  renderAllPlayerCards(); applyAutoDaub(state.roomState.drawnNumbers || []); persist(); hideModal('modal-round-options');
+  showToast(adding ? `${adding} new card${adding > 1 ? 's' : ''} added. You're ready for the next round!` : 'You kept your cards for the next round.');
 }
 async function leaveGame() {
   if (!state.joined) return;
@@ -773,7 +858,7 @@ async function leaveGame() {
 
 /* ---------- Room state -> UI ---------- */
 function resetLocalRound() {
-  state.hasClaimedBingo = false; state.seenWinTs = null; state.dismissedWinTs = null;
+  state.hasClaimedBingo = false; state.seenWinTs = null; state.dismissedWinTs = null; state.lastSpokenNum = null;
   state.playerCards.forEach(c => c.stamped = new Set([12]));
   renderAllPlayerCards(); $('player-win-banner').classList.add('hidden');
 }
@@ -787,10 +872,10 @@ function updateRoom(data) {
     state.round = incomingRound; state.roundInitialized = true;
   } else if (incomingRound !== state.round) {
     const wasJoined = state.joined;
-    state.round = incomingRound; resetLocalRound(); persist();
-    if (wasJoined) { syncPlayer({ hasBingo: false, winningPattern: null, winningCard: null }); showRoundOptions(); }
+    state.round = incomingRound; state.announcingWinnerIds.clear(); resetLocalRound();
+    if (wasJoined) { state.roundChoicePending = true; showRoundOptions(); persist(); }
   }
-  if (data.pricePerCard && data.pricePerCard !== state.pricePerCard) { state.pricePerCard = data.pricePerCard; refreshJoinPrice(); renderPlayers(); }
+  if (data.pricePerCard && data.pricePerCard !== state.pricePerCard) { state.pricePerCard = data.pricePerCard; refreshJoinPrice(); if (state.roundChoicePending) refreshRoundOptions(); if (state.currentView === 'admin' || state.currentView === 'gm') renderPlayers(); }
 
   $('player-balls-count').textContent = `${drawn.length} / 75`;
   $('gm-total-drawn-pill').textContent = `${drawn.length} / 75 Balls`;
@@ -814,7 +899,8 @@ function updateRoom(data) {
   else bar.innerHTML = '<span class="text-xs text-slate-500 italic">None</span>';
 
   applyAutoDaub(drawn);
-  if (state.isAdmin) renderPlayers();
+  if (state.roundChoicePending) refreshRoundOptions();
+  if (state.currentView === 'admin' || state.currentView === 'gm') renderPlayers();
 
   const w = data.lastWinner;
   if (w && w.timestamp !== state.dismissedWinTs) {
@@ -824,84 +910,108 @@ function updateRoom(data) {
   refreshJoinGate();
 }
 
+const formatMoney = value => Number(value || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 function renderPlayers() {
   const drawn = state.roomState.drawnNumbers || [];
   const list = state.players.map(p => ({ ...p, rank: playerProgress(p, drawn) }));
   list.forEach(p => maybeAnnounceDerivedWinner(p, p.rank));
-  const cards = list.reduce((sum, p) => sum + (p.cardCount || 1), 0), money = (cards * state.pricePerCard).toLocaleString();
+  const cards = list.reduce((sum, p) => sum + (Number(p.cardCount) || 0), 0), money = cards * state.pricePerCard;
   $('gm-live-count-badge').textContent = `${list.length} Players`;
-  $('gm-stat-players').textContent = list.length; $('gm-stat-cards').textContent = cards; $('gm-stat-income').textContent = `₱${money}`; $('gm-total-pot-pill').textContent = `₱${money}.00`;
-  $('admin-total-players').textContent = list.length; $('admin-total-cards').textContent = cards; $('admin-total-income').textContent = `₱${money}.00`;
+  $('gm-stat-players').textContent = list.length; $('gm-stat-cards').textContent = cards; $('gm-stat-income').textContent = `₱${formatMoney(money)}`; $('gm-total-pot-pill').textContent = `₱${formatMoney(money)}`;
+  $('admin-total-players').textContent = list.length; $('admin-total-cards').textContent = cards; $('admin-total-income').textContent = `₱${formatMoney(money)}`;
 
   list.sort((a, b) => {
-    const aw = a.rank.won || a.hasBingo, bw = b.rank.won || b.hasBingo;
+    const aw = a.rank.won, bw = b.rank.won;
     if (aw !== bw) return bw - aw;
     if (a.rank.missing !== b.rank.missing) return a.rank.missing - b.rank.missing;
     if (a.rank.pct !== b.rank.pct) return b.rank.pct - a.rank.pct;
     return (a.joinedAt || 0) - (b.joinedAt || 0);
   });
 
-  const gm = $('gm-participants-list');
-  gm.innerHTML = list.length ? '' : '<div class="text-slate-500 text-center py-10 italic">No participants yet. Share the link to join!</div>';
-  list.forEach((p, i) => {
-    const n = p.cardCount || 1, me = p.id === state.userId, won = p.rank.won || p.hasBingo;
-    const near = p.rank.cardNo ? (won ? `★ BINGO • ${p.rank.name} • Card ${p.rank.cardNo}` : `${p.rank.missing} away • ${Math.round(p.rank.pct * 100)}% • ${p.rank.name} • Card ${p.rank.cardNo}`) : 'Waiting for card data';
-    const row = document.createElement('div');
-    row.className = `flex items-center justify-between gap-2 p-2.5 rounded-2xl border ${won ? 'bg-amber-500/20 border-amber-500/50 text-amber-200' : i < 3 ? 'bg-indigo-500/10 border-indigo-500/30' : 'bg-slate-800/60 border-slate-700/60'}`;
-    row.innerHTML = `<div class="flex items-center gap-3 min-w-0"><span class="font-mono text-xs font-bold ${i < 3 ? 'text-amber-400' : 'text-slate-500'}">#${i + 1}</span><span class="text-xl">${esc(p.avatar || '🎯')}</span>
-      <div class="min-w-0"><span class="font-bold text-xs truncate block ${me ? 'text-amber-400' : 'text-slate-200'}">${esc(p.name || 'Anon')}${me ? ' (You)' : ''}</span><span class="text-[10px] text-slate-400">${n} Cards • ₱${n * state.pricePerCard}</span><span class="text-[10px] block mt-0.5 ${won ? 'text-amber-300 font-bold' : p.rank.missing <= 1 ? 'text-emerald-300 font-bold' : 'text-cyan-300'}">${esc(near)}</span></div></div>
-      <span class="text-[11px] font-mono px-2 py-0.5 rounded-full shrink-0 ${won ? 'bg-amber-500 text-slate-950 font-black animate-pulse' : p.rank.missing <= 1 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-700 text-slate-300'}">${won ? '★ BINGO!' : p.rank.cardNo ? `${p.rank.missing} AWAY` : 'READY'}</span>`;
-    gm.appendChild(row);
-  });
+  if (state.currentView === 'gm') {
+    const gm = $('gm-participants-list');
+    gm.innerHTML = list.length ? '' : '<div class="text-slate-500 text-center py-10 italic">No participants yet. Share the link to join!</div>';
+    list.forEach((p, i) => {
+      const n = Number(p.cardCount) || 0, won = p.rank.won, pending = Number(p.roundAck) !== Number(state.round);
+      const near = pending && !state.started ? 'Choosing next-round option…' : p.rank.cardNo ? (won ? `★ BINGO • ${p.rank.name} • Card ${p.rank.cardNo}` : `${p.rank.missing} away • ${Math.round(p.rank.pct * 100)}% • ${p.rank.name} • Card ${p.rank.cardNo}`) : 'Waiting for card data';
+      const row = document.createElement('div');
+      row.className = `flex items-center justify-between gap-2 p-2.5 rounded-2xl border ${won ? 'bg-amber-500/20 border-amber-500/50 text-amber-200' : i < 3 ? 'bg-indigo-500/10 border-indigo-500/30' : 'bg-slate-800/60 border-slate-700/60'}`;
+      row.innerHTML = `<div class="flex items-center gap-3 min-w-0"><span class="font-mono text-xs font-bold ${i < 3 ? 'text-amber-400' : 'text-slate-500'}">#${i + 1}</span><span class="text-xl">${esc(p.avatar || '🎯')}</span>
+        <div class="min-w-0"><span class="font-bold text-xs truncate block text-slate-200">${esc(p.name || 'Anon')}</span><span class="text-[10px] text-slate-400">${n} Cards • ₱${formatMoney(n * state.pricePerCard)}</span><span class="text-[10px] block mt-0.5 ${won ? 'text-amber-300 font-bold' : pending && !state.started ? 'text-violet-300 font-bold' : p.rank.missing <= 1 ? 'text-emerald-300 font-bold' : 'text-cyan-300'}">${esc(near)}</span></div></div>
+        <span class="text-[11px] font-mono px-2 py-0.5 rounded-full shrink-0 ${won ? 'bg-amber-500 text-slate-950 font-black animate-pulse' : pending && !state.started ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : p.rank.missing <= 1 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-700 text-slate-300'}">${won ? '★ BINGO!' : pending && !state.started ? 'CHOOSING' : p.rank.cardNo ? `${p.rank.missing} AWAY` : 'READY'}</span>`;
+      gm.appendChild(row);
+    });
+  }
 
-  const tb = $('admin-roster-tbody');
-  tb.innerHTML = list.length ? '' : '<tr><td colspan="6" class="text-center py-8 text-slate-500 italic">No participants registered yet</td></tr>';
-  list.forEach((p, i) => {
-    const n = p.cardCount || 1, won = p.rank.won || p.hasBingo, tr = document.createElement('tr');
-    const status = won ? `BINGO • ${p.rank.name}` : p.rank.cardNo ? `${p.rank.missing} away • ${Math.round(p.rank.pct * 100)}%` : 'PLAYING';
-    tr.innerHTML = `<td class="py-2.5 px-3 font-mono ${i < 3 ? 'text-amber-400 font-bold' : 'text-slate-500'}">${i + 1}</td><td class="py-2.5 px-3"><span class="mr-1">${esc(p.avatar || '👤')}</span><span class="font-bold text-slate-200">${esc(p.name || 'Anon')}</span></td>
-      <td class="py-2.5 px-3 text-cyan-400 font-mono font-bold">${n}</td><td class="py-2.5 px-3 text-slate-400">₱${state.pricePerCard}</td><td class="py-2.5 px-3 text-emerald-400 font-mono font-bold">₱${n * state.pricePerCard}</td>
-      <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${won ? 'bg-amber-500 text-slate-950' : p.rank.missing <= 1 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">${esc(status)}</span></td>`;
-    tb.appendChild(tr);
-  });
+  if (state.currentView === 'admin') {
+    const tb = $('admin-roster-tbody');
+    tb.innerHTML = list.length ? '' : '<tr><td colspan="6" class="text-center py-8 text-slate-500 italic">No participants registered yet</td></tr>';
+    list.forEach((p, i) => {
+      const n = Number(p.cardCount) || 0, won = p.rank.won, pending = Number(p.roundAck) !== Number(state.round), tr = document.createElement('tr');
+      const status = won ? `BINGO • ${p.rank.name}` : pending && !state.started ? 'CHOOSING NEXT ROUND' : p.rank.cardNo ? `${p.rank.missing} away • ${Math.round(p.rank.pct * 100)}%` : 'PLAYING';
+      tr.innerHTML = `<td class="py-2.5 px-3 font-mono ${i < 3 ? 'text-amber-400 font-bold' : 'text-slate-500'}">${i + 1}</td><td class="py-2.5 px-3"><span class="mr-1">${esc(p.avatar || '👤')}</span><span class="font-bold text-slate-200">${esc(p.name || 'Anon')}</span></td>
+        <td class="py-2.5 px-3 text-cyan-400 font-mono font-bold">${n}</td><td class="py-2.5 px-3 text-slate-400">₱${formatMoney(state.pricePerCard)}</td><td class="py-2.5 px-3 text-emerald-400 font-mono font-bold">₱${formatMoney(n * state.pricePerCard)}</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${won ? 'bg-amber-500 text-slate-950' : pending && !state.started ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : p.rank.missing <= 1 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">${esc(status)}</span></td>`;
+      tb.appendChild(tr);
+    });
+  }
 }
 function refreshJoinPrice() {
-  $('modal-unit-price-text').textContent = `₱${state.pricePerCard.toFixed(2)}`;
+  $('modal-unit-price-text').textContent = `₱${formatMoney(state.pricePerCard)}`;
   $('join-card-count-display').textContent = state.cardCount;
-  $('join-total-due-text').textContent = `₱${(state.cardCount * state.pricePerCard).toFixed(2)}`;
+  $('join-total-due-text').textContent = `₱${formatMoney(state.cardCount * state.pricePerCard)}`;
 }
 
-/* ---------- Game Master: 3s suspense roll, server-side pick ---------- */
+/* ---------- Game Master: fast, transaction-safe ball draw ---------- */
 async function drawNextBall() {
-  if (state.isRolling) return;
-  if (!state.connected) { showToast('Not connected to the server. Cannot roll.', true); return; }
+  if (state.isRolling || state.isResetting) return;
+  if (!state.connected || !fb || !(await authReady)) { showToast('Not connected to the server. Cannot roll.', true); return; }
   if ((state.roomState.drawnNumbers || []).length >= 75) { showToast('All 75 balls drawn!', true); return; }
   state.isRolling = true;
-  const btn = $('btn-draw-ball'), ball = $('big-bingo-ball');
-  btn.disabled = true; ball.classList.remove('ball-reveal'); ball.classList.add('ball-rolling');
+  const expectedRound = state.round, btn = $('btn-draw-ball'), resetBtn = $('btn-trigger-clear-room'), ball = $('big-bingo-ball');
+  btn.disabled = true; resetBtn.disabled = true; ball.classList.remove('ball-reveal'); ball.classList.add('ball-rolling');
   $('big-ball-letter').textContent = 'ROLLING'; $('big-ball-num').textContent = '?'; $('gm-announce-msg').textContent = 'Rolling the balls...';
-  const sounds = [0, 1000, 2000].map(t => setTimeout(playBottleShake, t));
+  playBottleShake();
   await new Promise(r => setTimeout(r, ROLL_DELAY));
-  sounds.forEach(clearTimeout);
+  let picked = null;
   try {
-    await authReady;
-    // Transaction: picks from the live server list, so no duplicates and "started" is set with the first ball
-    await fb.runTransaction(db, async tx => {
-      const snap = await tx.get(roomRef()), d = snap.exists() ? snap.data() : {}, drawn = d.drawnNumbers || [], avail = [];
+    picked = await fb.runTransaction(db, async tx => {
+      const snap = await tx.get(roomRef()), d = snap.exists() ? snap.data() : {};
+      if (Number(d.round || 0) !== Number(expectedRound)) throw Object.assign(new Error('Round changed'), { code: 'stale-round' });
+      const drawn = Array.isArray(d.drawnNumbers) ? d.drawnNumbers : [], avail = [];
       for (let i = 1; i <= 75; i++) if (!drawn.includes(i)) avail.push(i);
-      if (!avail.length) return;
+      if (!avail.length) return null;
       const n = avail[Math.floor(Math.random() * avail.length)];
       tx.set(roomRef(), { drawnNumbers: [...drawn, n], lastDrawn: n, started: true }, { merge: true });
+      return n;
     });
-  } catch (e) { showToast('Roll failed: ' + errMsg(e), true); }
-  state.isRolling = false; ball.classList.remove('ball-rolling'); btn.disabled = false;
-  updateRoom(state.roomState); ball.classList.add('ball-reveal');
+  } catch (e) {
+    if (e.code !== 'stale-round') showToast('Roll failed: ' + errMsg(e), true);
+  } finally {
+    state.isRolling = false; ball.classList.remove('ball-rolling'); btn.disabled = false; resetBtn.disabled = false;
+  }
+  if (picked) {
+    const L = getLetter(picked), col = getColor(L);
+    $('big-bingo-ball').style.setProperty('--ball-color', col); $('big-ball-letter').textContent = L; $('big-ball-num').textContent = picked; $('gm-announce-msg').textContent = `Just Drawn: ${L}-${picked}`;
+    ball.classList.add('ball-reveal');
+  }
 }
 async function resetRound() {
-  const ps = await fb.getDocs(playersCol()), batch = fb.writeBatch(db), now = Date.now();
-  ps.forEach(d => batch.set(d.ref, { hasBingo: false, winningPattern: null, winningCard: null, updatedAt: now }, { merge: true }));
-  batch.set(roomRef(), { drawnNumbers: [], lastDrawn: null, lastWinner: null, winners: [], started: false, pricePerCard: state.pricePerCard, round: now }, { merge: true });
-  await batch.commit(); // players stay registered; every player gets a new-round choice
+  if (state.isRolling || state.isResetting) throw Object.assign(new Error('A ball is still rolling.'), { code: 'busy' });
+  state.isResetting = true;
+  stopAutoRoll();
+  const drawBtn = $('btn-draw-ball'), resetBtn = $('btn-trigger-clear-room');
+  drawBtn.disabled = true; resetBtn.disabled = true;
+  try {
+    await fb.runTransaction(db, async tx => {
+      const snap = await tx.get(roomRef()), d = snap.exists() ? snap.data() : {};
+      const nextRound = Number(d.round || 0) + 1;
+      tx.set(roomRef(), { drawnNumbers: [], lastDrawn: null, lastWinner: null, winners: [], started: false, pricePerCard: state.pricePerCard, round: nextRound }, { merge: true });
+    });
+    state.announcingWinnerIds.clear();
+  } finally {
+    state.isResetting = false; drawBtn.disabled = false; resetBtn.disabled = false;
+  }
 }
 
 /* ---------- Init ---------- */
@@ -925,7 +1035,7 @@ function init() {
   $('join-name-input').value = `Player${Math.floor(100 + Math.random() * 900)}`;
   refreshJoinPrice();
   on('btn-card-minus', 'click', () => { if (state.cardCount > 1) { state.cardCount--; refreshJoinPrice(); } });
-  on('btn-card-plus', 'click', () => { if (state.cardCount < 20) { state.cardCount++; refreshJoinPrice(); } });
+  on('btn-card-plus', 'click', () => { if (state.cardCount < MAX_CARDS) { state.cardCount++; refreshJoinPrice(); } });
   on('btn-close-join', 'click', () => hideModal('modal-join'));
   on('conn-status', 'click', () => showToast(state.statusMsg || (state.connected ? 'Live: synced with the server' : 'Not connected'), !state.connected));
 
@@ -933,12 +1043,16 @@ function init() {
     if (joinGateMessage()) { refreshJoinGate(); return; }
     const b = $('btn-confirm-join'); b.disabled = true; b.textContent = 'Joining...';
     try {
-      await authReady;
-      const rs = await fb.getDocFromServer(roomRef()), rd = rs.exists() ? rs.data() : {};
-      if (rd.started || (rd.drawnNumbers || []).length) { state.started = true; throw Object.assign(new Error('started'), { code: 'started' }); }
+      if (!(await authReady) || !fb) throw new Error('Firebase connection unavailable');
       const name = $('join-name-input').value.trim() || 'Lucky Player', grids = Array.from({ length: state.cardCount }, generateCard);
-      // Register on the server FIRST; only enter the room once the host can see us
-      await fb.setDoc(playerRef(), { name, avatar: state.playerAvatar, cardCount: grids.length, grids: grids.map(g => g.join(',')), hasBingo: false, joinedAt: Date.now(), updatedAt: Date.now() });
+      const joinedRound = await fb.runTransaction(db, async tx => {
+        const rs = await tx.get(roomRef()), rd = rs.exists() ? rs.data() : {};
+        if (rd.started || (rd.drawnNumbers || []).length) throw Object.assign(new Error('started'), { code: 'started' });
+        const round = Number(rd.round || 0), now = Date.now();
+        tx.set(playerRef(), { name, avatar: state.playerAvatar, cardCount: grids.length, grids: grids.map(g => g.join(',')), hasBingo: false, bingoRound: null, roundAck: round, joinedAt: now, updatedAt: now });
+        return round;
+      });
+      state.round = joinedRound; state.roundInitialized = true; state.roundChoicePending = false;
       applyJoin(name, state.playerAvatar, grids, false);
     } catch (e) {
       const locked = e.code === 'started' || e.code === 'permission-denied';
@@ -972,7 +1086,7 @@ function init() {
   const setAuto = () => {
     clearInterval(state.autoRollTimer); state.autoRollTimer = null;
     if ($('gm-auto-roll-toggle').checked) state.autoRollTimer = setInterval(() => {
-      if ((state.roomState.drawnNumbers || []).length >= 75) { clearInterval(state.autoRollTimer); $('gm-auto-roll-toggle').checked = false; } else drawNextBall();
+      if ((state.roomState.drawnNumbers || []).length >= 75) stopAutoRoll(); else drawNextBall();
     }, parseInt($('gm-auto-roll-speed').value, 10));
   };
   on('gm-auto-roll-toggle', 'change', setAuto); on('gm-auto-roll-speed', 'change', setAuto);
@@ -982,8 +1096,8 @@ function init() {
   on('btn-confirm-clear', 'click', async () => {
     hideModal('modal-confirm-clear');
     if (!state.connected) { showToast('Not connected to the server.', true); return; }
-    try { await authReady; await resetRound(); showToast('Round reset. Players can stay, add cards, or leave. New players can join until the first ball.'); }
-    catch (e) { showToast('Reset failed: ' + errMsg(e), true); }
+    try { if (!(await authReady) || !fb) throw new Error('Firebase connection unavailable'); await resetRound(); showToast('Round reset. Players can stay, add cards, or leave. New players can join until the first ball.'); }
+    catch (e) { showToast(e.code === 'busy' ? 'Wait for the current ball to finish rolling, then reset.' : 'Reset failed: ' + errMsg(e), true); }
   });
 
   const showQR = () => { const l = shareLink(); $('qr-modal-room-id').textContent = state.roomId; drawQR(l); showModal('modal-qr'); };
@@ -1000,7 +1114,7 @@ function init() {
     else copyText(url, () => showToast('Sharing is not supported here, so the link was copied instead.'));
   });
   on('btn-round-add-minus', 'click', () => { if (state.roundAddCount > 1) { state.roundAddCount--; refreshRoundOptions(); } });
-  on('btn-round-add-plus', 'click', () => { if (state.playerCards.length + state.roundAddCount < 20) { state.roundAddCount++; refreshRoundOptions(); } });
+  on('btn-round-add-plus', 'click', () => { if (!state.started && state.playerCards.length + state.roundAddCount < MAX_CARDS) { state.roundAddCount++; refreshRoundOptions(); } });
   on('btn-round-stay', 'click', () => stayForNewRound(0));
   on('btn-round-add-confirm', 'click', () => stayForNewRound(state.roundAddCount));
   on('btn-round-leave', 'click', leaveGame);
@@ -1016,13 +1130,19 @@ function init() {
   });
   on('btn-export-csv', 'click', () => {
     let csv = 'Index,Player Name,Cards,Price Per Card,Total Due (PHP),Status\n';
-    state.players.forEach((p, i) => { const n = p.cardCount || 1; csv += `${i + 1},"${String(p.name || 'Player').replace(/"/g, '""')}",${n},${state.pricePerCard},${n * state.pricePerCard},"${p.hasBingo ? 'BINGO' : 'Playing'}"\n`; });
+    state.players.forEach((p, i) => {
+      const n = Number(p.cardCount) || 0, progress = playerProgress(p), status = progress.won ? `BINGO - ${progress.name}` : 'Playing';
+      csv += `${i + 1},"${String(p.name || 'Player').replace(/"/g, '""')}",${n},${state.pricePerCard},${n * state.pricePerCard},"${status.replace(/"/g, '""')}"\n`;
+    });
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `ces_bingo_roster_${Date.now()}.csv`;
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   });
   on('btn-dismiss-win-banner', 'click', () => { state.dismissedWinTs = (state.roomState.lastWinner || {}).timestamp ?? state.seenWinTs; $('player-win-banner').classList.add('hidden'); });
   on('btn-toggle-sound', 'click', () => { state.soundEnabled = !state.soundEnabled; $('sound-icon').textContent = state.soundEnabled ? '🔊' : '🔇'; resumeAudio(); });
+  window.addEventListener('offline', () => setStatus('error', 'Browser is offline'));
+  window.addEventListener('online', () => { if (fb) setStatus('connecting', 'Reconnecting...'); });
 }
+
 document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', init) : init();
 </script>
 </body>
