@@ -208,7 +208,15 @@
     <div class="space-y-4">
       <div><label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">Your Nickname</label>
         <input type="text" id="join-name-input" maxlength="24" placeholder="Enter name..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 font-semibold focus:outline-none focus:border-amber-400"></div>
-      <div><label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">Avatar</label><div id="join-avatar-picker" class="grid grid-cols-6 gap-2 text-center text-xl"></div></div>
+      <div>
+        <div class="flex items-center justify-between gap-2 mb-1.5"><label class="block text-xs font-bold text-slate-300 uppercase">Avatar</label><span class="text-[10px] text-slate-500">Emoji or live photo</span></div>
+        <div id="join-avatar-picker" class="grid grid-cols-6 gap-2 text-center text-xl"></div>
+        <button id="btn-take-avatar-photo" type="button" class="mt-2 w-full py-2.5 rounded-xl bg-indigo-600/15 hover:bg-indigo-600/25 border border-indigo-500/35 text-indigo-200 text-xs font-bold active:scale-95">📷 Take Photo for Avatar</button>
+        <div id="join-photo-avatar-preview" class="hidden mt-2 items-center justify-between gap-3 rounded-xl bg-slate-800/80 border border-emerald-500/30 p-2.5">
+          <div class="flex items-center gap-2 min-w-0"><img id="join-photo-avatar-img" alt="Selected avatar photo" class="w-11 h-11 rounded-full object-cover border-2 border-emerald-400/60 shrink-0"><div class="min-w-0"><p class="text-xs font-bold text-emerald-300">Photo selected</p><p class="text-[10px] text-slate-400 truncate">This will appear as your player avatar.</p></div></div>
+          <button id="btn-use-emoji-avatar" type="button" class="px-2.5 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-[10px] font-bold shrink-0">Use Emoji</button>
+        </div>
+      </div>
       <div><label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">Quantity of Cards</label>
         <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 rounded-2xl p-2">
           <button id="btn-card-minus" type="button" class="w-11 h-11 rounded-xl bg-slate-700 hover:bg-slate-600 font-black text-xl active:scale-90">−</button>
@@ -220,6 +228,22 @@
       <button id="btn-confirm-join" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 font-display font-bold text-lg hover:brightness-110 shadow-lg active:scale-95">GET CARDS &amp; ENTER</button>
       <button id="btn-close-join" type="button" class="hidden w-full py-2 text-xs text-slate-400 hover:text-white">Cancel</button>
     </div>
+  </div>
+</div>
+
+<!-- LIVE PHOTO AVATAR MODAL -->
+<div id="modal-avatar-camera" class="fixed inset-0 z-[70] hidden items-center justify-center p-3 bg-slate-950/95 backdrop-blur-sm">
+  <div class="modal-box bg-slate-900 border border-indigo-500/30 w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+    <div class="flex items-start justify-between gap-3 mb-4"><div><p class="text-[10px] uppercase tracking-[.18em] font-black text-indigo-300">Player Avatar</p><h3 class="font-display font-bold text-xl mt-1">Take Your Photo</h3><p class="text-xs text-slate-400 mt-1">Your camera stays on this device until you capture the avatar.</p></div><button id="btn-close-avatar-camera" type="button" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold">✕</button></div>
+    <div class="relative aspect-square w-full max-w-[18rem] mx-auto overflow-hidden rounded-3xl bg-slate-950 border border-slate-700">
+      <video id="avatar-camera-video" autoplay muted playsinline class="w-full h-full object-cover"></video>
+      <div class="absolute inset-0 pointer-events-none border-[3px] border-white/20 rounded-full m-5"></div>
+    </div>
+    <canvas id="avatar-camera-canvas" width="96" height="96" class="hidden"></canvas>
+    <p id="avatar-camera-error" class="hidden mt-3 text-xs text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-xl p-3"></p>
+    <div class="grid grid-cols-2 gap-2 mt-4"><button id="btn-cancel-avatar-camera" type="button" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold">Cancel</button><button id="btn-capture-avatar-photo" type="button" class="py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-slate-950 text-xs font-black">📸 Capture Photo</button></div>
+    <div class="mt-3 text-center"><label for="avatar-photo-file" class="inline-block cursor-pointer text-[11px] font-bold text-slate-400 hover:text-white underline underline-offset-2">Camera unavailable? Use device camera / choose photo</label><input id="avatar-photo-file" type="file" accept="image/*" capture="user" class="hidden"></div>
+    <p class="text-[10px] text-slate-500 text-center mt-3">Photo is automatically cropped and compressed to a small avatar for faster game syncing.</p>
   </div>
 </div>
 
@@ -386,6 +410,68 @@ $('header-room-id').textContent = state.roomId;
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const on = (id, evt, fn) => { const el = $(id); if (el) el.addEventListener(evt, fn); else console.warn('Missing element:', id); };
+const PHOTO_AVATAR_RE = /^data:image\/(?:jpeg|jpg|png|webp);base64,/i;
+const isPhotoAvatar = value => typeof value === 'string' && value.length <= 24000 && PHOTO_AVATAR_RE.test(value);
+const safeAvatar = value => isPhotoAvatar(value) ? value : (String(value || '🎯').slice(0, 8) || '🎯');
+const winnerAvatar = value => isPhotoAvatar(value) ? '📸' : safeAvatar(value);
+const avatarMarkup = (value, size = 'w-8 h-8') => isPhotoAvatar(value)
+  ? `<img src="${esc(value)}" alt="Player avatar" class="${size} rounded-full object-cover border border-white/20 shrink-0">`
+  : `<span class="${size} inline-flex items-center justify-center shrink-0">${esc(safeAvatar(value))}</span>`;
+function setAvatarElement(el, value) { if (el) el.innerHTML = avatarMarkup(value, 'w-6 h-6'); }
+let avatarCameraStream = null;
+function stopAvatarCamera() {
+  if (avatarCameraStream) { avatarCameraStream.getTracks().forEach(t => t.stop()); avatarCameraStream = null; }
+  const v = $('avatar-camera-video'); if (v) v.srcObject = null;
+}
+function closeAvatarCamera() { stopAvatarCamera(); hideModal('modal-avatar-camera'); }
+function refreshAvatarSelection() {
+  const picker = $('join-avatar-picker');
+  if (picker) [...picker.children].forEach(c => {
+    const selected = !isPhotoAvatar(state.playerAvatar) && c.dataset.emoji === state.playerAvatar;
+    c.classList.toggle('border-amber-400', selected); c.classList.toggle('bg-amber-500/20', selected);
+    c.classList.toggle('border-slate-700', !selected); c.classList.toggle('bg-slate-800', !selected);
+  });
+  const preview = $('join-photo-avatar-preview'), img = $('join-photo-avatar-img');
+  if (preview) { const photo = isPhotoAvatar(state.playerAvatar); preview.classList.toggle('hidden', !photo); preview.classList.toggle('flex', photo); if (photo && img) img.src = state.playerAvatar; }
+}
+function avatarDataFromDrawable(source, sourceWidth, sourceHeight) {
+  const canvas = $('avatar-camera-canvas') || document.createElement('canvas'), size = 88;
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext('2d', { alpha: false });
+  const side = Math.min(sourceWidth, sourceHeight), sx = (sourceWidth - side) / 2, sy = (sourceHeight - side) / 2;
+  ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, size, size); ctx.drawImage(source, sx, sy, side, side, 0, 0, size, size);
+  let out = canvas.toDataURL('image/jpeg', 0.56);
+  if (out.length > 22000) out = canvas.toDataURL('image/jpeg', 0.4);
+  if (out.length > 24000) throw new Error('Photo is still too large. Please try another photo.');
+  return out;
+}
+function choosePhotoAvatar(dataUrl) {
+  if (!isPhotoAvatar(dataUrl)) throw new Error('Could not create a valid avatar photo.');
+  state.playerAvatar = dataUrl; refreshAvatarSelection(); closeAvatarCamera(); showToast('Photo avatar selected.');
+}
+async function openAvatarCamera() {
+  const err = $('avatar-camera-error'), cap = $('btn-capture-avatar-photo');
+  if (err) err.classList.add('hidden'); if (cap) cap.disabled = true;
+  showModal('modal-avatar-camera'); stopAvatarCamera();
+  if (!navigator.mediaDevices?.getUserMedia) {
+    if (err) { err.textContent = 'Live camera preview is not supported here. Use the device camera/photo option below.'; err.classList.remove('hidden'); }
+    return;
+  }
+  try {
+    avatarCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 640 } }, audio: false });
+    const video = $('avatar-camera-video'); video.srcObject = avatarCameraStream; await video.play(); if (cap) cap.disabled = false;
+  } catch (e) {
+    if (err) { err.textContent = 'Camera access was not available. Allow camera permission or use the device camera/photo option below.'; err.classList.remove('hidden'); }
+  }
+}
+async function avatarFromFile(file) {
+  if (!file || !String(file.type || '').startsWith('image/')) throw new Error('Please choose an image.');
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((resolve, reject) => { const im = new Image(); im.onload = () => resolve(im); im.onerror = reject; im.src = url; });
+    return avatarDataFromDrawable(img, img.naturalWidth, img.naturalHeight);
+  } finally { URL.revokeObjectURL(url); }
+}
 const newGameId = () => (globalThis.crypto?.randomUUID?.() || `game-${Date.now()}-${Math.random().toString(36).slice(2,10)}`);
 async function hashAdminPin(pin) {
   if (!globalThis.crypto?.subtle) throw new Error('Secure passcode hashing is not supported by this browser.');
@@ -808,7 +894,7 @@ async function celebrate(patternName = 'BINGO', cardNo = 1) {
   if (state.hasClaimedBingo || !state.joined || !fb) return;
   const expectedRound = state.round, expectedGameId = state.gameId;
   state.hasClaimedBingo = true;
-  const ts = Date.now(), winner = { uid: state.userId, name: state.playerName, avatar: state.playerAvatar, pattern: patternName, cardNo, round: expectedRound, timestamp: ts };
+  const ts = Date.now(), winner = { uid: state.userId, name: state.playerName, avatar: winnerAvatar(state.playerAvatar), pattern: patternName, cardNo, round: expectedRound, timestamp: ts };
   state.seenWinTs = ts;
   if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
   playWinFanfare();
@@ -838,7 +924,7 @@ function maybeAnnounceDerivedWinner(player, progress) {
   const winners = Array.isArray(state.roomState.winners) ? state.roomState.winners : [];
   if (winners.some(w => w.uid === player.id)) return;
   state.announcingWinnerIds.add(player.id);
-  const winner = { uid: player.id, name: player.name || 'Player', avatar: player.avatar || '🎉', pattern: progress.name, cardNo: progress.cardNo, round: expectedRound, timestamp: Date.now() };
+  const winner = { uid: player.id, name: player.name || 'Player', avatar: winnerAvatar(player.avatar || '🎉'), pattern: progress.name, cardNo: progress.cardNo, round: expectedRound, timestamp: Date.now() };
   fb.runTransaction(db, async tx => {
     const snap = await tx.get(roomRef()), data = snap.exists() ? snap.data() : {};
     if (data.gameId !== expectedGameId || Number(data.round || 0) !== Number(expectedRound)) return;
@@ -852,7 +938,7 @@ function maybeAnnounceDerivedWinner(player, progress) {
 function applyJoin(name, avatar, grids, won) {
   state.playerName = name; state.playerAvatar = avatar; state.cardCount = grids.length; state.hasClaimedBingo = !!won; state.joined = true;
   state.playerCards = grids.map((g, i) => ({ cardId: 'card-' + (i + 1), grid: g, stamped: new Set([12]) }));
-  $('player-name-display').textContent = name; $('player-avatar-icon').textContent = avatar;
+  $('player-name-display').textContent = name; setAvatarElement($('player-avatar-icon'), avatar);
   $('player-cards-badge').textContent = `${grids.length} ${grids.length > 1 ? 'Cards' : 'Card'}`;
   const badge = $('player-profile-badge'); badge.classList.remove('hidden'); badge.classList.add('flex');
   hideModal('modal-join'); renderAllPlayerCards();
@@ -921,7 +1007,7 @@ function resetLocalRound() {
   renderAllPlayerCards(); $('player-win-banner').classList.add('hidden');
 }
 function handleFullGameReset(nextGameId, freshRoomData = null) {
-  stopAutoRoll(); stopRosterListener(); stopStaffMusic();
+  stopAutoRoll(); stopRosterListener(); stopStaffMusic(); stopAvatarCamera();
   const freshRoom = freshRoomData || {
     gameId: nextGameId,
     drawnNumbers: [],
@@ -938,9 +1024,9 @@ function handleFullGameReset(nextGameId, freshRoomData = null) {
   state.pricePerCard = Number(freshRoom.pricePerCard) > 0 ? Number(freshRoom.pricePerCard) : 10;
   state.players = []; state.joined = false; state.isAdmin = false; state.playerName = ''; state.playerAvatar = '🎯'; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false; state.roundAddCount = 1; state.round = Number(freshRoom.round || 0); state.roundInitialized = true; state.lastSpokenNum = null; state.seenWinTs = null; state.dismissedWinTs = null; state.announcingWinnerIds.clear();
   try { localStorage.removeItem(storeKey()); } catch (e) {}
-  ['modal-pin','modal-change-pin','modal-reset-game','modal-confirm-clear','modal-qr','modal-gm-help','modal-round-options'].forEach(hideModal);
+  ['modal-pin','modal-change-pin','modal-reset-game','modal-confirm-clear','modal-qr','modal-gm-help','modal-round-options','modal-avatar-camera'].forEach(hideModal);
   $('player-profile-badge').classList.add('hidden'); $('player-profile-badge').classList.remove('flex'); $('player-win-banner').classList.add('hidden');
-  $('join-name-input').value = `Player${Math.floor(100 + Math.random() * 900)}`;
+  $('join-name-input').value = `Player${Math.floor(100 + Math.random() * 900)}`; refreshAvatarSelection();
   $('player-balls-count').textContent = '0 / 75';
   $('gm-total-drawn-pill').textContent = '0 / 75 Balls';
   $('player-ball-letter').textContent = 'CES'; $('player-ball-num').textContent = '--'; $('player-caller-text').textContent = 'Waiting for Game Master...';
@@ -994,7 +1080,7 @@ function updateRoom(data) {
 
   const w = data.lastWinner;
   if (w && w.timestamp !== state.dismissedWinTs) {
-    $('player-win-text').textContent = `${w.avatar || '🎉'} ${w.name} got BINGO${w.pattern ? ' — ' + w.pattern : ''}!`; $('player-win-banner').classList.remove('hidden');
+    $('player-win-text').textContent = `${winnerAvatar(w.avatar || '🎉')} ${w.name} got BINGO${w.pattern ? ' — ' + w.pattern : ''}!`; $('player-win-banner').classList.remove('hidden');
     if (w.timestamp !== state.seenWinTs) { state.seenWinTs = w.timestamp; if (typeof confetti === 'function') confetti({ particleCount: 60, spread: 60 }); }
   } else if (!w && !state.hasClaimedBingo) $('player-win-banner').classList.add('hidden');
   refreshJoinGate();
@@ -1026,7 +1112,7 @@ function renderPlayers() {
       const near = pending && !state.started ? 'Choosing next-round option…' : p.rank.cardNo ? (won ? `★ BINGO • ${p.rank.name} • Card ${p.rank.cardNo}` : `${p.rank.missing} away • ${Math.round(p.rank.pct * 100)}% • ${p.rank.name} • Card ${p.rank.cardNo}`) : 'Waiting for card data';
       const row = document.createElement('div');
       row.className = `flex items-center justify-between gap-2 p-2.5 rounded-2xl border ${won ? 'bg-amber-500/20 border-amber-500/50 text-amber-200' : i < 3 ? 'bg-indigo-500/10 border-indigo-500/30' : 'bg-slate-800/60 border-slate-700/60'}`;
-      row.innerHTML = `<div class="flex items-center gap-3 min-w-0"><span class="font-mono text-xs font-bold ${i < 3 ? 'text-amber-400' : 'text-slate-500'}">#${i + 1}</span><span class="text-xl">${esc(p.avatar || '🎯')}</span>
+      row.innerHTML = `<div class="flex items-center gap-3 min-w-0"><span class="font-mono text-xs font-bold ${i < 3 ? 'text-amber-400' : 'text-slate-500'}">#${i + 1}</span>${avatarMarkup(p.avatar || '🎯', 'w-8 h-8')}
         <div class="min-w-0"><span class="font-bold text-xs truncate block text-slate-200">${esc(p.name || 'Anon')}</span><span class="text-[10px] text-slate-400">${n} Cards • ₱${formatMoney(n * state.pricePerCard)}</span><span class="text-[10px] block mt-0.5 ${won ? 'text-amber-300 font-bold' : pending && !state.started ? 'text-violet-300 font-bold' : p.rank.missing <= 1 ? 'text-emerald-300 font-bold' : 'text-cyan-300'}">${esc(near)}</span></div></div>
         <span class="text-[11px] font-mono px-2 py-0.5 rounded-full shrink-0 ${won ? 'bg-amber-500 text-slate-950 font-black animate-pulse' : pending && !state.started ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : p.rank.missing <= 1 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-700 text-slate-300'}">${won ? '★ BINGO!' : pending && !state.started ? 'CHOOSING' : p.rank.cardNo ? `${p.rank.missing} AWAY` : 'READY'}</span>`;
       gm.appendChild(row);
@@ -1039,7 +1125,7 @@ function renderPlayers() {
     list.forEach((p, i) => {
       const n = Number(p.cardCount) || 0, won = p.rank.won, pending = Number(p.roundAck) !== Number(state.round), tr = document.createElement('tr');
       const status = won ? `BINGO • ${p.rank.name}` : pending && !state.started ? 'CHOOSING NEXT ROUND' : p.rank.cardNo ? `${p.rank.missing} away • ${Math.round(p.rank.pct * 100)}%` : 'PLAYING';
-      tr.innerHTML = `<td class="py-2.5 px-3 font-mono ${i < 3 ? 'text-amber-400 font-bold' : 'text-slate-500'}">${i + 1}</td><td class="py-2.5 px-3"><span class="mr-1">${esc(p.avatar || '👤')}</span><span class="font-bold text-slate-200">${esc(p.name || 'Anon')}</span></td>
+      tr.innerHTML = `<td class="py-2.5 px-3 font-mono ${i < 3 ? 'text-amber-400 font-bold' : 'text-slate-500'}">${i + 1}</td><td class="py-2.5 px-3">${avatarMarkup(p.avatar || '👤', 'w-7 h-7 mr-2 inline-flex align-middle')}<span class="font-bold text-slate-200">${esc(p.name || 'Anon')}</span></td>
         <td class="py-2.5 px-3 text-cyan-400 font-mono font-bold">${n}</td><td class="py-2.5 px-3 text-slate-400">₱${formatMoney(state.pricePerCard)}</td><td class="py-2.5 px-3 text-emerald-400 font-mono font-bold">₱${formatMoney(n * state.pricePerCard)}</td>
         <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${won ? 'bg-amber-500 text-slate-950' : pending && !state.started ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : p.rank.missing <= 1 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">${esc(status)}</span></td>`;
       tb.appendChild(tr);
@@ -1160,23 +1246,39 @@ async function changeAdminPasscode(currentPin, newPin) {
 
 /* ---------- Init ---------- */
 function init() {
-  ['modal-pin', 'modal-change-pin', 'modal-reset-game', 'modal-confirm-clear', 'modal-qr', 'modal-gm-help', 'modal-round-options'].forEach(hideModal);
+  ['modal-pin', 'modal-change-pin', 'modal-reset-game', 'modal-confirm-clear', 'modal-qr', 'modal-gm-help', 'modal-round-options', 'modal-avatar-camera'].forEach(hideModal);
   switchView('player'); renderAllPlayerCards();
   authReady = initFirebase();
   refreshJoinGate();
 
   const emojis = ['🎯','🦁','🦊','🐼','🚀','⭐','🎲','🍕','🎉','🔥','👑','🍀'], picker = $('join-avatar-picker');
   emojis.forEach(e => {
-    const b = document.createElement('button'); b.type = 'button';
+    const b = document.createElement('button'); b.type = 'button'; b.dataset.emoji = e;
     b.className = `p-2 rounded-xl hover:bg-slate-700 border ${e === state.playerAvatar ? 'border-amber-400 bg-amber-500/20' : 'border-slate-700 bg-slate-800'}`; b.textContent = e;
-    b.addEventListener('click', () => {
-      state.playerAvatar = e;
-      [...picker.children].forEach(c => { c.classList.remove('border-amber-400', 'bg-amber-500/20'); c.classList.add('border-slate-700', 'bg-slate-800'); });
-      b.classList.add('border-amber-400', 'bg-amber-500/20'); b.classList.remove('border-slate-700', 'bg-slate-800');
-    });
+    b.addEventListener('click', () => { state.playerAvatar = e; refreshAvatarSelection(); });
     picker.appendChild(b);
   });
-  $('join-name-input').value = `Player${Math.floor(100 + Math.random() * 900)}`;
+  refreshAvatarSelection();
+  on('btn-take-avatar-photo', 'click', openAvatarCamera);
+  on('btn-close-avatar-camera', 'click', closeAvatarCamera);
+  on('btn-cancel-avatar-camera', 'click', closeAvatarCamera);
+  on('modal-avatar-camera', 'click', e => { if (e.target.id === 'modal-avatar-camera') closeAvatarCamera(); });
+  on('btn-capture-avatar-photo', 'click', () => {
+    try {
+      const video = $('avatar-camera-video');
+      if (!video.videoWidth || !video.videoHeight) throw new Error('Camera is still starting. Try again in a moment.');
+      choosePhotoAvatar(avatarDataFromDrawable(video, video.videoWidth, video.videoHeight));
+    } catch (e) { const er = $('avatar-camera-error'); er.textContent = e.message || 'Could not capture photo.'; er.classList.remove('hidden'); }
+  });
+  on('avatar-photo-file', 'change', async e => {
+    const file = e.target.files?.[0]; if (!file) return;
+    try { choosePhotoAvatar(await avatarFromFile(file)); }
+    catch (err) { const er = $('avatar-camera-error'); er.textContent = err.message || 'Could not use that photo.'; er.classList.remove('hidden'); }
+    finally { e.target.value = ''; }
+  });
+  on('btn-use-emoji-avatar', 'click', () => { state.playerAvatar = '🎯'; refreshAvatarSelection(); });
+  window.addEventListener('pagehide', stopAvatarCamera);
+  $('join-name-input').value = `Player${Math.floor(100 + Math.random() * 900)}`; refreshAvatarSelection();
   refreshJoinPrice();
   on('btn-card-minus', 'click', () => { if (state.cardCount > 1) { state.cardCount--; refreshJoinPrice(); } });
   on('btn-card-plus', 'click', () => { if (state.cardCount < MAX_CARDS) { state.cardCount++; refreshJoinPrice(); } });
