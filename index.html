@@ -412,7 +412,8 @@ function joinGateMessage() {
   if (!CONFIGURED) return 'Multiplayer server is not set up. The host must add the Firebase config at the top of the script (see setup notes).';
   if (!state.connected) return state.statusMsg || 'Connecting to the game server...';
   if (!state.gameId) return 'Preparing the game session...';
-  if (state.started && !state.joined) return '🔒 This game has already started. New players cannot enter until the host starts a new round.';
+  const roomMatchesCurrentGame = !state.roomState?.gameId || state.roomState.gameId === state.gameId;
+  if (state.started && roomMatchesCurrentGame && !state.joined) return '🔒 This game has already started. New players cannot enter until the host starts a new round.';
   return '';
 }
 function refreshJoinGate() {
@@ -919,19 +920,39 @@ function resetLocalRound() {
   state.playerCards.forEach(c => c.stamped = new Set([12]));
   renderAllPlayerCards(); $('player-win-banner').classList.add('hidden');
 }
-function handleFullGameReset(nextGameId) {
+function handleFullGameReset(nextGameId, freshRoomData = null) {
   stopAutoRoll(); stopRosterListener(); stopStaffMusic();
-  state.gameId = nextGameId; state.players = []; state.joined = false; state.isAdmin = false; state.playerName = ''; state.playerAvatar = '🎯'; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false; state.roundAddCount = 1; state.round = 0; state.roundInitialized = true; state.lastSpokenNum = null; state.seenWinTs = null; state.dismissedWinTs = null; state.announcingWinnerIds.clear();
+  const freshRoom = freshRoomData || {
+    gameId: nextGameId,
+    drawnNumbers: [],
+    lastDrawn: null,
+    lastWinner: null,
+    winners: [],
+    started: false,
+    round: 0,
+    pricePerCard: 10
+  };
+  state.gameId = nextGameId;
+  state.roomState = freshRoom;
+  state.started = false;
+  state.pricePerCard = Number(freshRoom.pricePerCard) > 0 ? Number(freshRoom.pricePerCard) : 10;
+  state.players = []; state.joined = false; state.isAdmin = false; state.playerName = ''; state.playerAvatar = '🎯'; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false; state.roundAddCount = 1; state.round = Number(freshRoom.round || 0); state.roundInitialized = true; state.lastSpokenNum = null; state.seenWinTs = null; state.dismissedWinTs = null; state.announcingWinnerIds.clear();
   try { localStorage.removeItem(storeKey()); } catch (e) {}
   ['modal-pin','modal-change-pin','modal-reset-game','modal-confirm-clear','modal-qr','modal-gm-help','modal-round-options'].forEach(hideModal);
   $('player-profile-badge').classList.add('hidden'); $('player-profile-badge').classList.remove('flex'); $('player-win-banner').classList.add('hidden');
   $('join-name-input').value = `Player${Math.floor(100 + Math.random() * 900)}`;
-  switchView('player'); renderAllPlayerCards(); refreshJoinPrice(); renderPlayers(); openJoin();
+  $('player-balls-count').textContent = '0 / 75';
+  $('gm-total-drawn-pill').textContent = '0 / 75 Balls';
+  $('player-ball-letter').textContent = 'CES'; $('player-ball-num').textContent = '--'; $('player-caller-text').textContent = 'Waiting for Game Master...';
+  $('big-ball-letter').textContent = 'READY'; $('big-ball-num').textContent = '--'; $('gm-announce-msg').textContent = 'Ready to draw ball';
+  $('recent-balls-bar').innerHTML = '<span class="text-xs text-slate-500 italic">None</span>';
+  const priceInput = $('admin-card-price-input'); if (priceInput) priceInput.value = state.pricePerCard;
+  switchView('player'); renderAllPlayerCards(); refreshJoinPrice(); renderPlayers(); refreshJoinGate(); openJoin();
 }
 function updateRoom(data) {
   const incomingGameId = data.gameId || null;
   if (!state.gameId) state.gameId = incomingGameId;
-  else if (incomingGameId && incomingGameId !== state.gameId) handleFullGameReset(incomingGameId);
+  else if (incomingGameId && incomingGameId !== state.gameId) handleFullGameReset(incomingGameId, data);
   state.roomState = data;
   const drawn = data.drawnNumbers || [];
   state.started = !!data.started || drawn.length > 0;
@@ -1084,31 +1105,50 @@ async function resetRound() {
 }
 async function fullResetGame() {
   if (!fb || !(await authReady)) throw new Error('Not connected to the server');
+  if (state.isResetting) throw Object.assign(new Error('A reset is already in progress.'), { code: 'busy' });
+  state.isResetting = true;
   stopAutoRoll();
-  const oldGameId = state.gameId, nextGameId = newGameId();
-  await fb.runTransaction(db, async tx => {
-    const snap = await tx.get(roomRef());
-    const d = snap.exists() ? snap.data() : {};
-    tx.set(roomRef(), {
-      gameId: nextGameId, drawnNumbers: [], lastDrawn: null, lastWinner: null, winners: [], started: false, round: 0, pricePerCard: 10, gameResetAt: Date.now(),
-      ...(d.adminPinHash ? { adminPinHash: d.adminPinHash } : {})
-    }, { merge: true });
-  });
-  // Once the room moves to a new gameId, the security rules treat all previous
-  // player documents as stale. Delete those stale records in safe-size batches.
-  if (oldGameId) {
-    try {
-      const staleQuery = fb.query(playersCol(), fb.where('gameId', '==', oldGameId));
-      const stale = await fb.getDocs(staleQuery), docs = stale.docs;
-      for (let i = 0; i < docs.length; i += 400) {
-        const batch = fb.writeBatch(db);
-        docs.slice(i, i + 400).forEach(d => batch.delete(d.ref));
-        await batch.commit();
-      }
-    } catch (e) { console.warn('Old player cleanup skipped:', errMsg(e)); }
+  const oldGameId = state.gameId, nextGameId = newGameId(), resetAt = Date.now();
+  let resetRoomData = null;
+  try {
+    await fb.runTransaction(db, async tx => {
+      const snap = await tx.get(roomRef());
+      const d = snap.exists() ? snap.data() : {};
+      resetRoomData = {
+        gameId: nextGameId,
+        drawnNumbers: [],
+        lastDrawn: null,
+        lastWinner: null,
+        winners: [],
+        started: false,
+        round: 0,
+        pricePerCard: 10,
+        gameResetAt: resetAt,
+        ...(d.adminPinHash ? { adminPinHash: d.adminPinHash } : {})
+      };
+      // Replace the room state instead of merging so no old game lock/state can survive.
+      tx.set(roomRef(), resetRoomData);
+    });
+
+    // Make the reset effective in this browser immediately. Do not wait for the
+    // Firestore listener or old-player cleanup before allowing the fresh game to join.
+    handleFullGameReset(nextGameId, resetRoomData);
+
+    // Old records are excluded by gameId immediately; cleanup is only housekeeping.
+    if (oldGameId) {
+      try {
+        const staleQuery = fb.query(playersCol(), fb.where('gameId', '==', oldGameId));
+        const stale = await fb.getDocs(staleQuery), docs = stale.docs;
+        for (let i = 0; i < docs.length; i += 400) {
+          const batch = fb.writeBatch(db);
+          docs.slice(i, i + 400).forEach(d => batch.delete(d.ref));
+          await batch.commit();
+        }
+      } catch (e) { console.warn('Old player cleanup skipped:', errMsg(e)); }
+    }
+  } finally {
+    state.isResetting = false;
   }
-  state.pricePerCard = 10;
-  handleFullGameReset(nextGameId);
 }
 async function changeAdminPasscode(currentPin, newPin) {
   if (!(await verifyAdminPin(currentPin))) throw Object.assign(new Error('Current passcode is incorrect.'), { code: 'wrong-pin' });
