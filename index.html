@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BINGO by CES Fun Club</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-display {
+      font-family: 'Fredoka', cursive, sans-serif;
+    }
+    /* 3D Bingo Ball Effect */
+    .ball-3d {
+      background: radial-gradient(circle at 30% 25%, #ffffff 4%, rgba(255,255,255,0.7) 18%, rgba(255,255,255,0) 45%),
+                  radial-gradient(circle at 50% 50%, var(--ball-color, #ef4444) 40%, #7f1d1d 100%);
+      box-shadow: inset -6px -6px 14px rgba(0,0,0,0.5), inset 4px 4px 10px rgba(255,255,255,0.5), 0 12px 28px rgba(0,0,0,0.5);
+    }
+    /* Animated Stamp */
+    @keyframes daubPop {
+      0% { transform: scale(0.6) rotate(-12deg); opacity: 0; }
+      50% { transform: scale(1.15) rotate(4deg); }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    .stamp-anim {
+      animation: daubPop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    /* Anti-cheat Shake for invalid clicks */
+    @keyframes shakeInvalid {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-5px); }
+      40%, 80% { transform: translateX(5px); }
+    }
+    .shake-invalid {
+      animation: shakeInvalid 0.35s ease-in-out;
+      border-color: #ef4444 !important;
+      background-color: rgba(239, 68, 68, 0.25) !important;
+    }
+    /* Square ratio bingo cells */
+    .bingo-cell {
+      aspect-ratio: 1 / 1;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950">
+
+  <header class="bg-slate-900/90 border-b border-slate-800 backdrop-blur sticky top-0 z-30 select-none">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <!-- Secret trigger: Triple click this brand logo to prompt PIN -->
+        <div id="brand-logo-trigger" title="CES Fun Club" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-indigo-600 flex items-center justify-center font-display text-xl font-black text-white shadow-lg shadow-amber-500/20 cursor-pointer active:scale-90 transition">
+          CES
+        </div>
+        <div>
+          <h1 class="font-display font-black text-lg sm:text-xl text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-rose-300 to-emerald-400">
+            BINGO <span class="text-xs sm:text-sm font-sans font-semibold text-slate-400 tracking-normal">by CES Fun Club</span>
+          </h1>
+          <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Room: <span id="header-room-id" class="font-mono font-bold text-slate-200">CES-LIVE</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="btn-toggle-sound" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 transition text-sm flex items-center gap-1.5">
+          <span id="sound-icon">🔊</span>
+          <span class="text-xs font-semibold hidden sm:inline">SFX</span>
+        </button>
+
+        <div id="player-profile-badge" class="hidden items-center gap-2 bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-700 text-xs">
+          <span id="player-avatar-icon">🎯</span>
+          <span id="player-name-display" class="font-bold text-slate-200 truncate max-w-[100px] sm:max-w-[130px]">Player</span>
+          <span id="player-cards-badge" class="bg-amber-500/20 text-amber-400 border border-amber-500/40 px-1.5 py-0.2 rounded font-mono font-bold text-[10px]">1 Card</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 flex flex-col">
+
+    <!-- VIEW 1: PLAYER GAME INTERFACE -->
+    <div id="view-player" class="flex flex-col gap-4 w-full flex-1">
+      
+      <!-- Winning Celebration Banner -->
+      <div id="player-win-banner" class="hidden rounded-2xl p-4 sm:p-5 bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 text-white shadow-2xl relative overflow-hidden transition-all duration-300">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <span class="text-4xl sm:text-5xl animate-bounce">🎉</span>
+            <div>
+              <h3 class="font-display font-black text-2xl sm:text-3xl tracking-wide uppercase drop-shadow">BINGO WINNER!</h3>
+              <p id="player-win-text" class="text-xs sm:text-sm font-semibold text-amber-100">Congratulations to the winner!</p>
+            </div>
+          </div>
+          <button id="btn-dismiss-win-banner" class="bg-white/20 hover:bg-white/30 text-white rounded-xl px-3 py-1.5 text-xs font-bold transition">Dismiss</button>
+        </div>
+      </div>
+
+      <!-- Current Called Ball Strip -->
+      <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 shadow-lg">
+        <div class="flex items-center gap-3">
+          <div id="player-ball-sphere" style="--ball-color: #3b82f6;" class="ball-3d w-14 h-14 sm:w-16 sm:h-16 rounded-full flex flex-col items-center justify-center text-white border-2 border-white/30 shrink-0">
+            <span id="player-ball-letter" class="font-display font-black text-xs text-amber-300 leading-none">CES</span>
+            <span id="player-ball-num" class="font-display font-black text-xl sm:text-2xl leading-none">--</span>
+          </div>
+          <div>
+            <div class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Current Call</div>
+            <div id="player-caller-text" class="text-xs sm:text-sm font-semibold text-amber-400">Waiting for Game Master to draw...</div>
+          </div>
+        </div>
+
+        <div class="flex flex-col items-end text-right">
+          <span class="text-[10px] text-slate-400">Total Balls Called</span>
+          <span id="player-balls-count" class="font-mono font-black text-base sm:text-lg text-emerald-400">0 / 75</span>
+        </div>
+      </section>
+
+      <!-- Player Cards Grid Container -->
+      <section class="flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <h2 class="font-display font-bold text-sm sm:text-base text-slate-200">Your Active Cards</h2>
+            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Auto-Daubing Active
+            </span>
+          </div>
+          <button id="btn-claim-bingo" class="px-4 sm:px-6 py-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-display font-black text-sm sm:text-base shadow-lg shadow-emerald-500/25 active:scale-95 transition">
+            CLAIM BINGO!
+          </button>
+        </div>
+
+        <div id="cards-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <!-- Dynamic BINGO Cards injected here -->
+        </div>
+      </section>
+    </div>
+
+    <!-- VIEW 2: GAME MASTER / PRESENTATION SCREEN (OPTIMIZED FOR TEAMS & GOOGLE MEET) -->
+    <div id="view-gm" class="hidden flex flex-col gap-4 w-full flex-1">
+      
+      <!-- Top Bar: Exit button & Pattern info -->
+      <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl px-4 py-2.5">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs uppercase tracking-wider">
+            Game Master Screen Share Mode
+          </span>
+          <span class="text-xs text-slate-400 hidden sm:inline">Optimized for Google Meet / Teams</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-open-admin-from-gm" class="text-xs font-semibold px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition text-amber-400">
+            Admin Desk
+          </button>
+          <button id="btn-exit-gm-mode" class="text-xs font-semibold px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition text-slate-300">
+            Exit Presentation
+          </button>
+        </div>
+      </div>
+
+      <!-- TV Big Stage Layout (Hero Ball + Live Participant Board) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        
+        <!-- Left: Huge 3D Animated Ball & Drawing Controls (Col 5) -->
+        <div class="lg:col-span-5 bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col items-center justify-between text-center relative overflow-hidden">
+          <div class="absolute -top-16 -left-16 w-44 h-44 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="absolute -bottom-16 -right-16 w-44 h-44 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+          <div class="w-full flex items-center justify-between text-xs font-bold text-slate-400 mb-2">
+            <span class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+              ON AIR
+            </span>
+            <span id="gm-total-drawn-pill" class="bg-slate-800 text-slate-300 px-3 py-1 rounded-full border border-slate-700 font-mono">
+              0 / 75 Balls
+            </span>
+          </div>
+
+          <!-- Giant 3D Bingo Sphere for Screen Share -->
+          <div class="my-4 relative">
+            <div id="big-bingo-ball" style="--ball-color: #3b82f6;" class="ball-3d w-44 h-44 sm:w-56 sm:h-56 rounded-full flex flex-col items-center justify-center text-white border-4 border-white/25 transition-transform duration-300 shadow-2xl">
+              <span id="big-ball-letter" class="font-display font-black text-3xl sm:text-4xl text-amber-300 drop-shadow">READY</span>
+              <span id="big-ball-num" class="font-display font-black text-6xl sm:text-7xl text-white tracking-tighter drop-shadow-lg leading-none">--</span>
+            </div>
+          </div>
+
+          <p id="gm-announce-msg" class="text-sm font-medium text-amber-400 min-h-[1.5rem]">Ready to draw ball</p>
+
+          <!-- GM Action Buttons -->
+          <div class="w-full mt-4 pt-4 border-t border-slate-800 flex flex-col gap-3">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span class="font-bold text-slate-300">Auto-Roll:</span>
+              <div class="flex items-center gap-2">
+                <input type="checkbox" id="gm-auto-roll-toggle" class="cursor-pointer rounded bg-slate-800 border-slate-700 text-amber-500 focus:ring-0">
+                <select id="gm-auto-roll-speed" class="bg-slate-800 border border-slate-700 rounded-lg text-xs px-2 py-1 text-slate-300">
+                  <option value="5000">5 seconds</option>
+                  <option value="7000" selected>7 seconds</option>
+                  <option value="10000">10 seconds</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <button id="btn-draw-ball" class="py-3 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-display font-black text-base shadow-lg shadow-rose-500/20 active:scale-95 transition flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
+                Roll Ball
+              </button>
+              <button id="btn-trigger-clear-room" class="py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs border border-slate-700 active:scale-95 transition flex items-center justify-center gap-1.5">
+                <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                Reset Round
+              </button>
+            </div>
+
+            <!-- Recent Balls Reel -->
+            <div class="pt-2 flex items-center gap-2 overflow-x-auto">
+              <span class="text-[11px] font-bold text-slate-400 shrink-0">Recent:</span>
+              <div id="recent-balls-bar" class="flex items-center gap-1.5">
+                <span class="text-xs text-slate-500 italic">None</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Real-Time Live Players Room Board (Col 7) -->
+        <div class="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div>
+              <h2 class="font-display font-black text-lg text-slate-100 flex items-center gap-2">
+                <span>Room Participants</span>
+                <span id="gm-live-count-badge" class="bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-xs px-2.5 py-0.5 rounded-full font-mono font-bold">
+                  0 Online
+                </span>
+              </h2>
+              <p class="text-[11px] text-slate-400">Live real-time visibility for Screen Sharing</p>
+            </div>
+            <div class="flex items-center gap-2 font-mono">
+              <span class="text-xs text-slate-400">Total Pot:</span>
+              <span id="gm-total-pot-pill" class="text-sm font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-lg">₱0.00</span>
+            </div>
+          </div>
+
+          <!-- Quick Metrics Bar -->
+          <div class="grid grid-cols-3 gap-2 my-3 text-center">
+            <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-2">
+              <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Players</span>
+              <span id="gm-stat-players" class="font-mono font-black text-lg text-amber-400">0</span>
+            </div>
+            <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-2">
+              <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Total Cards</span>
+              <span id="gm-stat-cards" class="font-mono font-black text-lg text-cyan-400">0</span>
+            </div>
+            <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-2">
+              <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Collection</span>
+              <span id="gm-stat-income" class="font-mono font-black text-lg text-emerald-400">₱0</span>
+            </div>
+          </div>
+
+          <!-- Live Participants Grid (Supports 100+ players) -->
+          <div id="gm-participants-list" class="flex-1 max-h-[420px] overflow-y-auto space-y-2 pr-1">
+            <div class="text-slate-500 text-center py-10 italic">No participants yet. Share the link to join!</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- VIEW 3: ADMIN FINANCIAL & MANAGEMENT DESK -->
+    <div id="view-admin" class="hidden flex flex-col gap-4 w-full flex-1">
+      <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl px-4 py-3">
+        <div>
+          <h2 class="font-display font-black text-xl text-amber-400">CES Fun Club - Admin Dashboard</h2>
+          <p class="text-xs text-slate-400">Manage card prices, review participant payments, and control the live room</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-launch-gm-from-admin" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 hover:brightness-110 text-slate-950 font-display font-bold text-xs shadow transition">
+            Launch Game Master Screen
+          </button>
+          <button id="btn-exit-admin" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs border border-slate-700 transition">
+            Exit Admin
+          </button>
+        </div>
+      </div>
+
+      <!-- Financial Metrics Tiles -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4">
+          <span class="text-xs text-slate-400 uppercase font-semibold">Total Players</span>
+          <div id="admin-total-players" class="font-display font-black text-3xl text-white mt-1">0</div>
+          <span class="text-[11px] text-slate-500">Connected in session</span>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4">
+          <span class="text-xs text-slate-400 uppercase font-semibold">Total Active Cards</span>
+          <div id="admin-total-cards" class="font-display font-black text-3xl text-amber-400 mt-1">0</div>
+          <span class="text-[11px] text-slate-500">Purchased across players</span>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4">
+          <span class="text-xs text-slate-400 uppercase font-semibold">Total Gross Income</span>
+          <div id="admin-total-income" class="font-display font-black text-3xl text-emerald-400 mt-1">₱0.00</div>
+          <span class="text-[11px] text-slate-500">Calculated from total cards</span>
+        </div>
+      </div>
+
+      <!-- Price Setter & Actions Bar -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <label for="admin-card-price-input" class="text-xs font-bold text-slate-300 uppercase tracking-wide">
+            Price per Card (₱):
+          </label>
+          <div class="relative w-32">
+            <span class="absolute left-3 top-2 text-slate-400 font-bold">₱</span>
+            <input type="number" id="admin-card-price-input" min="1" step="1" value="10" class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-7 pr-3 py-1.5 text-white font-bold text-sm focus:outline-none focus:border-amber-400">
+          </div>
+          <button id="btn-save-price" class="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-xs transition">
+            Update Price
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="btn-export-csv" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold transition">
+            Export CSV
+          </button>
+          <button id="btn-admin-clear-room" class="px-3.5 py-1.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/40 text-xs font-semibold transition">
+            Clear Room Data
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Participant Table -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col flex-1 overflow-hidden">
+        <h3 class="font-display font-bold text-sm text-slate-200 mb-3">Live Participant Financial Roster</h3>
+        <div class="overflow-x-auto flex-1">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-800/80 text-slate-400 uppercase font-mono text-[10px]">
+              <tr>
+                <th class="py-2.5 px-3 rounded-l-xl">#</th>
+                <th class="py-2.5 px-3">Player</th>
+                <th class="py-2.5 px-3">Cards</th>
+                <th class="py-2.5 px-3">Price / Card</th>
+                <th class="py-2.5 px-3">Total Due</th>
+                <th class="py-2.5 px-3 rounded-r-xl">Status</th>
+              </tr>
+            </thead>
+            <tbody id="admin-roster-tbody" class="divide-y divide-slate-800">
+              <tr>
+                <td colspan="6" class="text-center py-8 text-slate-500 italic">No participants registered yet</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- MODAL: Player Welcome & Registration Screen -->
+  <div id="modal-join" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl relative">
+      <div class="text-center mb-5">
+        <div class="w-16 h-16 mx-auto mb-2 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-indigo-600 flex items-center justify-center text-3xl font-bold text-white shadow-lg shadow-amber-500/20">
+          🎱
+        </div>
+        <h2 class="font-display font-black text-2xl text-white">BINGO by CES Fun Club</h2>
+        <p class="text-xs text-slate-400 mt-1">Enter your player name and select your cards</p>
+      </div>
+
+      <!-- Pricing Notice Warning Box -->
+      <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3.5 mb-5 flex items-start gap-3">
+        <span class="text-xl">⚠️</span>
+        <div class="text-xs">
+          <span class="font-bold text-amber-400 block mb-0.5">Card Price Notice:</span>
+          Each card costs <span id="modal-unit-price-text" class="font-bold text-white">₱10.00</span>. You can choose as many cards as you want for this round.
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Your Player Name</label>
+          <input type="text" id="join-name-input" maxlength="24" placeholder="Enter your name or nickname..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-400">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Avatar Emoji</label>
+          <div id="join-avatar-picker" class="grid grid-cols-6 gap-2 text-center text-xl">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Quantity of Cards Selector -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">How many cards do you want?</label>
+          <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 rounded-2xl p-2">
+            <button id="btn-card-minus" type="button" class="w-10 h-10 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-black text-xl flex items-center justify-center transition active:scale-95">−</button>
+            <div class="text-center">
+              <span id="join-card-count-display" class="font-display font-black text-2xl text-amber-400">1</span>
+              <span class="text-[10px] text-slate-400 block">CARD(S)</span>
+            </div>
+            <button id="btn-card-plus" type="button" class="w-10 h-10 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-black text-xl flex items-center justify-center transition active:scale-95">+</button>
+          </div>
+        </div>
+
+        <!-- Total Calculation Pill -->
+        <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-3 flex items-center justify-between">
+          <span class="text-xs text-slate-400">Total Payment Due:</span>
+          <span id="join-total-due-text" class="font-mono font-black text-lg text-emerald-400">₱10.00</span>
+        </div>
+
+        <button id="btn-confirm-join" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 text-slate-950 font-display font-black text-lg hover:brightness-110 shadow-lg shadow-amber-500/25 transition active:scale-98">
+          GET CARDS & ENTER ROOM
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Secret Admin PIN Access -->
+  <div id="modal-pin" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-6 shadow-2xl relative text-center">
+      <div class="w-12 h-12 mx-auto mb-2 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-2xl">
+        🔒
+      </div>
+      <h3 class="font-display font-bold text-lg text-white mb-1">Staff Access</h3>
+      <p class="text-xs text-slate-400 mb-4">Enter the Secret PIN to manage room</p>
+
+      <input type="password" id="pin-input" maxlength="8" placeholder="Enter PIN..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-center text-white tracking-widest font-mono font-bold text-lg focus:outline-none focus:border-amber-400 mb-3">
+      <p id="pin-error-msg" class="text-[11px] text-rose-400 hidden mb-3">Incorrect PIN code</p>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button id="btn-cancel-pin" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+          Cancel
+        </button>
+        <button id="btn-submit-pin" class="py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-display font-bold transition">
+          Unlock
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Confirmation Modal for Clearing Room Data -->
+  <div id="modal-confirm-clear" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm">
+    <div class="bg-slate-900 border border-rose-500/40 w-full max-w-sm rounded-3xl p-6 shadow-2xl relative text-center">
+      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-3xl">
+        ⚠️
+      </div>
+      <h3 class="font-display font-bold text-lg text-white mb-1">Clear All Room Data?</h3>
+      <p class="text-xs text-slate-400 mb-5 leading-relaxed">
+        Are you sure? This will wipe all drawn numbers, reset all player cards, and clear current financial session records. This action cannot be undone.
+      </p>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button id="btn-cancel-clear" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+          No, Cancel
+        </button>
+        <button id="btn-confirm-clear" class="py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-display font-bold transition shadow-lg shadow-rose-600/30">
+          Yes, Clear All
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Application state
+    const state = {
+      appId: typeof __app_id !== 'undefined' ? __app_id : 'bingo-ces-fun-club',
+      roomId: 'room-1',
+      currentUser: null,
+      userId: 'user-' + Math.random().toString(36).substring(2, 9),
+      playerName: '',
+      playerAvatar: '🎯',
+      cardCount: 1,
+      pricePerCard: 10,
+      soundEnabled: true,
+      lastSpokenNum: null,
+      playerCards: [], // array of { cardId, grid: 25 numbers, stamped: Set }
+      hasClaimedBingo: false,
+      autoRollTimer: null,
+      isDrawingLock: false,
+      roomState: {
+        drawnNumbers: [],
+        lastDrawn: null,
+        pricePerCard: 10,
+        winPattern: 'standard',
+        lastWinner: null,
+        players: {}
+      }
+    };
+
+    // Firebase Setup
+    let app, auth, db;
+    try {
+      const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+        apiKey: "demo",
+        authDomain: "demo.firebaseapp.com",
+        projectId: "demo"
+      };
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+    } catch (e) {
+      console.warn("Using in-memory broadcast fallback if config is demo", e);
+    }
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function resumeAudioContext() {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playBeep(freq = 520, type = 'sine', duration = 0.12) {
+      if (!state.soundEnabled) return;
+      try {
+        resumeAudioContext();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Authentic Pinoy "Kalog ng Bote / Lata" Sound Effect
+    function playPinoyBottleShake() {
+      if (!state.soundEnabled) return;
+      try {
+        resumeAudioContext();
+        const now = audioCtx.currentTime;
+        const totalDuration = 0.85;
+
+        // 1. Shaking whoosh / container friction
+        const bufferSize = audioCtx.sampleRate * totalDuration;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = Math.random() * 2 - 1;
+        }
+
+        const whiteNoise = audioCtx.createBufferSource();
+        whiteNoise.buffer = noiseBuffer;
+
+        const noiseFilter = audioCtx.createBiquadFilter();
+        noiseFilter.type = 'bandpass';
+        noiseFilter.frequency.setValueAtTime(1400, now);
+        noiseFilter.Q.setValueAtTime(3.5, now);
+
+        const noiseGain = audioCtx.createGain();
+        noiseGain.gain.setValueAtTime(0.01, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.18, now + 0.12);
+        noiseGain.gain.exponentialRampToValueAtTime(0.03, now + 0.28);
+        noiseGain.gain.exponentialRampToValueAtTime(0.22, now + 0.42);
+        noiseGain.gain.exponentialRampToValueAtTime(0.04, now + 0.58);
+        noiseGain.gain.exponentialRampToValueAtTime(0.26, now + 0.70);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + totalDuration);
+
+        whiteNoise.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(audioCtx.destination);
+        whiteNoise.start(now);
+        whiteNoise.stop(now + totalDuration);
+
+        // 2. High-speed clattering wood/plastic tokens collision impulses
+        const impactTimes = [
+          0.02, 0.06, 0.10, 0.14, 0.19, 0.23, 0.27, 
+          0.33, 0.38, 0.43, 0.47, 0.52, 0.57, 0.62, 0.68, 0.72
+        ];
+        impactTimes.forEach((tOffset) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          const hitFreq = 2200 + Math.random() * 1800;
+          
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(hitFreq, now + tOffset);
+          osc.frequency.exponentialRampToValueAtTime(hitFreq * 0.4, now + tOffset + 0.035);
+
+          const vol = 0.08 + Math.random() * 0.12;
+          gain.gain.setValueAtTime(vol, now + tOffset);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + tOffset + 0.035);
+
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + tOffset);
+          osc.stop(now + tOffset + 0.04);
+        });
+
+        // 3. Resonant "Bote / Lata" hollow body thumps
+        [0.08, 0.22, 0.38, 0.54, 0.70].forEach((tThump, idx) => {
+          const thumOsc = audioCtx.createOscillator();
+          const thumGain = audioCtx.createGain();
+          thumOsc.type = 'sine';
+          thumOsc.frequency.setValueAtTime(320 + (idx % 2) * 90, now + tThump);
+          thumOsc.frequency.exponentialRampToValueAtTime(110, now + tThump + 0.06);
+
+          thumGain.gain.setValueAtTime(0.2, now + tThump);
+          thumGain.gain.exponentialRampToValueAtTime(0.001, now + tThump + 0.06);
+
+          thumOsc.connect(thumGain);
+          thumGain.connect(audioCtx.destination);
+          thumOsc.start(now + tThump);
+          thumOsc.stop(now + tThump + 0.07);
+        });
+
+        // 4. Final crisp ball drawn pop
+        const popTime = now + 0.74;
+        const popOsc = audioCtx.createOscillator();
+        const popGain = audioCtx.createGain();
+        popOsc.type = 'sine';
+        popOsc.frequency.setValueAtTime(480, popTime);
+        popOsc.frequency.exponentialRampToValueAtTime(980, popTime + 0.09);
+
+        popGain.gain.setValueAtTime(0.35, popTime);
+        popGain.gain.exponentialRampToValueAtTime(0.001, popTime + 0.14);
+
+        popOsc.connect(popGain);
+        popGain.connect(audioCtx.destination);
+        popOsc.start(popTime);
+        popOsc.stop(popTime + 0.15);
+
+      } catch (err) {
+        console.error("Bottle shake sound error:", err);
+      }
+    }
+
+    function playWinFanfare() {
+      if (!state.soundEnabled) return;
+      [440, 554, 659, 880].forEach((freq, idx) => {
+        setTimeout(() => playBeep(freq, 'triangle', 0.25), idx * 120);
+      });
+    }
+
+    // Helper functions
+    function getBingoLetter(num) {
+      if (num <= 15) return 'B';
+      if (num <= 30) return 'I';
+      if (num <= 45) return 'N';
+      if (num <= 60) return 'G';
+      return 'O';
+    }
+
+    function getLetterColor(letter) {
+      switch(letter) {
+        case 'B': return '#3b82f6';
+        case 'I': return '#f43f5e';
+        case 'N': return '#f59e0b';
+        case 'G': return '#10b981';
+        case 'O': return '#8b5cf6';
+        default: return '#ef4444';
+      }
+    }
+
+    function getRandomSublist(min, max, count) {
+      const pool = [];
+      for (let i = min; i <= max; i++) pool.push(i);
+      const result = [];
+      for (let i = 0; i < count; i++) {
+        const idx = Math.floor(Math.random() * pool.length);
+        result.push(pool.splice(idx, 1)[0]);
+      }
+      return result.sort((a, b) => a - b);
+    }
+
+    // Generate Standard 5x5 Card
+    function generateBingoCard() {
+      const colB = getRandomSublist(1, 15, 5);
+      const colI = getRandomSublist(16, 30, 5);
+      const colN = getRandomSublist(31, 45, 4);
+      const colG = getRandomSublist(46, 60, 5);
+      const colO = getRandomSublist(61, 75, 5);
+
+      const grid = new Array(25);
+      for (let r = 0; r < 5; r++) {
+        grid[r * 5 + 0] = colB[r];
+        grid[r * 5 + 1] = colI[r];
+        if (r < 2) grid[r * 5 + 2] = colN[r];
+        else if (r === 2) grid[r * 5 + 2] = 0; // FREE Center
+        else grid[r * 5 + 2] = colN[r - 1];
+        grid[r * 5 + 3] = colG[r];
+        grid[r * 5 + 4] = colO[r];
+      }
+      return grid;
+    }
+
+    function renderAllPlayerCards() {
+      const container = document.getElementById('cards-container');
+      container.innerHTML = '';
+
+      state.playerCards.forEach((card, cardIndex) => {
+        const cardBox = document.createElement('div');
+        cardBox.className = 'bg-slate-900/90 border-2 border-slate-800 rounded-3xl p-3 sm:p-4 shadow-xl flex flex-col items-center';
+
+        // Card header
+        const cardHeader = document.createElement('div');
+        cardHeader.className = 'w-full flex items-center justify-between mb-2 text-xs';
+        cardHeader.innerHTML = `
+          <span class="font-display font-bold text-amber-400">CARD #${cardIndex + 1}</span>
+          <span class="text-[10px] text-slate-400 font-mono"><span id="match-count-${card.cardId}">${card.stamped.size}</span>/25 marked</span>
+        `;
+        cardBox.appendChild(cardHeader);
+
+        // B-I-N-G-O column headers
+        const headerGrid = document.createElement('div');
+        headerGrid.className = 'grid grid-cols-5 gap-1.5 w-full mb-1.5 text-center font-display font-black text-sm text-white';
+        headerGrid.innerHTML = `
+          <div class="bg-blue-600 rounded-lg py-1">B</div>
+          <div class="bg-rose-600 rounded-lg py-1">I</div>
+          <div class="bg-amber-600 rounded-lg py-1">N</div>
+          <div class="bg-emerald-600 rounded-lg py-1">G</div>
+          <div class="bg-purple-600 rounded-lg py-1">O</div>
+        `;
+        cardBox.appendChild(headerGrid);
+
+        // 5x5 Grid
+        const gridEl = document.createElement('div');
+        gridEl.className = 'grid grid-cols-5 gap-1.5 w-full';
+
+        card.grid.forEach((num, cellIdx) => {
+          const isFree = cellIdx === 12;
+          const isStamped = card.stamped.has(cellIdx);
+
+          const cell = document.createElement('div');
+          cell.id = `cell-${card.cardId}-${cellIdx}`;
+          cell.className = `bingo-cell rounded-xl flex flex-col items-center justify-center cursor-pointer font-display font-bold text-xs sm:text-sm select-none relative shadow transition border ${
+            isStamped 
+              ? 'bg-gradient-to-tr from-amber-500 to-rose-500 text-white border-amber-300 shadow-amber-500/30' 
+              : 'bg-slate-800/80 text-slate-200 hover:bg-slate-700/80 border-slate-700/70'
+          }`;
+
+          if (isFree) {
+            cell.innerHTML = `
+              <span class="text-[10px] uppercase font-black text-amber-200">★ FREE</span>
+            `;
+          } else {
+            cell.textContent = num;
+            if (isStamped) {
+              const stamp = document.createElement('span');
+              stamp.className = 'text-[9px] uppercase font-sans font-black text-amber-200 stamp-anim leading-none';
+              stamp.textContent = 'DAUB';
+              cell.appendChild(stamp);
+            }
+          }
+
+          // Manual Click Handler with validation
+          cell.addEventListener('click', () => {
+            if (isFree) return;
+            const drawnNumbers = state.roomState.drawnNumbers || [];
+            
+            // Check if number was called
+            if (drawnNumbers.includes(num)) {
+              if (card.stamped.has(cellIdx)) {
+                card.stamped.delete(cellIdx);
+              } else {
+                card.stamped.add(cellIdx);
+                playBeep(640, 'sine', 0.08);
+              }
+              renderAllPlayerCards();
+              checkWinCondition(card);
+              syncPlayerToRoom();
+            } else {
+              // Uncalled number clicked: brief shake, rejection sound, auto-remove highlight
+              playBeep(220, 'sawtooth', 0.18);
+              cell.classList.add('shake-invalid');
+              setTimeout(() => {
+                cell.classList.remove('shake-invalid');
+              }, 400);
+            }
+          });
+
+          gridEl.appendChild(cell);
+        });
+
+        cardBox.appendChild(gridEl);
+        container.appendChild(cardBox);
+      });
+    }
+
+    // Auto-daub across all player cards
+    function applyAutoDaub(drawnArray) {
+      const drawnSet = new Set(drawnArray);
+      let newlyMarked = false;
+
+      state.playerCards.forEach(card => {
+        card.grid.forEach((num, idx) => {
+          if (idx === 12) return; // Free center
+          if (drawnSet.has(num) && !card.stamped.has(idx)) {
+            card.stamped.add(idx);
+            newlyMarked = true;
+          }
+        });
+        checkWinCondition(card);
+      });
+
+      if (newlyMarked) {
+        renderAllPlayerCards();
+        playBeep(720, 'triangle', 0.1);
+        syncPlayerToRoom();
+      }
+    }
+
+    // Check winning conditions
+    function checkWinCondition(card) {
+      const stamped = card.stamped;
+      const isMarked = (idx) => stamped.has(idx);
+
+      const lines = [
+        [0,1,2,3,4], [5,6,7,8,9], [10,11,12,13,14], [15,16,17,18,19], [20,21,22,23,24],
+        [0,5,10,15,20], [1,6,11,16,21], [2,7,12,17,22], [3,8,13,18,23], [4,9,14,19,24],
+        [0,6,12,18,24], [4,8,12,16,20]
+      ];
+
+      const isWin = lines.some(line => line.every(isMarked));
+      if (isWin && !state.hasClaimedBingo) {
+        triggerBingoCelebration();
+      }
+      return isWin;
+    }
+
+    function triggerBingoCelebration() {
+      state.hasClaimedBingo = true;
+      confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+      playWinFanfare();
+
+      showWinBanner(`${state.playerName} (YOU) claim BINGO!`);
+
+      // Update room state
+      if (db && state.currentUser) {
+        const roomRef = doc(db, 'artifacts', state.appId, 'public', 'data', 'rooms', state.roomId);
+        setDoc(roomRef, {
+          lastWinner: {
+            name: state.playerName,
+            avatar: state.playerAvatar,
+            timestamp: Date.now()
+          }
+        }, { merge: true }).catch(console.error);
+      }
+      syncPlayerToRoom();
+    }
+
+    function showWinBanner(text) {
+      const banner = document.getElementById('player-win-banner');
+      document.getElementById('player-win-text').textContent = text;
+      banner.classList.remove('hidden');
+    }
+
+    async function initFirebaseSync() {
+      if (!db || !auth) return;
+
+      try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          const cred = await signInWithCustomToken(auth, __initial_auth_token);
+          state.currentUser = cred.user;
+        } else {
+          const cred = await signInAnonymously(auth);
+          state.currentUser = cred.user;
+        }
+        state.userId = state.currentUser.uid;
+
+        const roomRef = doc(db, 'artifacts', state.appId, 'public', 'data', 'rooms', state.roomId);
+
+        // Sync listener
+        onSnapshot(roomRef, (snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.data();
+            updateRoomFromSnapshot(data);
+          } else {
+            // First time init
+            setDoc(roomRef, {
+              drawnNumbers: [],
+              lastDrawn: null,
+              pricePerCard: state.pricePerCard,
+              lastWinner: null,
+              players: {}
+            }, { merge: true });
+          }
+        }, (err) => console.error("Firestore onSnapshot error:", err));
+
+      } catch (err) {
+        console.error("Auth init error:", err);
+      }
+    }
+
+    async function syncPlayerToRoom() {
+      if (!db || !state.userId) return;
+      try {
+        const totalMarks = state.playerCards.reduce((acc, c) => acc + c.stamped.size, 0);
+        const roomRef = doc(db, 'artifacts', state.appId, 'public', 'data', 'rooms', state.roomId);
+        
+        await setDoc(roomRef, {
+          players: {
+            [state.userId]: {
+              name: state.playerName,
+              avatar: state.playerAvatar,
+              cardCount: state.cardCount,
+              totalMarks: totalMarks,
+              hasBingo: state.hasClaimedBingo,
+              updatedAt: Date.now()
+            }
+          }
+        }, { merge: true });
+      } catch (e) {
+        console.error("Sync player presence error:", e);
+      }
+    }
+
+    function updateRoomFromSnapshot(data) {
+      if (!data) return;
+      state.roomState = data;
+
+      if (data.pricePerCard && data.pricePerCard !== state.pricePerCard) {
+        state.pricePerCard = data.pricePerCard;
+        document.getElementById('modal-unit-price-text').textContent = `₱${state.pricePerCard}.00`;
+        updateJoinPriceCalculations();
+      }
+
+      const drawn = data.drawnNumbers || [];
+
+      // Update Player Top Bar Call Info
+      document.getElementById('player-balls-count').textContent = `${drawn.length} / 75`;
+      if (data.lastDrawn) {
+        const letter = getBingoLetter(data.lastDrawn);
+        const color = getLetterColor(letter);
+
+        const playerBall = document.getElementById('player-ball-sphere');
+        playerBall.style.setProperty('--ball-color', color);
+        document.getElementById('player-ball-letter').textContent = letter;
+        document.getElementById('player-ball-num').textContent = data.lastDrawn;
+        document.getElementById('player-caller-text').textContent = `Called: ${letter}-${data.lastDrawn}`;
+
+        // GM Screen Showcase
+        const gmBall = document.getElementById('big-bingo-ball');
+        gmBall.style.setProperty('--ball-color', color);
+        document.getElementById('big-ball-letter').textContent = letter;
+        document.getElementById('big-ball-num').textContent = data.lastDrawn;
+        document.getElementById('gm-announce-msg').textContent = `Just Drawn: ${letter}-${data.lastDrawn}`;
+
+        // Play Pinoy Bottle Shake sound on new ball
+        if (state.lastSpokenNum !== data.lastDrawn) {
+          state.lastSpokenNum = data.lastDrawn;
+          playPinoyBottleShake();
+        }
+      } else {
+        document.getElementById('player-ball-letter').textContent = 'CES';
+        document.getElementById('player-ball-num').textContent = '--';
+        document.getElementById('player-caller-text').textContent = 'Waiting for Game Master to draw...';
+        document.getElementById('big-ball-letter').textContent = 'READY';
+        document.getElementById('big-ball-num').textContent = '--';
+        document.getElementById('gm-announce-msg').textContent = 'Ready to draw ball';
+      }
+
+      // Recent Calls Bar on GM screen
+      const recentBar = document.getElementById('recent-balls-bar');
+      recentBar.innerHTML = '';
+      if (drawn.length > 0) {
+        drawn.slice(-6).reverse().forEach(n => {
+          const ltr = getBingoLetter(n);
+          const chip = document.createElement('span');
+          chip.className = 'px-2 py-0.5 rounded-full text-xs font-bold text-white font-mono shadow';
+          chip.style.backgroundColor = getLetterColor(ltr);
+          chip.textContent = `${ltr}-${n}`;
+          recentBar.appendChild(chip);
+        });
+      } else {
+        recentBar.innerHTML = '<span class="text-xs text-slate-500 italic">None</span>';
+      }
+
+      document.getElementById('gm-total-drawn-pill').textContent = `${drawn.length} / 75 Balls`;
+
+      // Apply auto-daub across player's cards
+      applyAutoDaub(drawn);
+
+      // Check for winner
+      if (data.lastWinner) {
+        showWinBanner(`${data.lastWinner.avatar || '🎉'} ${data.lastWinner.name} got BINGO!`);
+        if (data.lastWinner.name !== state.playerName) {
+          confetti({ particleCount: 60, spread: 60 });
+        }
+      }
+
+      // Update GM Screen Roster & Admin Table
+      updateLiveParticipants(data.players || {});
+    }
+
+    function updateLiveParticipants(playersObj) {
+      const playersList = Object.entries(playersObj).map(([id, p]) => ({ id, ...p }));
+      
+      const totalPlayers = playersList.length;
+      const totalCards = playersList.reduce((sum, p) => sum + (p.cardCount || 1), 0);
+      const grossIncome = totalCards * state.pricePerCard;
+
+      // GM Screen stats
+      document.getElementById('gm-live-count-badge').textContent = `${totalPlayers} Online`;
+      document.getElementById('gm-stat-players').textContent = totalPlayers;
+      document.getElementById('gm-stat-cards').textContent = totalCards;
+      document.getElementById('gm-stat-income').textContent = `₱${grossIncome.toLocaleString()}`;
+      document.getElementById('gm-total-pot-pill').textContent = `₱${grossIncome.toLocaleString()}.00`;
+
+      // Admin stats
+      document.getElementById('admin-total-players').textContent = totalPlayers;
+      document.getElementById('admin-total-cards').textContent = totalCards;
+      document.getElementById('admin-total-income').textContent = `₱${grossIncome.toLocaleString()}.00`;
+
+      // Render GM Live Screen Roster
+      const gmListEl = document.getElementById('gm-participants-list');
+      gmListEl.innerHTML = '';
+      if (playersList.length === 0) {
+        gmListEl.innerHTML = '<div class="text-slate-500 text-center py-10 italic">No participants yet. Share the link to join!</div>';
+      } else {
+        // Sort: Bingo winners first, then card count descending
+        playersList.sort((a, b) => {
+          if (a.hasBingo && !b.hasBingo) return -1;
+          if (!a.hasBingo && b.hasBingo) return 1;
+          return (b.cardCount || 1) - (a.cardCount || 1);
+        });
+
+        playersList.forEach((p, idx) => {
+          const row = document.createElement('div');
+          row.className = `flex items-center justify-between p-2.5 rounded-2xl border transition ${
+            p.hasBingo 
+              ? 'bg-amber-500/20 border-amber-500/50 text-amber-200' 
+              : 'bg-slate-800/60 border-slate-700/60 text-slate-300'
+          }`;
+
+          const paidAmt = (p.cardCount || 1) * state.pricePerCard;
+          row.innerHTML = `
+            <div class="flex items-center gap-3 truncate">
+              <span class="font-mono text-xs font-bold text-slate-500">#${idx + 1}</span>
+              <span class="text-xl">${p.avatar || '🎯'}</span>
+              <div class="truncate">
+                <span class="font-bold text-xs ${p.id === state.userId ? 'text-amber-400 underline' : 'text-slate-200'}">
+                  ${p.name || 'Anonymous'} ${p.id === state.userId ? '(You)' : ''}
+                </span>
+                <span class="text-[10px] text-slate-400 block">${p.cardCount || 1} Cards • ₱${paidAmt}</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-mono px-2 py-0.5 rounded-full ${p.hasBingo ? 'bg-amber-500 text-slate-950 font-black animate-pulse' : 'bg-slate-700 text-slate-300'}">
+                ${p.hasBingo ? '★ BINGO!' : `${p.cardCount || 1} Cards`}
+              </span>
+            </div>
+          `;
+          gmListEl.appendChild(row);
+        });
+      }
+
+      // Render Admin Table
+      const adminTbody = document.getElementById('admin-roster-tbody');
+      adminTbody.innerHTML = '';
+      if (playersList.length === 0) {
+        adminTbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500 italic">No participants registered yet</td></tr>';
+      } else {
+        playersList.forEach((p, idx) => {
+          const tr = document.createElement('tr');
+          const cards = p.cardCount || 1;
+          const due = cards * state.pricePerCard;
+          tr.innerHTML = `
+            <td class="py-2.5 px-3 font-mono font-bold text-slate-400">#${idx + 1}</td>
+            <td class="py-2.5 px-3 font-semibold text-slate-200">${p.avatar || '🎯'} ${p.name || 'Player'}</td>
+            <td class="py-2.5 px-3 font-mono font-bold text-amber-400">${cards}</td>
+            <td class="py-2.5 px-3 font-mono">₱${state.pricePerCard}</td>
+            <td class="py-2.5 px-3 font-mono font-bold text-emerald-400">₱${due.toLocaleString()}</td>
+            <td class="py-2.5 px-3 font-mono">
+              ${p.hasBingo ? '<span class="text-amber-400 font-bold">★ BINGO</span>' : '<span class="text-slate-400">Playing</span>'}
+            </td>
+          `;
+          adminTbody.appendChild(tr);
+        });
+      }
+    }
+
+    // Drawing Game Master Logic
+    async function drawNextBall() {
+      if (state.isDrawingLock) return;
+      state.isDrawingLock = true;
+
+      try {
+        const drawn = state.roomState.drawnNumbers || [];
+        if (drawn.length >= 75) {
+          document.getElementById('gm-announce-msg').textContent = 'All 75 balls drawn!';
+          state.isDrawingLock = false;
+          return;
+        }
+
+        const available = [];
+        for (let i = 1; i <= 75; i++) {
+          if (!drawn.includes(i)) available.push(i);
+        }
+
+        const picked = available[Math.floor(Math.random() * available.length)];
+        const updatedDrawn = [...drawn, picked];
+
+        if (db) {
+          const roomRef = doc(db, 'artifacts', state.appId, 'public', 'data', 'rooms', state.roomId);
+          await setDoc(roomRef, {
+            drawnNumbers: updatedDrawn,
+            lastDrawn: picked
+          }, { merge: true });
+        }
+      } catch (err) {
+        console.error("Draw ball error:", err);
+      } finally {
+        state.isDrawingLock = false;
+      }
+    }
+
+    async function clearAllRoomData() {
+      try {
+        if (db) {
+          const roomRef = doc(db, 'artifacts', state.appId, 'public', 'data', 'rooms', state.roomId);
+          await setDoc(roomRef, {
+            drawnNumbers: [],
+            lastDrawn: null,
+            lastWinner: null,
+            players: {}
+          }, { merge: true });
+        }
+
+        // Reset local player stamps
+        state.hasClaimedBingo = false;
+        state.playerCards.forEach(c => {
+          c.stamped = new Set([12]);
+        });
+        renderAllPlayerCards();
+        document.getElementById('player-win-banner').classList.add('hidden');
+        syncPlayerToRoom();
+      } catch (err) {
+        console.error("Clear room error:", err);
+      }
+    }
+
+    // Switch view handler
+    function switchView(viewName) {
+      document.getElementById('view-player').classList.add('hidden');
+      document.getElementById('view-gm').classList.add('hidden');
+      document.getElementById('view-admin').classList.add('hidden');
+
+      if (viewName === 'gm') {
+        document.getElementById('view-gm').classList.remove('hidden');
+      } else if (viewName === 'admin') {
+        document.getElementById('view-admin').classList.remove('hidden');
+      } else {
+        document.getElementById('view-player').classList.remove('hidden');
+      }
+    }
+
+    function updateJoinPriceCalculations() {
+      const total = state.cardCount * state.pricePerCard;
+      document.getElementById('join-card-count-display').textContent = state.cardCount;
+      document.getElementById('join-total-due-text').textContent = `₱${total.toFixed(2)}`;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // 1. Emoji Picker in Join Modal
+      const emojis = ['🎯', '🦁', '🦊', '🐼', '🚀', '⭐', '🎲', '🍕', '🎉', '🔥', '👑', '🍀'];
+      const pickerEl = document.getElementById('join-avatar-picker');
+      emojis.forEach(emo => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `p-2 rounded-xl bg-slate-800 hover:bg-slate-700 transition border ${emo === state.playerAvatar ? 'border-amber-400 bg-amber-500/20' : 'border-slate-700'}`;
+        btn.textContent = emo;
+        btn.addEventListener('click', () => {
+          state.playerAvatar = emo;
+          Array.from(pickerEl.children).forEach(c => c.classList.remove('border-amber-400', 'bg-amber-500/20'));
+          btn.classList.add('border-amber-400', 'bg-amber-500/20');
+        });
+        pickerEl.appendChild(btn);
+      });
+
+      // Default random player name
+      document.getElementById('join-name-input').value = `Player${Math.floor(100 + Math.random() * 900)}`;
+
+      // Card count buttons (+ / -)
+      document.getElementById('btn-card-minus').addEventListener('click', () => {
+        if (state.cardCount > 1) {
+          state.cardCount--;
+          updateJoinPriceCalculations();
+        }
+      });
+      document.getElementById('btn-card-plus').addEventListener('click', () => {
+        if (state.cardCount < 20) {
+          state.cardCount++;
+          updateJoinPriceCalculations();
+        }
+      });
+
+      // Confirm Join & Generate Cards
+      document.getElementById('btn-confirm-join').addEventListener('click', () => {
+        const inputName = document.getElementById('join-name-input').value.trim();
+        state.playerName = inputName || 'Lucky Player';
+
+        // Update header badge
+        document.getElementById('player-name-display').textContent = state.playerName;
+        document.getElementById('player-avatar-icon').textContent = state.playerAvatar;
+        document.getElementById('player-cards-badge').textContent = `${state.cardCount} ${state.cardCount > 1 ? 'Cards' : 'Card'}`;
+        document.getElementById('player-profile-badge').classList.remove('hidden');
+        document.getElementById('player-profile-badge').classList.add('flex');
+
+        // Generate N player cards
+        state.playerCards = [];
+        for (let i = 0; i < state.cardCount; i++) {
+          state.playerCards.push({
+            cardId: 'card-' + (i + 1),
+            grid: generateBingoCard(),
+            stamped: new Set([12])
+          });
+        }
+        renderAllPlayerCards();
+
+        // Close Join Modal
+        document.getElementById('modal-join').classList.add('hidden');
+
+        // Start Firestore synchronization
+        initFirebaseSync();
+      });
+
+      // 2. Secret Admin Access: Triple-click brand logo or Alt+A
+      let clickCount = 0;
+      let clickTimer = null;
+      document.getElementById('brand-logo-trigger').addEventListener('click', () => {
+        clickCount++;
+        clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => { clickCount = 0; }, 600);
+        if (clickCount >= 3) {
+          clickCount = 0;
+          document.getElementById('pin-input').value = '';
+          document.getElementById('pin-error-msg').classList.add('hidden');
+          document.getElementById('modal-pin').classList.remove('hidden');
+        }
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.altKey && (e.key === 'a' || e.key === 'A')) {
+          e.preventDefault();
+          document.getElementById('pin-input').value = '';
+          document.getElementById('pin-error-msg').classList.add('hidden');
+          document.getElementById('modal-pin').classList.remove('hidden');
+        }
+      });
+
+      // PIN modal submission
+      document.getElementById('btn-submit-pin').addEventListener('click', () => {
+        const pin = document.getElementById('pin-input').value.trim();
+        if (pin === '1234' || pin === 'CES2026' || pin === 'ces') {
+          document.getElementById('modal-pin').classList.add('hidden');
+          switchView('admin');
+        } else {
+          document.getElementById('pin-error-msg').classList.remove('hidden');
+        }
+      });
+
+      document.getElementById('btn-cancel-pin').addEventListener('click', () => {
+        document.getElementById('modal-pin').classList.add('hidden');
+      });
+
+      // 3. Navigation across Admin, GM Presentation, and Player
+      document.getElementById('btn-launch-gm-from-admin').addEventListener('click', () => {
+        switchView('gm');
+      });
+      document.getElementById('btn-exit-admin').addEventListener('click', () => {
+        switchView('player');
+      });
+      document.getElementById('btn-open-admin-from-gm').addEventListener('click', () => {
+        switchView('admin');
+      });
+      document.getElementById('btn-exit-gm-mode').addEventListener('click', () => {
+        switchView('player');
+      });
+
+      // 4. GM Actions
+      document.getElementById('btn-draw-ball').addEventListener('click', () => {
+        drawNextBall();
+      });
+
+      // GM Auto-Roll
+      document.getElementById('gm-auto-roll-toggle').addEventListener('change', (e) => {
+        if (state.autoRollTimer) {
+          clearInterval(state.autoRollTimer);
+          state.autoRollTimer = null;
+        }
+        if (e.target.checked) {
+          const speed = parseInt(document.getElementById('gm-auto-roll-speed').value, 10);
+          state.autoRollTimer = setInterval(() => {
+            const drawn = state.roomState.drawnNumbers || [];
+            if (drawn.length >= 75) {
+              clearInterval(state.autoRollTimer);
+              e.target.checked = false;
+              return;
+            }
+            drawNextBall();
+          }, speed);
+        }
+      });
+
+      document.getElementById('gm-auto-roll-speed').addEventListener('change', (e) => {
+        const checkbox = document.getElementById('gm-auto-roll-toggle');
+        if (checkbox.checked) {
+          clearInterval(state.autoRollTimer);
+          state.autoRollTimer = setInterval(drawNextBall, parseInt(e.target.value, 10));
+        }
+      });
+
+      // 5. Clear Room Warning Confirmation Modal
+      const openClearModal = () => {
+        document.getElementById('modal-confirm-clear').classList.remove('hidden');
+      };
+      document.getElementById('btn-trigger-clear-room').addEventListener('click', openClearModal);
+      document.getElementById('btn-admin-clear-room').addEventListener('click', openClearModal);
+
+      document.getElementById('btn-cancel-clear').addEventListener('click', () => {
+        document.getElementById('modal-confirm-clear').classList.add('hidden');
+      });
+
+      document.getElementById('btn-confirm-clear').addEventListener('click', () => {
+        clearAllRoomData();
+        document.getElementById('modal-confirm-clear').classList.add('hidden');
+      });
+
+      // 6. Admin Update Price per Card
+      document.getElementById('btn-save-price').addEventListener('click', async () => {
+        const newPrice = parseFloat(document.getElementById('admin-card-price-input').value) || 10;
+        state.pricePerCard = newPrice;
+        if (db) {
+          const roomRef = doc(db, 'artifacts', state.appId, 'public', 'data', 'rooms', state.roomId);
+          await setDoc(roomRef, { pricePerCard: newPrice }, { merge: true });
+        }
+        playBeep(880, 'sine', 0.15);
+      });
+
+      // 7. Admin Export CSV
+      document.getElementById('btn-export-csv').addEventListener('click', () => {
+        const playersList = Object.values(state.roomState.players || {});
+        let csv = "Index,Player Name,Cards,Price Per Card,Total Due (PHP),Status\n";
+        playersList.forEach((p, idx) => {
+          const cards = p.cardCount || 1;
+          const due = cards * state.pricePerCard;
+          csv += `${idx + 1},"${p.name || 'Player'}",${cards},${state.pricePerCard},${due},"${p.hasBingo ? 'BINGO' : 'Playing'}"\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ces_bingo_roster_${Date.now()}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      // 8. Player Manual Claim BINGO
+      document.getElementById('btn-claim-bingo').addEventListener('click', () => {
+        let hasAnyWin = false;
+        state.playerCards.forEach(c => {
+          if (checkWinCondition(c)) hasAnyWin = true;
+        });
+
+        if (hasAnyWin) {
+          triggerBingoCelebration();
+        } else {
+          playBeep(220, 'sawtooth', 0.25);
+          const msg = document.getElementById('player-caller-text');
+          const original = msg.textContent;
+          msg.textContent = '❌ You do not have a completed line yet!';
+          setTimeout(() => { msg.textContent = original; }, 2500);
+        }
+      });
+
+      document.getElementById('btn-dismiss-win-banner').addEventListener('click', () => {
+        document.getElementById('player-win-banner').classList.add('hidden');
+      });
+
+      // 9. Sound Mute Toggle
+      document.getElementById('btn-toggle-sound').addEventListener('click', () => {
+        state.soundEnabled = !state.soundEnabled;
+        document.getElementById('sound-icon').textContent = state.soundEnabled ? '🔊' : '🔇';
+      });
+
+      // Resume Audio Context on first interaction
+      window.addEventListener('click', resumeAudioContext, { once: true });
+      window.addEventListener('touchstart', resumeAudioContext, { once: true });
+    });
+  </script>
+</body>
+</html>
