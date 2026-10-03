@@ -99,6 +99,8 @@
       <span class="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs uppercase tracking-wider">Live Presentation Mode</span>
       <div class="flex flex-wrap items-center gap-2">
         <button id="btn-gm-share-modal" class="text-xs font-semibold px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/40 rounded-xl text-indigo-300 active:scale-95">🔗 Share Room</button>
+        <button id="btn-gm-music" class="text-xs font-semibold px-3 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 rounded-xl text-emerald-300 active:scale-95" title="Game Master background music">🎵 Music On</button>
+        <button id="btn-gm-help" aria-label="Game mechanics and patterns" title="Game Mechanics & Patterns" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-300 font-black text-base flex items-center justify-center active:scale-95">?</button>
         <button id="btn-open-admin-from-gm" class="text-xs font-semibold px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-amber-400 active:scale-95">Admin Desk</button>
         <button id="btn-exit-gm-mode" class="text-xs font-semibold px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl active:scale-95">Exit</button>
       </div>
@@ -157,7 +159,8 @@
   <div id="view-admin" class="hidden flex-col gap-4 w-full flex-1">
     <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 border border-slate-800 rounded-2xl px-4 py-3">
       <div><h2 class="font-display font-bold text-xl text-amber-400">Admin Dashboard</h2><p class="text-xs text-slate-400">Card prices, roster and invites</p></div>
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2">
+        <button id="btn-admin-music" class="px-3 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs active:scale-95" title="Admin background music">🎵 Music On</button>
         <button id="btn-launch-gm-from-admin" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 text-slate-950 font-display font-bold text-xs active:scale-95">Launch Game Master</button>
         <button id="btn-exit-admin" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 font-semibold text-xs border border-slate-700 active:scale-95">Exit Admin</button>
       </div>
@@ -212,6 +215,7 @@
       <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-3 flex items-center justify-between"><span class="text-xs text-slate-400">Total Payment Due:</span><span id="join-total-due-text" class="font-mono font-black text-lg text-emerald-400">₱10.00</span></div>
       <p id="join-gate-msg" class="hidden text-xs font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-xl p-3"></p>
       <button id="btn-confirm-join" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 font-display font-bold text-lg hover:brightness-110 shadow-lg active:scale-95">GET CARDS &amp; ENTER</button>
+      <button id="btn-join-admin-access" type="button" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-300 text-xs font-bold active:scale-95">🔒 ADMIN ACCESS — NO PLAYER ACCOUNT</button>
       <button id="btn-close-join" type="button" class="hidden w-full py-2 text-xs text-slate-400 hover:text-white">Cancel</button>
     </div>
   </div>
@@ -233,7 +237,7 @@
   <div class="modal-box bg-slate-900 border border-rose-500/40 w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center">
     <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-3xl">⚠️</div>
     <h3 class="font-display font-bold text-lg mb-1">Reset this round?</h3>
-    <p class="text-xs text-slate-400 mb-5">This clears all drawn balls and bingo status. Joined players reconnect automatically for the new round.</p>
+    <p class="text-xs text-slate-400 mb-5">This clears all drawn balls and Bingo status. Existing players stay registered and will choose: stay with their cards, add cards, or leave the game.</p>
     <div class="grid grid-cols-2 gap-2"><button id="btn-cancel-clear" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold active:scale-95">No, Cancel</button><button id="btn-confirm-clear" class="py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-bold active:scale-95">Yes, Reset</button></div>
   </div>
 </div>
@@ -245,7 +249,59 @@
     <p class="text-xs text-slate-400 mb-4">Scan or share the link · Room <span id="qr-modal-room-id" class="font-mono font-bold text-white"></span></p>
     <div class="bg-white p-3 rounded-2xl w-52 h-52 mx-auto flex items-center justify-center mb-3"><canvas id="qr-display-canvas" width="192" height="192" class="w-full h-full"></canvas></div>
     <p id="qr-link-text" class="text-[10px] text-slate-400 break-all mb-4 select-all"></p>
-    <div class="flex flex-col gap-2"><button id="btn-modal-qr-copy" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs active:scale-95">Copy Link</button><button id="btn-close-qr-modal" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold active:scale-95">Close</button></div>
+    <div class="flex flex-col gap-2"><button id="btn-modal-qr-copy" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs active:scale-95">Copy Link</button><button id="btn-modal-native-share" class="w-full py-2.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-200 font-bold text-xs active:scale-95">Share Link…</button><button id="btn-close-qr-modal" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold active:scale-95">Close</button></div>
+  </div>
+</div>
+
+<!-- GAME MECHANICS / PATTERNS MODAL -->
+<div id="modal-gm-help" class="fixed inset-0 z-[60] hidden items-center justify-center p-3 bg-slate-950/90 backdrop-blur-sm">
+  <div class="modal-box bg-slate-900 border border-slate-700 w-full max-w-2xl rounded-3xl p-5 sm:p-7 shadow-2xl">
+    <div class="flex items-start justify-between gap-3 mb-4">
+      <div><p class="text-[10px] uppercase tracking-[.2em] font-black text-amber-400">Game Guide</p><h3 id="gm-help-title" class="font-display font-bold text-2xl mt-1">How to Play</h3></div>
+      <button id="btn-close-gm-help" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold active:scale-95">✕</button>
+    </div>
+    <div id="gm-help-page-mechanics">
+      <div class="space-y-3 text-sm text-slate-300">
+        <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">1. Join before the first ball.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">Players enter through the shared link or QR code, choose their cards, and must finish joining before the Game Master rolls the first number. Once the first number is drawn, the room is locked to new players.</p></div>
+        <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">2. Numbers are automatic.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">Every number rolled by the Game Master is synced to all players. If that number exists on a player's card, it is automatically highlighted and cannot be removed.</p></div>
+        <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">3. Bingo is detected automatically.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">The system checks every active card against the approved Bingo patterns. No manual claim is required.</p></div>
+        <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">4. Winner and ranking update live.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">When a player completes a valid pattern, all players see the winner announcement. The Game Master participant list continuously ranks players by who is closest to completing a Bingo pattern.</p></div>
+        <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">5. Reset starts a choice period.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">After a round is reset, existing players can stay with the same cards, add more cards, or leave the game. The next first ball locks new entries again.</p></div>
+      </div>
+    </div>
+    <div id="gm-help-page-patterns" class="hidden">
+      <p class="text-xs text-slate-400 mb-4">Any one completed pattern below counts as BINGO. The center FREE space counts automatically when it is part of a pattern.</p>
+      <div id="gm-patterns-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+    </div>
+    <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
+      <span id="gm-help-page-indicator" class="text-xs font-mono text-slate-500">1 / 2</span>
+      <div class="flex gap-2"><button id="btn-gm-help-prev" class="hidden px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold active:scale-95">← Mechanics</button><button id="btn-gm-help-next" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black active:scale-95">Patterns →</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- PLAYER NEW ROUND OPTIONS -->
+<div id="modal-round-options" class="fixed inset-0 z-[65] hidden items-center justify-center p-3 bg-slate-950/90 backdrop-blur-sm">
+  <div class="modal-box bg-slate-900 border border-emerald-500/30 w-full max-w-md rounded-3xl p-5 sm:p-7 shadow-2xl">
+    <div class="text-center mb-5">
+      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-3xl">↻</div>
+      <h3 class="font-display font-bold text-2xl">New Round</h3>
+      <p class="text-xs text-slate-400 mt-1">The Game Master reset the round. Choose what you want to do before the next first ball.</p>
+    </div>
+    <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-3 mb-4 flex items-center justify-between gap-3">
+      <div><p class="text-[10px] uppercase font-black text-slate-500">Your current cards</p><p id="round-current-cards" class="font-display font-bold text-xl text-amber-400">1 Card</p></div>
+      <button id="btn-round-stay" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs active:scale-95">STAY WITH CARDS</button>
+    </div>
+    <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4 mb-4">
+      <div class="flex items-center justify-between gap-3 mb-3"><div><p class="font-bold text-sm">Add more cards</p><p class="text-[11px] text-slate-400">Your existing cards stay. New cards are added for the next round.</p></div><span id="round-add-cost" class="text-xs font-black text-emerald-300">+₱10.00</span></div>
+      <div class="flex items-center justify-between bg-slate-900 border border-slate-700 rounded-2xl p-2">
+        <button id="btn-round-add-minus" type="button" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 font-black text-lg active:scale-90">−</button>
+        <div class="text-center"><span id="round-add-count" class="font-display font-bold text-2xl text-amber-400">1</span><span class="block text-[9px] text-slate-500 font-bold">NEW CARD(S)</span></div>
+        <button id="btn-round-add-plus" type="button" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 font-black text-lg active:scale-90">+</button>
+      </div>
+      <button id="btn-round-add-confirm" class="w-full mt-3 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 text-slate-950 font-black text-xs active:scale-95">ADD CARDS &amp; STAY</button>
+    </div>
+    <button id="btn-round-leave" class="w-full py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 font-bold text-xs active:scale-95">LEAVE GAME</button>
   </div>
 </div>
 
@@ -286,7 +342,7 @@ const state = {
   connected: false, statusMsg: '', started: false, restoreTried: false,
   autoRollTimer: null, isRolling: false, round: 0, seenWinTs: null, dismissedWinTs: null,
   players: [], roomState: { drawnNumbers: [], lastDrawn: null, lastWinner: null, winners: [] },
-  rosterUnsub: null, announcingWinnerIds: new Set()
+  rosterUnsub: null, announcingWinnerIds: new Set(), roundInitialized: false, roundChoicePending: false, roundAddCount: 1
 };
 
 try { const r = new URLSearchParams(location.search).get('room'); if (r && r.trim()) state.roomId = r.trim().toLowerCase(); } catch (e) {}
@@ -389,7 +445,7 @@ function tryRestore() {
   if (state.joined) return;
   try {
     const s = JSON.parse(localStorage.getItem(storeKey()) || 'null');
-    if (!s || s.uid !== state.userId || s.round !== state.round || !s.grids || !s.grids.length) return;
+    if (!s || s.uid !== state.userId || !s.grids || !s.grids.length) return;
     applyJoin(s.name, s.avatar, s.grids, !!s.won);
     syncPlayer();
   } catch (e) {}
@@ -484,6 +540,41 @@ function copyText(text, ok) {
 }
 const switchView = v => ['player', 'gm', 'admin'].forEach(n => { const el = $('view-' + n), show = n === v; el.classList.toggle('hidden', !show); el.classList.toggle('flex', show); });
 
+/* ---------- Admin / Game Master background music ---------- */
+let bgMusic = null, bgMusicEnabled = true;
+function ensureBgMusic() {
+  if (!bgMusic) {
+    bgMusic = new Audio('game-music.mp3');
+    bgMusic.loop = true;
+    bgMusic.preload = 'auto';
+    bgMusic.volume = 0.35;
+  }
+  return bgMusic;
+}
+function updateMusicButtons() {
+  const label = bgMusicEnabled && bgMusic && !bgMusic.paused ? '🎵 Music On' : '🔇 Music Off';
+  ['btn-gm-music','btn-admin-music'].forEach(id => { const b=$(id); if (b) b.textContent=label; });
+}
+async function startStaffMusic() {
+  if (!state.isAdmin || !bgMusicEnabled) { updateMusicButtons(); return; }
+  try { await ensureBgMusic().play(); } catch (e) { console.warn('Background music waiting for user interaction:', e); }
+  updateMusicButtons();
+}
+function stopStaffMusic() {
+  if (bgMusic) { bgMusic.pause(); bgMusic.currentTime = 0; }
+  updateMusicButtons();
+}
+function toggleStaffMusic() {
+  bgMusicEnabled = !bgMusicEnabled;
+  if (bgMusicEnabled) startStaffMusic(); else if (bgMusic) bgMusic.pause();
+  updateMusicButtons();
+}
+function switchStaffView(v) {
+  switchView(v);
+  if (v === 'admin' || v === 'gm') startStaffMusic(); else stopStaffMusic();
+}
+
+
 /* ---------- Cards ---------- */
 function renderAllPlayerCards() {
   const box = $('cards-container'); box.innerHTML = '';
@@ -534,6 +625,41 @@ const PATTERNS = [
   { name: 'Checkmark', cells: [4,8,10,12,15,16,20] },
   { name: 'Field Goal', cells: [0,2,4,5,9,10,11,12,13,14,17,22] }
 ];
+
+
+function renderPatternGuide() {
+  const box = $('gm-patterns-grid');
+  if (!box) return;
+  box.innerHTML = '';
+  PATTERNS.forEach(pattern => {
+    const card = document.createElement('div');
+    card.className = 'bg-slate-800/70 border border-slate-700 rounded-2xl p-3';
+    const title = document.createElement('div');
+    title.className = 'font-display font-bold text-xs sm:text-sm text-center text-amber-300 mb-2';
+    title.textContent = pattern.name;
+    const grid = document.createElement('div');
+    grid.className = 'grid grid-cols-5 gap-1 max-w-[150px] mx-auto';
+    for (let i = 0; i < 25; i++) {
+      const cell = document.createElement('div');
+      const active = pattern.cells.includes(i);
+      cell.className = `aspect-square rounded-[4px] border flex items-center justify-center text-[7px] sm:text-[8px] ${active ? 'bg-rose-500 border-rose-300 text-white' : 'bg-slate-900 border-slate-700 text-slate-600'}`;
+      if (i === 12) cell.textContent = 'FREE';
+      grid.appendChild(cell);
+    }
+    card.append(title, grid);
+    box.appendChild(card);
+  });
+}
+function setGMHelpPage(page) {
+  const mechanics = page !== 'patterns';
+  $('gm-help-page-mechanics').classList.toggle('hidden', !mechanics);
+  $('gm-help-page-patterns').classList.toggle('hidden', mechanics);
+  $('btn-gm-help-prev').classList.toggle('hidden', mechanics);
+  $('btn-gm-help-next').classList.toggle('hidden', !mechanics);
+  $('gm-help-page-indicator').textContent = mechanics ? '1 / 2' : '2 / 2';
+  $('gm-help-title').textContent = mechanics ? 'How to Play' : 'Winning Bingo Patterns';
+  if (!mechanics) renderPatternGuide();
+}
 
 function patternProgress(grid, drawnSet) {
   let best = null;
@@ -613,6 +739,38 @@ function applyJoin(name, avatar, grids, won) {
   applyAutoDaub(state.roomState.drawnNumbers || []); persist();
 }
 
+function refreshRoundOptions() {
+  const total = state.playerCards.length, add = state.roundAddCount;
+  $('round-current-cards').textContent = `${total} ${total === 1 ? 'Card' : 'Cards'}`;
+  $('round-add-count').textContent = add;
+  $('round-add-cost').textContent = `+₱${(add * state.pricePerCard).toFixed(2)}`;
+  $('btn-round-add-plus').disabled = total + add >= 20;
+  $('btn-round-add-minus').disabled = add <= 1;
+}
+function showRoundOptions() {
+  if (!state.joined || state.isAdmin) return;
+  state.roundChoicePending = true; state.roundAddCount = 1; refreshRoundOptions(); showModal('modal-round-options');
+}
+async function stayForNewRound(addCount = 0) {
+  if (!state.joined) return;
+  for (let i = 0; i < addCount && state.playerCards.length < 20; i++) {
+    state.playerCards.push({ cardId: 'card-' + (state.playerCards.length + 1), grid: generateCard(), stamped: new Set([12]) });
+  }
+  state.cardCount = state.playerCards.length; state.hasClaimedBingo = false; state.roundChoicePending = false;
+  $('player-cards-badge').textContent = `${state.cardCount} ${state.cardCount === 1 ? 'Card' : 'Cards'}`;
+  renderAllPlayerCards(); persist(); hideModal('modal-round-options');
+  await syncPlayer({ hasBingo: false, winningPattern: null, winningCard: null });
+  showToast(addCount ? `${addCount} new card${addCount > 1 ? 's' : ''} added. You're ready for the next round!` : 'You kept your cards for the next round.');
+}
+async function leaveGame() {
+  if (!state.joined) return;
+  try { await fb.deleteDoc(playerRef()); } catch (e) { showToast('Could not leave: ' + errMsg(e), true); return; }
+  state.joined = false; state.playerName = ''; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false;
+  try { localStorage.removeItem(storeKey()); } catch (e) {}
+  $('player-profile-badge').classList.add('hidden'); $('player-profile-badge').classList.remove('flex');
+  hideModal('modal-round-options'); renderAllPlayerCards(); refreshJoinPrice(); openJoin(); showToast('You left the game. You may rejoin before the next first ball.');
+}
+
 /* ---------- Room state -> UI ---------- */
 function resetLocalRound() {
   state.hasClaimedBingo = false; state.seenWinTs = null; state.dismissedWinTs = null;
@@ -624,7 +782,14 @@ function updateRoom(data) {
   const drawn = data.drawnNumbers || [];
   state.started = !!data.started || drawn.length > 0;
 
-  if ((data.round || 0) !== state.round) { state.round = data.round || 0; resetLocalRound(); persist(); syncPlayer(); }
+  const incomingRound = data.round || 0;
+  if (!state.roundInitialized) {
+    state.round = incomingRound; state.roundInitialized = true;
+  } else if (incomingRound !== state.round) {
+    const wasJoined = state.joined;
+    state.round = incomingRound; resetLocalRound(); persist();
+    if (wasJoined) { syncPlayer({ hasBingo: false, winningPattern: null, winningCard: null }); showRoundOptions(); }
+  }
   if (data.pricePerCard && data.pricePerCard !== state.pricePerCard) { state.pricePerCard = data.pricePerCard; refreshJoinPrice(); renderPlayers(); }
 
   $('player-balls-count').textContent = `${drawn.length} / 75`;
@@ -733,15 +898,15 @@ async function drawNextBall() {
   updateRoom(state.roomState); ball.classList.add('ball-reveal');
 }
 async function resetRound() {
-  const ps = await fb.getDocs(playersCol()), batch = fb.writeBatch(db);
-  ps.forEach(d => batch.delete(d.ref));
-  batch.set(roomRef(), { drawnNumbers: [], lastDrawn: null, lastWinner: null, winners: [], started: false, pricePerCard: state.pricePerCard, round: Date.now() });
-  await batch.commit(); // atomic: balls, winner, lock and roster all reset together
+  const ps = await fb.getDocs(playersCol()), batch = fb.writeBatch(db), now = Date.now();
+  ps.forEach(d => batch.set(d.ref, { hasBingo: false, winningPattern: null, winningCard: null, updatedAt: now }, { merge: true }));
+  batch.set(roomRef(), { drawnNumbers: [], lastDrawn: null, lastWinner: null, winners: [], started: false, pricePerCard: state.pricePerCard, round: now }, { merge: true });
+  await batch.commit(); // players stay registered; every player gets a new-round choice
 }
 
 /* ---------- Init ---------- */
 function init() {
-  ['modal-pin', 'modal-confirm-clear', 'modal-qr'].forEach(hideModal);
+  ['modal-pin', 'modal-confirm-clear', 'modal-qr', 'modal-gm-help', 'modal-round-options'].forEach(hideModal);
   switchView('player'); renderAllPlayerCards();
   authReady = initFirebase();
   refreshJoinGate();
@@ -784,21 +949,24 @@ function init() {
   });
 
   const openPin = () => { $('pin-input').value = ''; $('pin-error-msg').classList.add('hidden'); showModal('modal-pin'); setTimeout(() => $('pin-input').focus(), 50); };
+  on('btn-join-admin-access', 'click', openPin);
   let clicks = 0, timer;
   on('brand-logo-trigger', 'click', () => { clicks++; clearTimeout(timer); timer = setTimeout(() => clicks = 0, 600); if (clicks >= 3) { clicks = 0; openPin(); } });
   window.addEventListener('keydown', e => { if (e.altKey && e.key.toLowerCase() === 'a') { e.preventDefault(); openPin(); } });
   const submitPin = () => {
-    if (PINS.includes($('pin-input').value.trim())) { state.isAdmin = true; hideModal('modal-pin'); if (!state.joined) hideModal('modal-join'); ensureRosterListener(); switchView('admin'); }
+    if (PINS.includes($('pin-input').value.trim())) { state.isAdmin = true; hideModal('modal-pin'); if (!state.joined) hideModal('modal-join'); ensureRosterListener(); switchStaffView('admin'); }
     else $('pin-error-msg').classList.remove('hidden');
   };
   on('btn-submit-pin', 'click', submitPin);
   on('pin-input', 'keydown', e => { if (e.key === 'Enter') submitPin(); });
   on('btn-cancel-pin', 'click', () => hideModal('modal-pin'));
 
-  on('btn-launch-gm-from-admin', 'click', () => { ensureRosterListener(); switchView('gm'); });
-  on('btn-exit-admin', 'click', () => switchView('player'));
-  on('btn-open-admin-from-gm', 'click', () => { ensureRosterListener(); switchView('admin'); });
-  on('btn-exit-gm-mode', 'click', () => switchView('player'));
+  on('btn-launch-gm-from-admin', 'click', () => { ensureRosterListener(); switchStaffView('gm'); });
+  on('btn-exit-admin', 'click', () => switchStaffView('player'));
+  on('btn-open-admin-from-gm', 'click', () => { ensureRosterListener(); switchStaffView('admin'); });
+  on('btn-exit-gm-mode', 'click', () => switchStaffView('player'));
+  on('btn-gm-music', 'click', toggleStaffMusic);
+  on('btn-admin-music', 'click', toggleStaffMusic);
 
   on('btn-draw-ball', 'click', drawNextBall);
   const setAuto = () => {
@@ -814,17 +982,31 @@ function init() {
   on('btn-confirm-clear', 'click', async () => {
     hideModal('modal-confirm-clear');
     if (!state.connected) { showToast('Not connected to the server.', true); return; }
-    try { await authReady; await resetRound(); showToast('Round reset. New players can join again.'); }
+    try { await authReady; await resetRound(); showToast('Round reset. Players can stay, add cards, or leave. New players can join until the first ball.'); }
     catch (e) { showToast('Reset failed: ' + errMsg(e), true); }
   });
 
   const showQR = () => { const l = shareLink(); $('qr-modal-room-id').textContent = state.roomId; drawQR(l); showModal('modal-qr'); };
   on('btn-admin-show-qr', 'click', showQR); on('btn-gm-share-modal', 'click', showQR);
+  on('btn-gm-help', 'click', () => { setGMHelpPage('mechanics'); showModal('modal-gm-help'); });
+  on('btn-gm-help-next', 'click', () => setGMHelpPage('patterns'));
+  on('btn-gm-help-prev', 'click', () => setGMHelpPage('mechanics'));
+  on('btn-close-gm-help', 'click', () => hideModal('modal-gm-help'));
   on('btn-close-qr-modal', 'click', () => hideModal('modal-qr'));
   on('btn-modal-qr-copy', 'click', () => copyText(shareLink(), () => showToast('Link copied!')));
+  on('btn-modal-native-share', 'click', async () => {
+    const url = shareLink(), text = `Join BINGO by CES Fun Club — Room ${state.roomId}`;
+    if (navigator.share) { try { await navigator.share({ title: 'BINGO by CES Fun Club', text, url }); } catch (e) {} }
+    else copyText(url, () => showToast('Sharing is not supported here, so the link was copied instead.'));
+  });
+  on('btn-round-add-minus', 'click', () => { if (state.roundAddCount > 1) { state.roundAddCount--; refreshRoundOptions(); } });
+  on('btn-round-add-plus', 'click', () => { if (state.playerCards.length + state.roundAddCount < 20) { state.roundAddCount++; refreshRoundOptions(); } });
+  on('btn-round-stay', 'click', () => stayForNewRound(0));
+  on('btn-round-add-confirm', 'click', () => stayForNewRound(state.roundAddCount));
+  on('btn-round-leave', 'click', leaveGame);
   on('btn-admin-copy-link', 'click', () => copyText(shareLink(), () => showToast('Link copied!')));
   on('btn-admin-copy-invite', 'click', () => copyText(`🎉 Join our BINGO by CES Fun Club!\n👉 ${shareLink()}\n🎟️ Cards are ₱${state.pricePerCard}.00 each. Join before the first ball is rolled, because the room locks once the game starts!`, () => showToast('Invitation copied!')));
-  ['modal-qr', 'modal-confirm-clear', 'modal-pin'].forEach(id => on(id, 'click', e => { if (e.target.id === id) hideModal(id); }));
+  ['modal-qr', 'modal-confirm-clear', 'modal-pin', 'modal-gm-help'].forEach(id => on(id, 'click', e => { if (e.target.id === id) hideModal(id); }));
 
   on('btn-save-price', 'click', async () => {
     const p = parseFloat($('admin-card-price-input').value);
