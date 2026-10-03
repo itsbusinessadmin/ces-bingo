@@ -371,7 +371,7 @@ async function syncPlayer(extra = {}) {
       name: state.playerName,
       avatar: state.playerAvatar,
       cardCount: state.playerCards.length,
-      grids: state.playerCards.map(c => c.grid),
+      grids: state.playerCards.map(c => c.grid.join(',')),
       hasBingo: state.hasClaimedBingo,
       updatedAt: Date.now(),
       ...extra
@@ -550,7 +550,7 @@ function patternProgress(grid, drawnSet) {
 }
 
 function playerProgress(player, drawn = state.roomState.drawnNumbers || []) {
-  const grids = Array.isArray(player.grids) ? player.grids : [];
+  const grids = Array.isArray(player.grids) ? player.grids.map(g => Array.isArray(g) ? g : String(g).split(',').map(Number)) : [];
   const set = new Set(drawn);
   let best = null, bestCard = 0;
   grids.forEach((grid, i) => {
@@ -775,7 +775,7 @@ function init() {
       if (rd.started || (rd.drawnNumbers || []).length) { state.started = true; throw Object.assign(new Error('started'), { code: 'started' }); }
       const name = $('join-name-input').value.trim() || 'Lucky Player', grids = Array.from({ length: state.cardCount }, generateCard);
       // Register on the server FIRST; only enter the room once the host can see us
-      await fb.setDoc(playerRef(), { name, avatar: state.playerAvatar, cardCount: grids.length, grids, hasBingo: false, joinedAt: Date.now(), updatedAt: Date.now() });
+      await fb.setDoc(playerRef(), { name, avatar: state.playerAvatar, cardCount: grids.length, grids: grids.map(g => g.join(',')), hasBingo: false, joinedAt: Date.now(), updatedAt: Date.now() });
       applyJoin(name, state.playerAvatar, grids, false);
     } catch (e) {
       const locked = e.code === 'started' || e.code === 'permission-denied';
