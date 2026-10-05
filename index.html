@@ -18,7 +18,7 @@
   .hidden{display:none!important}
   .ball-3d{background:radial-gradient(circle at 30% 25%,#fff 4%,rgba(255,255,255,.7) 18%,rgba(255,255,255,0) 45%),radial-gradient(circle at 50% 50%,var(--ball-color,#ef4444) 40%,#1e1b4b 100%);box-shadow:inset -6px -6px 14px rgba(0,0,0,.5),inset 4px 4px 10px rgba(255,255,255,.5),0 12px 28px rgba(0,0,0,.5)}
   .big-ball{width:clamp(9rem,38vmin,16rem);height:clamp(9rem,38vmin,16rem)}
-  .big-ball .bl{font-size:clamp(1.4rem,5vmin,2.25rem)}
+  .big-ball .bl{font-size:clamp(2rem,7vmin,3.25rem);line-height:1}
   .big-ball .bn{font-size:clamp(3rem,13vmin,5rem)}
   .big-ball.letter-only .bl{font-size:clamp(4rem,15vmin,7rem);line-height:1}
   .big-ball.letter-only .bn{display:none}
@@ -35,29 +35,43 @@
   ::-webkit-scrollbar{width:6px;height:6px}
   ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:9999px}
   .modal-box{max-height:92dvh;overflow-y:auto}
-  #gm-participants-list{min-height:8rem}
+  #gm-participants-list{min-height:5rem}
   button:disabled{opacity:.55;cursor:not-allowed}
+  /* Touch targets: every control is at least 44px tall */
+  button,select,[role=button],input[type=text],input[type=password],input[type=number]{min-height:2.75rem}
+  /* Visible keyboard focus */
+  :focus-visible{outline:3px solid #fbbf24;outline-offset:2px}
+  .big-ball .bl,.big-ball .bn,#player-ball-sphere span{text-shadow:0 2px 6px rgba(0,0,0,.65),0 0 2px rgba(0,0,0,.9)}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .board-cell{aspect-ratio:1/1}
+  .board-cell.latest{box-shadow:0 0 0 3px #fbbf24;transform:scale(1.12);z-index:1}
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+    .animate-pulse,.animate-ping,.animate-bounce{animation:none!important}
+  }
 </style>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-slate-950">
+<svg width="0" height="0" class="absolute" aria-hidden="true" focusable="false"><defs><symbol id="i-volume" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></symbol><symbol id="i-volume-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></symbol><symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol><symbol id="i-music" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol><symbol id="i-music-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/><line x1="2" y1="2" x2="22" y2="22"/></symbol><symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol><symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></symbol><symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3" fill="currentColor"/></symbol><symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></symbol><symbol id="i-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></symbol><symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol><symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></symbol><symbol id="i-trophy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol><symbol id="i-sliders" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></symbol><symbol id="i-clipboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></symbol><symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol><symbol id="i-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></symbol><symbol id="i-move" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></symbol><symbol id="i-qr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></symbol><symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol><symbol id="i-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol><symbol id="i-monitor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></symbol><symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol></defs></svg>
+<div id="sr-live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
-<header class="bg-slate-900/95 border-b border-slate-800 backdrop-blur sticky top-0 z-30 select-none pt-[env(safe-area-inset-top)]">
+<header id="app-header" class="bg-slate-900/95 border-b border-slate-800 backdrop-blur sticky top-0 z-30 select-none pt-[env(safe-area-inset-top)]">
   <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex items-center justify-between gap-2">
     <div class="flex items-center gap-2.5 min-w-0">
       <div id="brand-logo-trigger" title="CES Fun Club" class="w-11 h-11 sm:w-12 sm:h-12 shrink-0 cursor-pointer select-none active:scale-95 transition-transform"><img src="logo.webp" alt="CES Fun Club" width="48" height="48" class="w-full h-full object-contain drop-shadow-lg" draggable="false"></div>
       <div class="min-w-0">
-        <h1 class="font-display font-bold text-base sm:text-xl text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-rose-300 to-emerald-400 truncate">BINGO <span class="text-xs font-sans font-semibold text-slate-400 hidden xs:inline sm:inline">by CES Fun Club</span></h1>
-        <p class="text-[11px] text-slate-400 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>Room: <span id="header-room-id" class="font-mono font-bold text-slate-200">room-1</span></p>
+        <h1 class="font-display font-bold text-lg sm:text-xl text-transparent bg-clip-text bg-gradient-to-r from-brand-pinklight to-brand-bluelight whitespace-nowrap">BINGO <span class="text-xs font-sans font-semibold text-slate-400 hidden sm:inline">by CES Fun Club</span></h1>
+        <p class="text-xs text-slate-400 hidden sm:flex items-center gap-1.5 whitespace-nowrap">Room: <span id="header-room-id" class="font-mono font-bold text-slate-200">room-1</span></p>
       </div>
     </div>
     <div class="flex items-center gap-2 shrink-0">
-      <button id="conn-status" class="px-2.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 active:scale-95" title="Connecting"><span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span><span class="hidden sm:inline">Connecting</span></button>
-      <button id="btn-toggle-sound" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm flex items-center gap-1.5 active:scale-95"><span id="sound-icon">🔊</span><span class="text-xs font-semibold hidden md:inline">SFX</span></button>
-      <div id="player-profile-badge" class="hidden items-center gap-2 bg-slate-800/90 px-2.5 py-1.5 rounded-xl border border-slate-700 text-xs">
+      <button id="conn-status" type="button" aria-label="Connection status" class="min-w-[2.75rem] px-3 rounded-xl bg-slate-800 border border-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-95" title="Connecting"><span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span><span class="hidden sm:inline">Connecting</span></button>
+      <button id="btn-toggle-sound" type="button" aria-label="Sound effects on" aria-pressed="true" class="min-w-[2.75rem] px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm flex items-center justify-center gap-1.5 active:scale-95"><span id="sound-icon" class="flex"><svg class="w-5 h-5 shrink-0" aria-hidden="true"><use href="#i-volume"/></svg></span><span class="text-xs font-semibold hidden md:inline">Sound</span></button>
+      <div id="player-profile-badge" class="hidden items-center gap-2 min-h-[2.75rem] bg-slate-800/90 px-2.5 rounded-xl border border-slate-700 text-xs">
         <span id="player-avatar-icon">🎯</span>
-        <span id="player-name-display" class="font-bold truncate max-w-[70px] sm:max-w-[130px]">Player</span>
-        <span id="player-cards-badge" class="bg-amber-500/20 text-amber-400 border border-amber-500/40 px-1.5 py-0.5 rounded font-mono font-bold text-[10px]">1 Card</span>
+        <span id="player-name-display" class="font-bold truncate max-w-[80px] sm:max-w-[130px]">Player</span>
+        <span id="player-cards-badge" class="hidden sm:inline bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded font-mono font-bold text-xs">1 Card</span>
       </div>
     </div>
   </div>
@@ -67,35 +81,33 @@
 
   <!-- PLAYER VIEW -->
   <div id="view-player" class="flex flex-col gap-4 w-full flex-1">
-    <div id="player-win-banner" class="hidden rounded-2xl p-4 bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 text-white shadow-2xl">
+    <div id="player-win-banner" role="status" class="hidden rounded-2xl p-4 bg-gradient-to-r from-brand-pinkdeep to-brand-blue text-white shadow-2xl">
       <div class="flex items-center justify-between gap-3">
         <div class="flex items-center gap-3 min-w-0">
-          <span class="text-4xl animate-bounce">🎉</span>
-          <div class="min-w-0"><h3 class="font-display font-bold text-xl sm:text-3xl uppercase">BINGO WINNER!</h3><p id="player-win-text" class="text-xs sm:text-sm font-semibold text-amber-100 truncate">Congratulations!</p></div>
+          <svg class="w-10 h-10 text-amber-200 animate-bounce shrink-0" aria-hidden="true"><use href="#i-trophy"/></svg>
+          <div class="min-w-0"><h3 class="font-display font-bold text-xl sm:text-3xl uppercase">BINGO WINNER!</h3><p id="player-win-text" class="text-sm font-semibold text-white">Congratulations!</p></div>
         </div>
-        <button id="btn-dismiss-win-banner" class="bg-white/20 hover:bg-white/30 rounded-xl px-3 py-1.5 text-xs font-bold shrink-0">Dismiss</button>
+        <button id="btn-dismiss-win-banner" type="button" class="bg-white/20 hover:bg-white/30 rounded-xl px-4 text-sm font-bold shrink-0">Dismiss</button>
       </div>
     </div>
 
-    <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 shadow-lg">
-      <div class="flex items-center gap-3 min-w-0">
-        <div id="player-ball-sphere" style="--ball-color:#3b82f6" class="ball-3d w-14 h-14 sm:w-16 sm:h-16 rounded-full flex flex-col items-center justify-center text-white border-2 border-white/30 shrink-0">
-          <span id="player-ball-letter" class="font-display font-bold text-xs text-amber-300 leading-none">CES</span>
-          <span id="player-ball-num" class="font-display font-bold text-xl sm:text-2xl leading-none">--</span>
-        </div>
-        <div class="min-w-0"><div class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Current Call</div><div id="player-caller-text" class="text-xs sm:text-sm font-semibold text-amber-400 truncate">Waiting for Game Master...</div></div>
+    <!-- Sticky call bar: the current number stays visible while players scroll their cards -->
+    <section id="player-call-bar" aria-label="Current call" class="sticky z-20 -mx-3 sm:mx-0 px-3 sm:px-4 py-2 bg-slate-900/95 backdrop-blur border-y sm:border border-slate-800 sm:rounded-2xl shadow-lg flex items-center gap-3" style="top:var(--hdr-h,64px)">
+      <div id="player-ball-sphere" style="--ball-color:#3b82f6" class="ball-3d w-14 h-14 rounded-full flex flex-col items-center justify-center text-white border-2 border-white/30 shrink-0" aria-hidden="true">
+        <span id="player-ball-letter" class="font-display font-bold text-sm text-amber-200 leading-none">CES</span>
+        <span id="player-ball-num" class="font-display font-bold text-xl leading-none">--</span>
       </div>
-      <div class="flex flex-col items-end"><span class="text-[10px] text-slate-400">Balls Called</span><span id="player-balls-count" class="font-mono font-black text-base sm:text-lg text-emerald-400">0 / 75</span></div>
+      <div class="min-w-0 flex-1">
+        <div class="text-xs font-bold uppercase tracking-wide text-slate-400 whitespace-nowrap">Ball <span id="player-balls-count" class="font-mono text-emerald-300">0</span> of 75</div>
+        <div id="player-caller-text" class="font-display font-bold text-xl sm:text-2xl text-amber-300 truncate">Waiting…</div>
+      </div>
+      <button id="btn-player-patterns" type="button" aria-label="Show winning patterns" aria-expanded="false" aria-controls="patterns-panel" class="shrink-0 px-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-100 font-bold text-sm flex items-center gap-2 active:scale-95 transition-transform"><svg class="w-5 h-5 shrink-0" aria-hidden="true"><use href="#i-grid"/></svg><span>Patterns</span></button>
     </section>
 
-    <section class="flex flex-col gap-3">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-2"><h2 class="font-display font-bold text-sm sm:text-base">Your Active Cards</h2>
-          <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>Tap to mark · auto in 5s</span></div>
-        <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <button id="btn-player-patterns" type="button" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-200 font-display font-bold shadow-lg active:scale-95 transition-transform">▦ PATTERNS</button>
-          <button id="btn-claim-bingo" disabled class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-slate-950 font-display font-bold shadow-lg">AUTO BINGO DETECTION</button>
-        </div>
+    <section class="flex flex-col gap-3" aria-labelledby="your-cards-title">
+      <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <h2 id="your-cards-title" class="font-display font-bold text-base">Your Cards</h2>
+        <p class="text-xs text-slate-400">Tap each called number on your card. Missed numbers mark themselves after 5 seconds.</p>
       </div>
       <div id="cards-container" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4 pb-10"></div>
     </section>
@@ -106,19 +118,25 @@
     <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-900/90 border border-slate-800 rounded-2xl px-3 sm:px-4 py-3">
       <span class="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs uppercase tracking-wider">Live Presentation Mode</span>
       <div class="flex flex-wrap items-center gap-2">
-        <button id="btn-gm-share-modal" class="text-xs font-semibold px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/40 rounded-xl text-indigo-300 active:scale-95">🔗 Share Room</button>
-        <button id="btn-gm-music" class="text-xs font-semibold px-3 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 rounded-xl text-emerald-300 active:scale-95" title="Game Master background music">🎵 Music On</button>
-        <button id="btn-gm-help" aria-label="Game mechanics and patterns" title="Game Mechanics & Patterns" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-300 font-black text-base flex items-center justify-center active:scale-95">?</button>
-        <button id="btn-open-admin-from-gm" class="text-xs font-semibold px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-amber-400 active:scale-95">Admin Desk</button>
-        <button id="btn-gm-reset-game" class="text-xs font-bold px-3 py-2 bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 rounded-xl text-rose-300 active:scale-95">⚠ Reset Game</button>
-        <button id="btn-exit-gm-mode" class="text-xs font-semibold px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl active:scale-95">Exit</button>
+        <button id="btn-gm-share-modal" type="button" class="text-sm font-semibold px-3 rounded-xl flex items-center gap-2 active:scale-95 bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/40 text-indigo-200"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-link"/></svg>Share Room</button>
+        <button id="btn-gm-music" type="button" class="text-sm font-semibold px-3 rounded-xl flex items-center gap-2 active:scale-95 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-200" title="Game Master background music"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-music"/></svg>Music On</button>
+        <button id="btn-gm-help" type="button" aria-label="How to play and patterns" title="How to play &amp; patterns" class="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-300 font-black text-lg flex items-center justify-center active:scale-95">?</button>
+        <div class="relative">
+          <button id="btn-gm-staff-menu" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="gm-staff-menu" class="text-sm font-semibold px-3 rounded-xl flex items-center gap-2 active:scale-95 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-100"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-sliders"/></svg>Staff<svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+          <div id="gm-staff-menu" role="menu" aria-label="Staff actions" class="hidden absolute right-0 top-full mt-2 z-40 w-56 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-1.5 flex-col gap-1">
+            <button id="btn-open-admin-from-gm" type="button" role="menuitem" class="w-full text-left text-sm font-semibold px-3 rounded-xl hover:bg-slate-800 text-amber-300 flex items-center gap-2"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-monitor"/></svg>Admin Desk</button>
+            <button id="btn-exit-gm-mode" type="button" role="menuitem" class="w-full text-left text-sm font-semibold px-3 rounded-xl hover:bg-slate-800 text-slate-100 flex items-center gap-2"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-logout"/></svg>Exit Game Master</button>
+            <div class="my-1 border-t border-slate-800" role="separator"></div>
+            <button id="btn-gm-reset-game" type="button" role="menuitem" class="w-full text-left text-sm font-bold px-3 rounded-xl hover:bg-rose-600/20 text-rose-300 flex items-center gap-2"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-alert"/></svg>Reset Entire Game</button>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5">
       <div class="lg:col-span-5 bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col items-center text-center overflow-hidden">
         <div class="w-full flex items-center justify-between text-xs font-bold text-slate-400">
-          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>ON AIR</span>
+          <span class="flex items-center gap-1.5 text-rose-300"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>ON AIR</span>
           <span id="gm-total-drawn-pill" class="bg-slate-800 px-3 py-1 rounded-full border border-slate-700 font-mono">0 / 75 Balls</span>
         </div>
         <div class="my-4 sm:my-6">
@@ -127,39 +145,47 @@
             <span id="big-ball-num" class="bn font-display font-bold leading-none drop-shadow-lg">--</span>
           </div>
         </div>
-        <p id="gm-announce-msg" class="text-sm font-medium text-amber-400 min-h-[1.5rem]">Ready to draw ball</p>
+        <p id="gm-announce-msg" aria-live="polite" class="text-lg font-semibold text-amber-300 min-h-[1.75rem]">Ready to draw ball</p>
         <div class="w-full mt-3 pt-4 border-t border-slate-800 flex flex-col gap-3">
-          <div class="flex items-center justify-between text-xs text-slate-400">
-            <label for="gm-auto-roll-toggle" class="font-bold text-slate-300">Auto-Roll:</label>
+          <div class="flex items-center justify-between gap-3 text-sm text-slate-300">
+            <label for="gm-auto-roll-toggle" class="flex items-center gap-3 min-h-[2.75rem] pr-2 font-bold cursor-pointer select-none">
+              <input type="checkbox" id="gm-auto-roll-toggle" class="cursor-pointer w-6 h-6 accent-amber-500">Auto-roll
+            </label>
             <div class="flex items-center gap-2">
-              <input type="checkbox" id="gm-auto-roll-toggle" class="cursor-pointer w-4 h-4">
-              <select id="gm-auto-roll-speed" class="bg-slate-800 border border-slate-700 rounded-lg text-xs px-2 py-1 outline-none">
+              <label for="gm-auto-roll-speed" class="text-slate-400">Every</label>
+              <select id="gm-auto-roll-speed" class="bg-slate-800 border border-slate-700 rounded-xl text-sm px-3 text-slate-100">
                 <option value="6000">6 sec</option><option value="8000" selected>8 sec</option><option value="12000">12 sec</option>
               </select>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2">
-            <button id="btn-draw-ball" class="py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-rose-600 hover:brightness-110 text-slate-950 font-display font-bold text-base shadow-lg active:scale-95 transition-transform">▶ Roll Ball</button>
-            <button id="btn-trigger-clear-room" class="py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 font-semibold text-xs border border-slate-700 active:scale-95">↻ Reset Round</button>
+            <button id="btn-draw-ball" type="button" class="py-3.5 rounded-xl bg-gradient-to-r from-brand-pinkdeep to-brand-blue hover:brightness-110 text-white font-display font-bold text-lg shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2"><svg class="w-5 h-5 shrink-0" aria-hidden="true"><use href="#i-play"/></svg>Roll Ball</button>
+            <button id="btn-trigger-clear-room" type="button" class="py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 font-semibold text-sm border border-slate-700 active:scale-95 flex items-center justify-center gap-2"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-refresh"/></svg>Reset Round</button>
           </div>
           <div class="flex items-center gap-2 overflow-x-auto pb-1">
-            <span class="text-[11px] font-bold text-slate-400 shrink-0">Recent:</span>
-            <div id="recent-balls-bar" class="flex items-center gap-1.5"><span class="text-xs text-slate-500 italic">None</span></div>
+            <span class="text-sm font-bold text-slate-400 shrink-0">Recent:</span>
+            <div id="recent-balls-bar" class="flex items-center gap-1.5"><span class="text-sm text-slate-400 italic">None</span></div>
           </div>
         </div>
       </div>
 
-      <div class="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col max-h-[75dvh] lg:max-h-[calc(100dvh-10rem)]">
-        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
-          <h2 class="font-display font-bold text-lg flex items-center gap-2">🏆 Bingo Winners <span id="gm-live-count-badge" class="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs px-2.5 py-0.5 rounded-full font-mono">0 Winners</span></h2>
-          <div class="flex items-center gap-2 font-mono"><span class="text-xs text-slate-400">Pot:</span><span id="gm-total-pot-pill" class="text-sm font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-1 rounded-lg">₱0.00</span></div>
-        </div>
-        <div class="grid grid-cols-3 gap-2 sm:gap-3 my-3 text-center">
-          <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-2"><span class="text-[10px] text-slate-400 uppercase block">Players</span><span id="gm-stat-players" class="font-mono font-black text-lg text-amber-400">0</span></div>
-          <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-2"><span class="text-[10px] text-slate-400 uppercase block">Cards</span><span id="gm-stat-cards" class="font-mono font-black text-lg text-cyan-400">0</span></div>
-          <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-2"><span class="text-[10px] text-slate-400 uppercase block">Collection</span><span id="gm-stat-income" class="font-mono font-black text-lg text-emerald-400">₱0</span></div>
-        </div>
-        <div id="gm-participants-list" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
+      <div class="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col gap-4 lg:max-h-[calc(100dvh-10rem)]">
+        <section aria-labelledby="gm-board-title">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h2 id="gm-board-title" class="font-display font-bold text-lg">Called Numbers</h2>
+            <div class="flex flex-wrap items-center gap-2 text-sm font-mono">
+              <span class="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">Players <b id="gm-stat-players" class="text-amber-300">0</b></span>
+              <span class="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">Cards <b id="gm-stat-cards" class="text-cyan-300">0</b></span>
+              <span class="px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-slate-300">Pot <b id="gm-total-pot-pill" class="text-emerald-300">₱0.00</b></span>
+              <span id="gm-stat-income" class="hidden"></span>
+            </div>
+          </div>
+          <div id="gm-number-board" class="flex flex-col gap-1 sm:gap-1.5"></div>
+        </section>
+        <section aria-labelledby="gm-winners-title" class="flex flex-col min-h-0 flex-1 border-t border-slate-800 pt-3">
+          <h2 id="gm-winners-title" class="font-display font-bold text-lg flex items-center gap-2 mb-2"><svg class="w-5 h-5 text-amber-300 shrink-0" aria-hidden="true"><use href="#i-trophy"/></svg>Bingo Winners <span id="gm-live-count-badge" class="bg-amber-500/20 text-amber-200 border border-amber-500/40 text-sm px-2.5 py-0.5 rounded-full font-mono">0 Winners</span></h2>
+          <div id="gm-participants-list" class="flex-1 overflow-y-auto space-y-2 pr-1" aria-live="polite"></div>
+        </section>
       </div>
     </div>
   </div>
@@ -169,11 +195,11 @@
     <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 border border-slate-800 rounded-2xl px-4 py-3">
       <div><h2 class="font-display font-bold text-xl text-amber-400">Admin Dashboard</h2><p class="text-xs text-slate-400">Card prices, roster and invites</p></div>
       <div class="flex flex-wrap gap-2">
-        <button id="btn-admin-music" class="px-3 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs active:scale-95" title="Admin background music">🎵 Music On</button>
-        <button id="btn-admin-change-pin" class="px-3 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-bold text-xs active:scale-95">🔑 Change Passcode</button>
-        <button id="btn-admin-reset-game" class="px-3 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 font-bold text-xs active:scale-95">⚠ Reset Game</button>
-        <button id="btn-launch-gm-from-admin" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 text-slate-950 font-display font-bold text-xs active:scale-95">Launch Game Master</button>
-        <button id="btn-exit-admin" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 font-semibold text-xs border border-slate-700 active:scale-95">Exit Admin</button>
+        <button id="btn-admin-music" type="button" class="px-3 rounded-xl font-bold text-sm flex items-center gap-2 active:scale-95 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-200" title="Admin background music"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-music"/></svg>Music On</button>
+        <button id="btn-admin-change-pin" type="button" class="px-3 rounded-xl font-bold text-sm flex items-center gap-2 active:scale-95 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-200"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-key"/></svg>Change Passcode</button>
+        <button id="btn-admin-reset-game" type="button" class="px-3 rounded-xl font-bold text-sm flex items-center gap-2 active:scale-95 bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-200"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-alert"/></svg>Reset Game</button>
+        <button id="btn-launch-gm-from-admin" type="button" class="px-4 rounded-xl bg-gradient-to-r from-brand-pinkdeep to-brand-blue text-white font-display font-bold text-sm flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-play"/></svg>Launch Game Master</button>
+        <button id="btn-exit-admin" type="button" class="px-3 rounded-xl font-bold text-sm flex items-center gap-2 active:scale-95 bg-slate-800 hover:bg-slate-700 border border-slate-700"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-logout"/></svg>Exit Admin</button>
       </div>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
@@ -183,22 +209,22 @@
     </div>
     <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div class="flex flex-wrap items-center gap-3">
-        <label for="admin-card-price-input" class="text-xs font-bold text-slate-300 uppercase">Price / Card:</label>
-        <div class="relative w-28"><span class="absolute left-3 top-2 text-slate-400 font-bold">₱</span><input type="number" id="admin-card-price-input" min="1" step="1" value="10" class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-7 pr-3 py-1.5 font-bold text-sm focus:outline-none focus:border-amber-400"></div>
-        <button id="btn-save-price" class="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-xs active:scale-95">Update Price</button>
+        <label for="admin-card-price-input" class="text-sm font-bold text-slate-300">Price per card</label>
+        <div class="relative w-28"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold" aria-hidden="true">₱</span><input type="number" id="admin-card-price-input" min="1" step="1" value="10" class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-7 pr-3 py-1.5 font-bold text-sm focus:outline-none focus:border-amber-400"></div>
+        <button id="btn-save-price" type="button" class="px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-sm active:scale-95">Update Price</button>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <button id="btn-admin-copy-link" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold active:scale-95">🔗 Copy Link</button>
-        <button id="btn-admin-copy-invite" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold active:scale-95">📋 Copy Invite</button>
-        <button id="btn-admin-show-qr" class="px-3 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-semibold active:scale-95">Show QR</button>
-        <button id="btn-export-csv" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold active:scale-95">Export CSV</button>
+        <button id="btn-admin-copy-link" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-link"/></svg>Copy Link</button>
+        <button id="btn-admin-copy-invite" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-clipboard"/></svg>Copy Invite</button>
+        <button id="btn-admin-show-qr" type="button" class="px-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-200 border border-indigo-500/30 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-qr"/></svg>Show QR</button>
+        <button id="btn-export-csv" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-download"/></svg>Export CSV</button>
       </div>
     </div>
     <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col flex-1 overflow-hidden">
-      <h3 class="font-display font-bold text-sm mb-3">Live Participant Roster</h3>
+      <h3 class="font-display font-bold text-base mb-3">Participant Roster</h3>
       <div class="overflow-x-auto flex-1">
-        <table class="w-full text-left text-xs text-slate-300 whitespace-nowrap">
-          <thead class="bg-slate-800/80 text-slate-400 uppercase font-mono text-[10px] sticky top-0"><tr><th class="py-2.5 px-3">#</th><th class="py-2.5 px-3">Player</th><th class="py-2.5 px-3">Cards</th><th class="py-2.5 px-3">Price</th><th class="py-2.5 px-3">Total Due</th><th class="py-2.5 px-3">Status</th></tr></thead>
+        <table class="w-full text-left text-sm text-slate-300 whitespace-nowrap">
+          <thead class="bg-slate-800/80 text-slate-300 uppercase font-mono text-xs sticky top-0"><tr><th class="py-2.5 px-3">#</th><th class="py-2.5 px-3">Player</th><th class="py-2.5 px-3">Cards</th><th class="py-2.5 px-3">Price</th><th class="py-2.5 px-3">Total Due</th><th class="py-2.5 px-3">Status</th></tr></thead>
           <tbody id="admin-roster-tbody" class="divide-y divide-slate-800"></tbody>
         </table>
       </div>
@@ -208,42 +234,42 @@
 
 <!-- JOIN MODAL -->
 <div id="modal-join" class="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-950/85 backdrop-blur-sm">
-  <div class="modal-box bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-5 sm:p-8 shadow-2xl">
+  <div role="dialog" aria-modal="true" aria-labelledby="modal-join-title" class="modal-box bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-5 sm:p-8 shadow-2xl">
     <div class="text-center mb-4"><div id="join-logo-trigger" title="CES Fun Club" class="w-24 h-24 sm:w-28 sm:h-28 mx-auto mb-2 cursor-pointer select-none active:scale-95 transition-transform"><img src="logo.webp" alt="CES Fun Club" width="112" height="112" class="w-full h-full object-contain drop-shadow-xl" draggable="false"></div>
-      <h2 class="font-display font-bold text-2xl">BINGO by CES Fun Club</h2><p class="text-xs text-slate-400 mt-1">Enter your name and pick your cards</p></div>
-    <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 mb-4 flex items-start gap-3"><span class="text-xl">⚠️</span>
-      <div class="text-xs text-slate-300"><span class="font-bold text-amber-400 block mb-0.5">Card Price Notice:</span>Each card costs <span id="modal-unit-price-text" class="font-bold text-white bg-slate-800 px-1 rounded">₱10.00</span>. More cards, better chances.</div></div>
+      <h2 id="modal-join-title" class="font-display font-bold text-2xl">BINGO by CES Fun Club</h2><p class="text-sm text-slate-400 mt-1">Type your nickname and pick your cards</p></div>
+    <div class="bg-brand-blue/20 border border-brand-bluelight/30 rounded-2xl p-3 mb-4 flex items-start gap-3"><svg class="w-5 h-5 mt-0.5 text-brand-bluelight shrink-0" aria-hidden="true"><use href="#i-info"/></svg>
+      <p class="text-sm text-slate-200">Each card costs <span id="modal-unit-price-text" class="font-bold text-white">₱10.00</span>. More cards, better chances!</p></div>
     <div class="space-y-4">
       <div><label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">Your Nickname</label>
         <input type="text" id="join-name-input" maxlength="24" placeholder="Type your nickname" autocomplete="off" autocapitalize="words" spellcheck="false" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 font-semibold focus:outline-none focus:border-amber-400">
-        <p id="join-name-error" class="hidden mt-1.5 text-[11px] font-bold text-rose-300">Please type your nickname to join.</p></div>
+        <p id="join-name-error" class="hidden mt-1.5 text-xs font-bold text-rose-300">Please type your nickname to join.</p></div>
       <div>
-        <div class="flex items-center justify-between gap-2 mb-1.5"><label class="block text-xs font-bold text-slate-300 uppercase">Avatar</label><span class="text-[10px] text-slate-500">Emoji or live photo</span></div>
-        <div id="join-avatar-picker" class="grid grid-cols-6 gap-2 text-center text-xl"></div>
-        <button id="btn-take-avatar-photo" type="button" class="mt-2 w-full py-2.5 rounded-xl bg-indigo-600/15 hover:bg-indigo-600/25 border border-indigo-500/35 text-indigo-200 text-xs font-bold active:scale-95">📷 Take Photo for Avatar</button>
+        <div class="flex items-center justify-between gap-2 mb-1.5"><label class="block text-xs font-bold text-slate-300 uppercase">Avatar</label><span class="text-xs text-slate-400">Emoji or live photo</span></div>
+        <div id="join-avatar-picker" role="radiogroup" aria-label="Choose an avatar" class="grid grid-cols-6 gap-1.5 text-center text-xl"></div>
+        <button id="btn-take-avatar-photo" type="button" class="mt-2 w-full rounded-xl bg-indigo-600/15 hover:bg-indigo-600/25 border border-indigo-500/35 text-indigo-100 text-sm font-bold flex items-center justify-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-camera"/></svg>Take Photo for Avatar</button>
         <div id="join-photo-avatar-preview" class="hidden mt-2 items-center justify-between gap-3 rounded-xl bg-slate-800/80 border border-emerald-500/30 p-2.5">
-          <div class="flex items-center gap-2 min-w-0"><img id="join-photo-avatar-img" alt="Selected avatar photo" class="w-11 h-11 rounded-full object-cover border-2 border-emerald-400/60 shrink-0"><div class="min-w-0"><p class="text-xs font-bold text-emerald-300">Photo selected</p><p class="text-[10px] text-slate-400 truncate">This will appear as your player avatar.</p></div></div>
-          <button id="btn-use-emoji-avatar" type="button" class="px-2.5 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-[10px] font-bold shrink-0">Use Emoji</button>
+          <div class="flex items-center gap-2 min-w-0"><img id="join-photo-avatar-img" alt="Selected avatar photo" class="w-11 h-11 rounded-full object-cover border-2 border-emerald-400/60 shrink-0"><div class="min-w-0"><p class="text-xs font-bold text-emerald-300">Photo selected</p><p class="text-xs text-slate-400 truncate">This will appear as your player avatar.</p></div></div>
+          <button id="btn-use-emoji-avatar" type="button" class="px-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-bold shrink-0">Use Emoji</button>
         </div>
       </div>
       <div><label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">Quantity of Cards</label>
         <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 rounded-2xl p-2">
-          <button id="btn-card-minus" type="button" class="w-11 h-11 rounded-xl bg-slate-700 hover:bg-slate-600 font-black text-xl active:scale-90">−</button>
-          <div class="text-center"><span id="join-card-count-display" class="font-display font-bold text-2xl text-amber-400">1</span><span class="text-[10px] text-slate-400 block font-bold">CARD(S)</span></div>
-          <button id="btn-card-plus" type="button" class="w-11 h-11 rounded-xl bg-slate-700 hover:bg-slate-600 font-black text-xl active:scale-90">+</button>
+          <button id="btn-card-minus" type="button" aria-label="Fewer cards" class="w-11 h-11 rounded-xl bg-slate-700 hover:bg-slate-600 font-black text-xl active:scale-90">−</button>
+          <div class="text-center"><span id="join-card-count-display" aria-live="polite" class="font-display font-bold text-2xl text-amber-400">1</span><span class="text-xs text-slate-400 block font-bold">CARD(S)</span></div>
+          <button id="btn-card-plus" type="button" aria-label="More cards" class="w-11 h-11 rounded-xl bg-slate-700 hover:bg-slate-600 font-black text-xl active:scale-90">+</button>
         </div></div>
       <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-3 flex items-center justify-between"><span class="text-xs text-slate-400">Total Payment Due:</span><span id="join-total-due-text" class="font-mono font-black text-lg text-emerald-400">₱10.00</span></div>
       <p id="join-gate-msg" class="hidden text-xs font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-xl p-3"></p>
-      <button id="btn-confirm-join" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 font-display font-bold text-lg hover:brightness-110 shadow-lg active:scale-95">GET CARDS &amp; ENTER</button>
-      <button id="btn-close-join" type="button" class="hidden w-full py-2 text-xs text-slate-400 hover:text-white">Cancel</button>
+      <button id="btn-confirm-join" type="button" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-brand-pinkdeep to-brand-blue text-white font-display font-bold text-lg hover:brightness-110 shadow-lg active:scale-95">GET CARDS &amp; ENTER</button>
+      <button id="btn-close-join" type="button" class="hidden w-full text-sm text-slate-300 hover:text-white">Cancel</button>
     </div>
   </div>
 </div>
 
 <!-- LIVE PHOTO AVATAR MODAL -->
 <div id="modal-avatar-camera" class="fixed inset-0 z-[70] hidden items-center justify-center p-3 bg-slate-950/95 backdrop-blur-sm">
-  <div class="modal-box bg-slate-900 border border-indigo-500/30 w-full max-w-sm rounded-3xl p-5 shadow-2xl">
-    <div class="flex items-start justify-between gap-3 mb-4"><div><p class="text-[10px] uppercase tracking-[.18em] font-black text-indigo-300">Player Avatar</p><h3 class="font-display font-bold text-xl mt-1">Take Your Photo</h3><p class="text-xs text-slate-400 mt-1">Your camera stays on this device until you capture the avatar.</p></div><button id="btn-close-avatar-camera" type="button" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold">✕</button></div>
+  <div role="dialog" aria-modal="true" aria-labelledby="modal-avatar-camera-title" class="modal-box bg-slate-900 border border-indigo-500/30 w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+    <div class="flex items-start justify-between gap-3 mb-4"><div><p class="text-xs uppercase tracking-[.18em] font-black text-indigo-300">Player Avatar</p><h3 id="modal-avatar-camera-title" class="font-display font-bold text-xl mt-1">Take Your Photo</h3><p class="text-xs text-slate-400 mt-1">Your camera stays on this device until you capture the avatar.</p></div><button id="btn-close-avatar-camera" type="button" aria-label="Close" class="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center"><svg class="w-5 h-5 shrink-0" aria-hidden="true"><use href="#i-x"/></svg></button></div>
     <div class="relative aspect-square w-full max-w-[18rem] mx-auto overflow-hidden rounded-3xl bg-slate-950 border border-slate-700">
       <video id="avatar-camera-video" autoplay muted playsinline class="w-full h-full object-cover"></video>
       <div class="absolute inset-0 pointer-events-none border-[3px] border-white/20 rounded-full m-5"></div>
@@ -251,26 +277,26 @@
     <canvas id="avatar-camera-canvas" width="96" height="96" class="hidden"></canvas>
     <p id="avatar-camera-error" class="hidden mt-3 text-xs text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-xl p-3"></p>
     <div class="grid grid-cols-2 gap-2 mt-4"><button id="btn-cancel-avatar-camera" type="button" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold">Cancel</button><button id="btn-capture-avatar-photo" type="button" class="py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-slate-950 text-xs font-black">📸 Capture Photo</button></div>
-    <div class="mt-3 text-center"><label for="avatar-photo-file" class="inline-block cursor-pointer text-[11px] font-bold text-slate-400 hover:text-white underline underline-offset-2">Camera unavailable? Use device camera / choose photo</label><input id="avatar-photo-file" type="file" accept="image/*" capture="user" class="hidden"></div>
-    <p class="text-[10px] text-slate-500 text-center mt-3">Photo is automatically cropped and compressed to a small avatar for faster game syncing.</p>
+    <div class="mt-3 text-center"><label for="avatar-photo-file" class="inline-block cursor-pointer text-xs font-bold text-slate-400 hover:text-white underline underline-offset-2">Camera unavailable? Use device camera / choose photo</label><input id="avatar-photo-file" type="file" accept="image/*" capture="user" class="hidden"></div>
+    <p class="text-xs text-slate-400 text-center mt-3">Photo is automatically cropped and compressed to a small avatar for faster game syncing.</p>
   </div>
 </div>
 
 <!-- PIN MODAL -->
 <div id="modal-pin" class="fixed inset-0 z-[55] hidden items-center justify-center p-3 bg-slate-950/85 backdrop-blur-sm">
-  <div class="modal-box bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-6 shadow-2xl text-center">
-    <div class="w-12 h-12 mx-auto mb-2 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-2xl">🔒</div>
-    <h3 class="font-display font-bold text-lg mb-1">Staff Access</h3><p class="text-xs text-slate-400 mb-4">Enter Secret PIN to manage room</p>
+  <div role="dialog" aria-modal="true" aria-labelledby="modal-pin-title" class="modal-box bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-6 shadow-2xl text-center">
+    <div class="w-12 h-12 mx-auto mb-2 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-300"><svg class="w-6 h-6 shrink-0" aria-hidden="true"><use href="#i-lock"/></svg></div>
+    <h3 id="modal-pin-title" class="font-display font-bold text-lg mb-1">Staff Access</h3><p class="text-xs text-slate-400 mb-4">Enter Secret PIN to manage room</p>
     <input type="password" id="pin-input" maxlength="16" placeholder="Passcode" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-center tracking-widest font-mono font-bold text-lg focus:outline-none focus:border-amber-400 mb-3">
-    <p id="pin-error-msg" class="text-[11px] text-rose-400 hidden mb-3 font-bold">Incorrect PIN code</p>
+    <p id="pin-error-msg" class="text-xs text-rose-400 hidden mb-3 font-bold">Incorrect PIN code</p>
     <div class="grid grid-cols-2 gap-2"><button id="btn-cancel-pin" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold active:scale-95">Cancel</button><button id="btn-submit-pin" class="py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold active:scale-95">Unlock</button></div>
   </div>
 </div>
 
 <!-- CHANGE ADMIN PASSCODE MODAL -->
 <div id="modal-change-pin" class="fixed inset-0 z-[60] hidden items-center justify-center p-3 bg-slate-950/90 backdrop-blur-sm">
-  <div class="modal-box bg-slate-900 border border-indigo-500/30 w-full max-w-sm rounded-3xl p-6 shadow-2xl">
-    <div class="text-center mb-5"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-3xl">🔑</div><h3 class="font-display font-bold text-xl">Change Admin Passcode</h3><p class="text-xs text-slate-400 mt-1">This changes the passcode used after triple-clicking the logo.</p></div>
+  <div role="dialog" aria-modal="true" aria-labelledby="modal-change-pin-title" class="modal-box bg-slate-900 border border-indigo-500/30 w-full max-w-sm rounded-3xl p-6 shadow-2xl">
+    <div class="text-center mb-5"><div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-300"><svg class="w-7 h-7 shrink-0" aria-hidden="true"><use href="#i-key"/></svg></div><h3 id="modal-change-pin-title" class="font-display font-bold text-xl">Change Admin Passcode</h3><p class="text-xs text-slate-400 mt-1">This changes the passcode used after triple-clicking the logo.</p></div>
     <div class="space-y-3">
       <input type="password" id="change-pin-current" maxlength="16" placeholder="Current passcode" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 font-mono font-bold focus:outline-none focus:border-indigo-400">
       <input type="password" id="change-pin-new" maxlength="16" placeholder="New passcode (4–16 characters)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 font-mono font-bold focus:outline-none focus:border-indigo-400">
@@ -283,9 +309,9 @@
 
 <!-- FULL GAME RESET MODAL -->
 <div id="modal-reset-game" class="fixed inset-0 z-[65] hidden items-center justify-center p-3 bg-slate-950/90 backdrop-blur-sm">
-  <div class="modal-box bg-slate-900 border border-rose-500/40 w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center">
-    <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-3xl">⚠️</div>
-    <h3 class="font-display font-bold text-xl mb-1">Reset the entire game?</h3>
+  <div role="dialog" aria-modal="true" aria-labelledby="modal-reset-game-title" class="modal-box bg-slate-900 border border-rose-500/40 w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center">
+    <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-300"><svg class="w-7 h-7 shrink-0" aria-hidden="true"><use href="#i-alert"/></svg></div>
+    <h3 id="modal-reset-game-title" class="font-display font-bold text-xl mb-1">Reset the entire game?</h3>
     <p class="text-xs text-slate-400 mb-4">This starts a completely fresh game with 0 players, 0 cards, no drawn numbers, no winner, and the default ₱10 card price. All connected players return to the join screen.</p>
     <input type="password" id="reset-game-pin" maxlength="16" placeholder="Enter admin passcode" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-center tracking-wider font-mono font-bold focus:outline-none focus:border-rose-400">
     <p id="reset-game-error" class="hidden text-xs font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-xl p-3 mt-3"></p>
@@ -295,9 +321,9 @@
 
 <!-- CLEAR MODAL -->
 <div id="modal-confirm-clear" class="fixed inset-0 z-[55] hidden items-center justify-center p-3 bg-slate-950/85 backdrop-blur-sm">
-  <div class="modal-box bg-slate-900 border border-rose-500/40 w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center">
-    <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-3xl">⚠️</div>
-    <h3 class="font-display font-bold text-lg mb-1">Reset this round?</h3>
+  <div role="dialog" aria-modal="true" aria-labelledby="modal-confirm-clear-title" class="modal-box bg-slate-900 border border-rose-500/40 w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center">
+    <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-300"><svg class="w-7 h-7 shrink-0" aria-hidden="true"><use href="#i-alert"/></svg></div>
+    <h3 id="modal-confirm-clear-title" class="font-display font-bold text-lg mb-1">Reset this round?</h3>
     <p class="text-xs text-slate-400 mb-5">This clears all drawn balls and Bingo status. Existing players stay registered and will choose: stay with their cards, add cards, or leave the game.</p>
     <div class="grid grid-cols-2 gap-2"><button id="btn-cancel-clear" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold active:scale-95">No, Cancel</button><button id="btn-confirm-clear" class="py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-bold active:scale-95">Yes, Reset</button></div>
   </div>
@@ -305,21 +331,21 @@
 
 <!-- QR MODAL -->
 <div id="modal-qr" class="fixed inset-0 z-[55] hidden items-center justify-center p-3 bg-slate-950/85 backdrop-blur-sm">
-  <div class="modal-box bg-slate-900 border border-slate-800 w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center">
-    <h3 class="font-display font-bold text-xl mb-1">Join the Game!</h3>
+  <div role="dialog" aria-modal="true" aria-labelledby="modal-qr-title" class="modal-box bg-slate-900 border border-slate-800 w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center">
+    <h3 id="modal-qr-title" class="font-display font-bold text-xl mb-1">Join the Game!</h3>
     <p class="text-xs text-slate-400 mb-4">Scan or share the link · Room <span id="qr-modal-room-id" class="font-mono font-bold text-white"></span></p>
     <div class="bg-white p-3 rounded-2xl w-52 h-52 mx-auto flex items-center justify-center mb-3"><canvas id="qr-display-canvas" width="192" height="192" class="w-full h-full"></canvas></div>
-    <p id="qr-link-text" class="text-[10px] text-slate-400 break-all mb-4 select-all"></p>
+    <p id="qr-link-text" class="text-xs text-slate-400 break-all mb-4 select-all"></p>
     <div class="flex flex-col gap-2"><button id="btn-modal-qr-copy" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs active:scale-95">Copy Link</button><button id="btn-modal-native-share" class="w-full py-2.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-200 font-bold text-xs active:scale-95">Share Link…</button><button id="btn-close-qr-modal" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold active:scale-95">Close</button></div>
   </div>
 </div>
 
 <!-- GAME MECHANICS / PATTERNS MODAL -->
 <div id="modal-gm-help" class="fixed inset-0 z-[60] hidden items-center justify-center p-3 bg-slate-950/90 backdrop-blur-sm">
-  <div class="modal-box bg-slate-900 border border-slate-700 w-full max-w-2xl rounded-3xl p-5 sm:p-7 shadow-2xl">
+  <div role="dialog" aria-modal="true" aria-labelledby="gm-help-title" class="modal-box bg-slate-900 border border-slate-700 w-full max-w-2xl rounded-3xl p-5 sm:p-7 shadow-2xl">
     <div class="flex items-start justify-between gap-3 mb-4">
-      <div><p class="text-[10px] uppercase tracking-[.2em] font-black text-amber-400">Game Guide</p><h3 id="gm-help-title" class="font-display font-bold text-2xl mt-1">How to Play</h3></div>
-      <button id="btn-close-gm-help" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold active:scale-95">✕</button>
+      <div><p class="text-xs uppercase tracking-[.2em] font-black text-amber-400">Game Guide</p><h3 id="gm-help-title" class="font-display font-bold text-2xl mt-1">How to Play</h3></div>
+      <button id="btn-close-gm-help" type="button" aria-label="Close" class="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center active:scale-95"><svg class="w-5 h-5 shrink-0" aria-hidden="true"><use href="#i-x"/></svg></button>
     </div>
     <div id="gm-help-page-mechanics">
       <div class="space-y-3 text-sm text-slate-300">
@@ -335,7 +361,7 @@
       <div id="gm-patterns-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
     </div>
     <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
-      <span id="gm-help-page-indicator" class="text-xs font-mono text-slate-500">1 / 2</span>
+      <span id="gm-help-page-indicator" class="text-xs font-mono text-slate-400">1 / 2</span>
       <div class="flex gap-2"><button id="btn-gm-help-prev" class="hidden px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold active:scale-95">← Mechanics</button><button id="btn-gm-help-next" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black active:scale-95">Patterns →</button></div>
     </div>
   </div>
@@ -343,22 +369,22 @@
 
 <!-- PLAYER NEW ROUND OPTIONS -->
 <div id="modal-round-options" class="fixed inset-0 z-[65] hidden items-center justify-center p-3 bg-slate-950/90 backdrop-blur-sm">
-  <div class="modal-box bg-slate-900 border border-emerald-500/30 w-full max-w-md rounded-3xl p-5 sm:p-7 shadow-2xl">
+  <div role="dialog" aria-modal="true" aria-labelledby="modal-round-options-title" class="modal-box bg-slate-900 border border-emerald-500/30 w-full max-w-md rounded-3xl p-5 sm:p-7 shadow-2xl">
     <div class="text-center mb-5">
-      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-3xl">↻</div>
-      <h3 class="font-display font-bold text-2xl">New Round</h3>
+      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-300"><svg class="w-7 h-7 shrink-0" aria-hidden="true"><use href="#i-refresh"/></svg></div>
+      <h3 id="modal-round-options-title" class="font-display font-bold text-2xl">New Round</h3>
       <p class="text-xs text-slate-400 mt-1">The Game Master reset the round. Choose what you want to do before the next first ball.</p>
     </div>
     <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-3 mb-4 flex items-center justify-between gap-3">
-      <div><p class="text-[10px] uppercase font-black text-slate-500">Your current cards</p><p id="round-current-cards" class="font-display font-bold text-xl text-amber-400">1 Card</p></div>
+      <div><p class="text-xs uppercase font-black text-slate-400">Your current cards</p><p id="round-current-cards" class="font-display font-bold text-xl text-amber-400">1 Card</p></div>
       <button id="btn-round-stay" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs active:scale-95">STAY WITH CARDS</button>
     </div>
     <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4 mb-4">
-      <div class="flex items-center justify-between gap-3 mb-3"><div><p class="font-bold text-sm">Add more cards</p><p class="text-[11px] text-slate-400">Your existing cards stay. New cards are added for the next round.</p></div><span id="round-add-cost" class="text-xs font-black text-emerald-300">+₱10.00</span></div>
+      <div class="flex items-center justify-between gap-3 mb-3"><div><p class="font-bold text-sm">Add more cards</p><p class="text-xs text-slate-400">Your existing cards stay. New cards are added for the next round.</p></div><span id="round-add-cost" class="text-xs font-black text-emerald-300">+₱10.00</span></div>
       <div class="flex items-center justify-between bg-slate-900 border border-slate-700 rounded-2xl p-2">
-        <button id="btn-round-add-minus" type="button" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 font-black text-lg active:scale-90">−</button>
-        <div class="text-center"><span id="round-add-count" class="font-display font-bold text-2xl text-amber-400">1</span><span class="block text-[9px] text-slate-500 font-bold">NEW CARD(S)</span></div>
-        <button id="btn-round-add-plus" type="button" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 font-black text-lg active:scale-90">+</button>
+        <button id="btn-round-add-minus" type="button" aria-label="Fewer new cards" class="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 font-black text-lg active:scale-90">−</button>
+        <div class="text-center"><span id="round-add-count" class="font-display font-bold text-2xl text-amber-400">1</span><span class="block text-xs text-slate-400 font-bold">NEW CARD(S)</span></div>
+        <button id="btn-round-add-plus" type="button" aria-label="More new cards" class="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 font-black text-lg active:scale-90">+</button>
       </div>
       <button id="btn-round-add-confirm" class="w-full mt-3 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 text-slate-950 font-black text-xs active:scale-95">ADD CARDS &amp; STAY</button>
     </div>
@@ -367,15 +393,15 @@
 </div>
 
 <!-- PLAYER PATTERNS PANEL: floating and draggable, no backdrop, so cards stay tappable -->
-<div id="patterns-panel" class="hidden fixed z-[45] w-[15rem] sm:w-[18rem] bg-slate-900/95 border border-indigo-500/40 rounded-2xl shadow-2xl backdrop-blur" style="right:12px;top:84px">
+<div id="patterns-panel" role="dialog" aria-label="Winning patterns" class="hidden fixed z-[45] w-[15rem] sm:w-[18rem] bg-slate-900/95 border border-indigo-500/40 rounded-2xl shadow-2xl backdrop-blur" style="right:12px;top:84px">
   <div id="patterns-panel-handle" class="flex items-center justify-between gap-2 pl-3 pr-1.5 py-1.5 border-b border-slate-800 cursor-move select-none touch-none">
-    <span class="font-display font-bold text-xs text-amber-300">⠿ Winning Patterns <span class="text-[9px] font-sans font-semibold text-slate-500">drag to move</span></span>
-    <button id="btn-close-patterns-panel" type="button" aria-label="Close patterns" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold">✕</button>
+    <span class="font-display font-bold text-sm text-amber-300 flex items-center gap-1.5"><svg class="w-4 h-4 text-slate-400 shrink-0" aria-hidden="true"><use href="#i-move"/></svg>Winning Patterns<span class="sr-only"> (drag this bar to move)</span></span>
+    <button id="btn-close-patterns-panel" type="button" aria-label="Close patterns" class="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center"><svg class="w-5 h-5 shrink-0" aria-hidden="true"><use href="#i-x"/></svg></button>
   </div>
   <div id="patterns-panel-grid" class="grid grid-cols-3 gap-1.5 p-2 max-h-[60dvh] overflow-y-auto"></div>
 </div>
 
-<div id="toast-container" class="fixed bottom-4 left-1/2 -translate-x-1/2 sm:left-auto sm:right-4 sm:translate-x-0 z-[70] flex flex-col gap-2 pointer-events-none w-[90%] sm:w-auto items-center sm:items-end"></div>
+<div id="toast-container" role="status" aria-live="polite" class="fixed bottom-4 left-1/2 -translate-x-1/2 sm:left-auto sm:right-4 sm:translate-x-0 z-[70] flex flex-col gap-2 pointer-events-none w-[90%] sm:w-auto items-center sm:items-end"></div>
 
 <script type="module">
 const $ = id => document.getElementById(id);
@@ -458,6 +484,7 @@ function refreshAvatarSelection() {
     const selected = !isPhotoAvatar(state.playerAvatar) && c.dataset.emoji === state.playerAvatar;
     c.classList.toggle('border-amber-400', selected); c.classList.toggle('bg-amber-500/20', selected);
     c.classList.toggle('border-slate-700', !selected); c.classList.toggle('bg-slate-800', !selected);
+    c.setAttribute('aria-checked', String(selected));
   });
   const preview = $('join-photo-avatar-preview'), img = $('join-photo-avatar-img');
   if (preview) { const photo = isPhotoAvatar(state.playerAvatar); preview.classList.toggle('hidden', !photo); preview.classList.toggle('flex', photo); if (photo && img) img.src = state.playerAvatar; }
@@ -764,8 +791,60 @@ const playReveal = () => { playBeep(660, 'triangle', 0.12); playBeep(990, 'trian
 const playWinFanfare = () => [440, 554, 659, 880].forEach((f, i) => playBeep(f, 'triangle', 0.25, i * 0.12));
 
 /* ---------- Helpers ---------- */
-const showModal = id => { const el = $(id); if (el) { el.classList.remove('hidden'); el.classList.add('flex'); } };
-const hideModal = id => { const el = $(id); if (el) { el.classList.add('hidden'); el.classList.remove('flex'); } };
+const modalStack = [];
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]):not([type=hidden]), select:not([disabled]), textarea, [tabindex]:not([tabindex="-1"])';
+const isOpen = el => el && !el.classList.contains('hidden');
+const showModal = id => {
+  const el = $(id); if (!el) return;
+  const wasOpen = isOpen(el);
+  el.classList.remove('hidden'); el.classList.add('flex');
+  if (wasOpen) return;
+  modalStack.push({ id, opener: document.activeElement });
+  setTimeout(() => { if (isOpen(el) && !el.contains(document.activeElement)) { const f = el.querySelector('[autofocus]') || el.querySelector(FOCUSABLE); if (f) f.focus({ preventScroll: true }); } }, 30);
+};
+const hideModal = id => {
+  const el = $(id); if (!el) return;
+  const wasOpen = isOpen(el);
+  el.classList.add('hidden'); el.classList.remove('flex');
+  const i = modalStack.findIndex(m => m.id === id);
+  if (i >= 0) { const [m] = modalStack.splice(i, 1); if (wasOpen && m.opener && document.contains(m.opener) && !modalStack.length) try { m.opener.focus({ preventScroll: true }); } catch (e) {} }
+};
+// Escape closes dialogs that are safe to dismiss (not the join gate or round choice for players).
+const ESC_CLOSE = { 'modal-pin': 1, 'modal-change-pin': 1, 'modal-reset-game': 1, 'modal-confirm-clear': 1, 'modal-qr': 1, 'modal-gm-help': 1 };
+document.addEventListener('keydown', e => {
+  const top = [...modalStack].reverse().find(m => isOpen($(m.id)));
+  if (e.key === 'Escape') {
+    const menu = $('gm-staff-menu');
+    if (isOpen(menu)) { closeStaffMenu(true); return; }
+    if (top) {
+      if (top.id === 'modal-avatar-camera') closeAvatarCamera();
+      else if (ESC_CLOSE[top.id] || (top.id === 'modal-join' && state.isAdmin)) hideModal(top.id);
+      return;
+    }
+    if (isOpen($('patterns-panel'))) closePatternsPanel();
+    return;
+  }
+  if (e.key === 'Tab' && top) {
+    const box = $(top.id), items = [...box.querySelectorAll(FOCUSABLE)].filter(x => x.offsetParent !== null);
+    if (!items.length) return;
+    const first = items[0], last = items[items.length - 1];
+    if (!box.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+    else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+});
+function closeStaffMenu(restoreFocus) {
+  const menu = $('gm-staff-menu'), btn = $('btn-gm-staff-menu');
+  if (!menu) return;
+  menu.classList.add('hidden'); menu.classList.remove('flex'); btn.setAttribute('aria-expanded', 'false');
+  if (restoreFocus) btn.focus();
+}
+function toggleStaffMenu() {
+  const menu = $('gm-staff-menu'), btn = $('btn-gm-staff-menu');
+  const open = !isOpen(menu);
+  menu.classList.toggle('hidden', !open); menu.classList.toggle('flex', open); btn.setAttribute('aria-expanded', String(open));
+  if (open) menu.querySelector('[role=menuitem]').focus();
+}
 function openJoin() { $('btn-close-join').classList.toggle('hidden', !state.isAdmin); refreshJoinGate(); showModal('modal-join'); }
 function showToast(msg, isError = false) {
   const c = $('toast-container'), t = document.createElement('div');
@@ -776,6 +855,38 @@ function showToast(msg, isError = false) {
 }
 const getLetter = n => n <= 15 ? 'B' : n <= 30 ? 'I' : n <= 45 ? 'N' : n <= 60 ? 'G' : 'O';
 const getColor = l => ({ B: '#3b82f6', I: '#f43f5e', N: '#f59e0b', G: '#10b981', O: '#8b5cf6' }[l] || '#ef4444');
+// Darker letter colours for small chips and board cells: white text stays >= 4.5:1.
+const getChipColor = l => ({ B: '#1d4ed8', I: '#be123c', N: '#b45309', G: '#047857', O: '#6d28d9' }[l] || '#be123c');
+const icon = (name, cls = 'w-4 h-4') => `<svg class="${cls} shrink-0" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+const announce = msg => { const el = $('sr-live'); if (el) { el.textContent = ''; setTimeout(() => { el.textContent = msg; }, 50); } };
+const prefersReducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+// 75-number board on the Game Master screen so the room can check every call.
+let boardCells = null;
+function renderNumberBoard(drawn = [], last = null) {
+  const box = $('gm-number-board'); if (!box) return;
+  if (!boardCells) {
+    boardCells = new Map(); box.innerHTML = '';
+    'BINGO'.split('').forEach((L, r) => {
+      const row = document.createElement('div');
+      row.className = 'grid grid-cols-[2.25rem_repeat(15,minmax(0,1fr))] sm:grid-cols-[2.75rem_repeat(15,minmax(0,1fr))] gap-1 sm:gap-1.5 items-center';
+      const head = document.createElement('div');
+      head.className = 'board-cell rounded-lg flex items-center justify-center font-display font-bold text-base sm:text-xl text-white';
+      head.style.backgroundColor = getChipColor(L); head.textContent = L;
+      row.appendChild(head);
+      for (let n = r * 15 + 1; n <= r * 15 + 15; n++) {
+        const c = document.createElement('div'); c.textContent = n; row.appendChild(c); boardCells.set(n, c);
+      }
+      box.appendChild(row);
+    });
+  }
+  const called = new Set(drawn);
+  boardCells.forEach((c, n) => {
+    const on = called.has(n), L = getLetter(n);
+    c.className = `board-cell rounded-md flex items-center justify-center font-mono font-bold text-xs sm:text-sm lg:text-base transition-transform ${on ? 'text-white' : 'bg-slate-800/70 text-slate-400'}${n === last ? ' latest' : ''}`;
+    c.style.backgroundColor = on ? getChipColor(L) : '';
+    c.setAttribute('aria-label', `${L} ${n}${on ? ', called' : ''}`);
+  });
+}
 function sample(min, max, count) {
   const pool = []; for (let i = min; i <= max; i++) pool.push(i);
   const out = []; for (let i = 0; i < count; i++) out.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
@@ -814,7 +925,8 @@ function copyText(text, ok) {
 }
 const switchView = v => {
   state.currentView = v;
-  if (v !== 'player') $('patterns-panel').classList.add('hidden');
+  if (v !== 'player') closePatternsPanel();
+  closeStaffMenu(false);
   ['player', 'gm', 'admin'].forEach(n => { const el = $('view-' + n), show = n === v; el.classList.toggle('hidden', !show); el.classList.toggle('flex', show); });
 };
 
@@ -830,8 +942,8 @@ function ensureBgMusic() {
   return bgMusic;
 }
 function updateMusicButtons() {
-  const label = bgMusicEnabled && bgMusic && !bgMusic.paused ? '🎵 Music On' : '🔇 Music Off';
-  ['btn-gm-music','btn-admin-music'].forEach(id => { const b=$(id); if (b) b.textContent=label; });
+  const playing = bgMusicEnabled && bgMusic && !bgMusic.paused;
+  ['btn-gm-music','btn-admin-music'].forEach(id => { const b=$(id); if (b) { b.innerHTML = `${icon(playing ? 'music' : 'music-off')}Music ${playing ? 'On' : 'Off'}`; b.setAttribute('aria-pressed', String(!!playing)); } });
 }
 async function startStaffMusic() {
   if (!state.isAdmin || !bgMusicEnabled) { updateMusicButtons(); return; }
@@ -867,13 +979,15 @@ function switchStaffView(v) {
 /* ---------- Cards ---------- */
 // DOM references per card so a new ball only repaints the cells it marks.
 let cardViews = [];
-const CELL_BASE = 'bingo-cell rounded-lg sm:rounded-xl flex flex-col items-center justify-center cursor-pointer active:scale-95 font-display font-bold text-sm sm:text-base select-none border transition ';
-const CELL_ON = 'bg-gradient-to-tr from-amber-500 to-rose-500 text-white border-amber-300', CELL_OFF = 'bg-slate-800 text-slate-200 border-slate-700 hover:border-slate-500';
+const CELL_BASE = 'bingo-cell w-full rounded-lg sm:rounded-xl flex flex-col items-center justify-center cursor-pointer active:scale-95 font-display font-bold text-base sm:text-lg select-none border-2 transition ';
+const CELL_ON = 'bg-gradient-to-tr from-brand-pinkdeep to-brand-pinkdark text-white border-brand-pinklight', CELL_OFF = 'bg-slate-800 text-slate-100 border-slate-700 hover:border-slate-500';
 function paintCell(cell, num, idx, marked, animate, auto) {
   cell.className = CELL_BASE + (marked ? CELL_ON : CELL_OFF);
-  if (idx === 12) { cell.innerHTML = '<span class="text-[9px] sm:text-[10px] font-black text-amber-200">★ FREE</span>'; return; }
+  if (idx === 12) { cell.innerHTML = '<span class="text-xs font-black text-white">★ FREE</span>'; cell.setAttribute('aria-label', 'Free space, marked'); return; }
   cell.textContent = num;
-  if (marked) { const st = document.createElement('span'); st.className = 'text-[8px] sm:text-[9px] uppercase font-sans font-black text-amber-200 leading-none' + (animate ? ' stamp-anim' : ''); st.textContent = auto ? 'AUTO' : '✓'; cell.appendChild(st); }
+  cell.setAttribute('aria-label', `${getLetter(num)} ${num}${marked ? (auto ? ', auto-marked' : ', marked') : ''}`);
+  cell.setAttribute('aria-pressed', String(!!marked));
+  if (marked) { const st = document.createElement('span'); st.className = 'text-xs uppercase font-sans font-black text-white leading-none' + (animate ? ' stamp-anim' : ''); st.textContent = auto ? 'AUTO' : '✓'; st.setAttribute('aria-hidden', 'true'); cell.appendChild(st); }
 }
 function renderAllPlayerCards() {
   const box = $('cards-container'); box.innerHTML = ''; cardViews = [];
@@ -885,12 +999,12 @@ function renderAllPlayerCards() {
   state.playerCards.forEach((card, ci) => {
     const wrap = document.createElement('div');
     wrap.className = 'bg-slate-900/90 border-2 border-slate-800 rounded-3xl p-3 sm:p-4 shadow-xl flex flex-col items-center';
-    wrap.innerHTML = `<div class="w-full flex items-center justify-between mb-2 text-xs"><span class="font-display font-bold text-amber-400 uppercase">Card #${ci + 1}</span><span data-counter class="text-[10px] text-slate-400 font-mono bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">${card.stamped.size}/25</span></div>
+    wrap.innerHTML = `<div class="w-full flex items-center justify-between mb-2 text-xs"><span class="font-display font-bold text-amber-400 uppercase">Card #${ci + 1}</span><span data-counter class="text-xs text-slate-400 font-mono bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">${card.stamped.size}/25</span></div>
       <div class="grid grid-cols-5 gap-1 sm:gap-1.5 w-full mb-1.5 text-center font-display font-bold text-sm text-white"><div class="bg-blue-600 rounded-lg py-1">B</div><div class="bg-rose-600 rounded-lg py-1">I</div><div class="bg-amber-600 rounded-lg py-1">N</div><div class="bg-emerald-600 rounded-lg py-1">G</div><div class="bg-purple-600 rounded-lg py-1">O</div></div>`;
     const grid = document.createElement('div'); grid.className = 'grid grid-cols-5 gap-1 sm:gap-1.5 w-full';
     const cells = card.grid.map((num, idx) => {
-      const cell = document.createElement('div');
-      cell.dataset.ci = ci; cell.dataset.idx = idx;
+      const cell = document.createElement('button');
+      cell.type = 'button'; cell.dataset.ci = ci; cell.dataset.idx = idx;
       paintCell(cell, num, idx, card.stamped.has(idx), false, card.auto.has(idx));
       grid.appendChild(cell);
       return cell;
@@ -974,26 +1088,39 @@ function renderPatternGuide(boxId = 'gm-patterns-grid', compact = false) {
     const card = document.createElement('div');
     card.className = compact ? 'bg-slate-800/70 border border-slate-700 rounded-xl p-1.5' : 'bg-slate-800/70 border border-slate-700 rounded-2xl p-3';
     const title = document.createElement('div');
-    title.className = compact ? 'font-display font-bold text-[9px] sm:text-[10px] leading-tight text-center text-amber-300 mb-1 min-h-[2.3em] flex items-center justify-center' : 'font-display font-bold text-xs sm:text-sm text-center text-amber-300 mb-2';
+    title.className = compact ? 'font-display font-bold text-xs leading-tight text-center text-amber-300 mb-1 min-h-[2.3em] flex items-center justify-center' : 'font-display font-bold text-xs sm:text-sm text-center text-amber-300 mb-2';
     title.textContent = pattern.name;
     const grid = document.createElement('div');
     grid.className = compact ? 'grid grid-cols-5 gap-[2px] mx-auto' : 'grid grid-cols-5 gap-1 max-w-[150px] mx-auto';
     for (let i = 0; i < 25; i++) {
       const cell = document.createElement('div');
       const active = pattern.cells.includes(i);
-      cell.className = `aspect-square rounded-[4px] border flex items-center justify-center text-[7px] sm:text-[8px] ${active ? 'bg-rose-500 border-rose-300 text-white' : 'bg-slate-900 border-slate-700 text-slate-600'}`;
-      if (i === 12 && !compact) cell.textContent = 'FREE';
+      cell.className = `aspect-square rounded-[4px] border flex items-center justify-center text-xs ${active ? 'bg-rose-500 border-rose-300 text-white' : 'bg-slate-900 border-slate-700 text-slate-600'}`;
+      if (i === 12) { cell.textContent = '★'; cell.setAttribute('aria-hidden', 'true'); }
       grid.appendChild(cell);
     }
     card.append(title, grid);
     box.appendChild(card);
   });
 }
+let patternsPanelPlaced = false;
 function togglePatternsPanel() {
   const panel = $('patterns-panel');
   renderPatternGuide('patterns-panel-grid', true);
-  panel.classList.toggle('hidden');
-  if (!panel.classList.contains('hidden')) clampPatternsPanel();
+  if (isOpen(panel)) { closePatternsPanel(); return; }
+  panel.classList.remove('hidden');
+  if (!patternsPanelPlaced) {
+    // First open: sit just below the sticky call bar on the right.
+    const bar = $('player-call-bar').getBoundingClientRect();
+    panel.style.right = 'auto'; panel.style.left = (window.innerWidth - panel.offsetWidth - 12) + 'px'; panel.style.top = (Math.max(bar.bottom, 0) + 8) + 'px';
+    patternsPanelPlaced = true;
+  }
+  clampPatternsPanel();
+  $('btn-player-patterns').setAttribute('aria-expanded', 'true');
+}
+function closePatternsPanel() {
+  $('patterns-panel').classList.add('hidden');
+  $('btn-player-patterns').setAttribute('aria-expanded', 'false');
 }
 function clampPatternsPanel() {
   const panel = $('patterns-panel'), r = panel.getBoundingClientRect();
@@ -1053,10 +1180,11 @@ async function celebrate(patternName = 'BINGO', cardNo = 1) {
   state.hasClaimedBingo = true;
   const ts = Date.now(), winner = { uid: state.userId, name: state.playerName, avatar: winnerAvatar(state.playerAvatar), pattern: patternName, cardNo, round: expectedRound, timestamp: ts };
   state.seenWinTs = ts;
-  if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+  if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, disableForReducedMotion: true });
   playWinFanfare();
   $('player-win-text').textContent = `${state.playerName} (YOU) got BINGO — ${patternName}!`;
   $('player-win-banner').classList.remove('hidden');
+  announce(`Bingo! You won with ${patternName}.`);
   persist();
   // Only write this player's own document here. The Game Master screen verifies
   // every card and publishes all new winners in one transaction, so many players
@@ -1209,12 +1337,12 @@ function handleFullGameReset(nextGameId, freshRoomData = null) {
   ['modal-pin','modal-change-pin','modal-reset-game','modal-confirm-clear','modal-qr','modal-gm-help','modal-round-options','modal-avatar-camera'].forEach(hideModal);
   $('player-profile-badge').classList.add('hidden'); $('player-profile-badge').classList.remove('flex'); $('player-win-banner').classList.add('hidden');
   $('join-name-input').value = ''; refreshAvatarSelection();
-  $('player-balls-count').textContent = '0 / 75';
+  $('player-balls-count').textContent = '0'; renderNumberBoard([], null);
   $('gm-total-drawn-pill').textContent = '0 / 75 Balls';
-  $('player-ball-letter').textContent = 'CES'; $('player-ball-num').textContent = '--'; $('player-caller-text').textContent = 'Waiting for Game Master...';
+  $('player-ball-letter').textContent = 'CES'; $('player-ball-num').textContent = '--'; $('player-caller-text').textContent = 'Waiting…';
   $('big-ball-letter').textContent = 'READY'; $('big-ball-num').textContent = '--'; $('gm-announce-msg').textContent = 'Ready to draw ball';
   $('big-bingo-ball').classList.remove('letter-only', 'ball-awaiting-reveal'); $('big-bingo-ball').title = 'Roll a letter first';
-  $('recent-balls-bar').innerHTML = '<span class="text-xs text-slate-500 italic">None</span>';
+  $('recent-balls-bar').innerHTML = '<span class="text-sm text-slate-400 italic">None</span>';
   const priceInput = $('admin-card-price-input'); if (priceInput) priceInput.value = state.pricePerCard;
   switchView('player'); renderAllPlayerCards(); refreshJoinPrice(); renderPlayers(); refreshJoinGate(); openJoin();
 }
@@ -1239,21 +1367,22 @@ function updateRoom(data) {
   }
   if (data.pricePerCard && data.pricePerCard !== state.pricePerCard) { state.pricePerCard = data.pricePerCard; const priceInput = $('admin-card-price-input'); if (priceInput) priceInput.value = data.pricePerCard; refreshJoinPrice(); if (state.roundChoicePending) refreshRoundOptions(); if (state.currentView === 'admin' || state.currentView === 'gm') renderPlayers(); }
 
-  $('player-balls-count').textContent = `${drawn.length} / 75`;
+  $('player-balls-count').textContent = String(drawn.length);
+  renderNumberBoard(drawn, data.lastDrawn || null);
   $('gm-total-drawn-pill').textContent = `${drawn.length} / 75 Balls`;
   const last = data.lastDrawn, big = !state.isRolling;
   if (last) {
     const L = getLetter(last), col = getColor(L);
     $('player-ball-sphere').style.setProperty('--ball-color', col);
-    $('player-ball-letter').textContent = L; $('player-ball-num').textContent = last; $('player-caller-text').textContent = state.joined ? `Called: ${L}-${last} — tap it on your card!` : `Called: ${L}-${last}`;
+    $('player-ball-letter').textContent = L; $('player-ball-num').textContent = last; $('player-caller-text').textContent = `${L}-${last}`;
     if (big) { $('big-bingo-ball').style.setProperty('--ball-color', col); $('big-ball-letter').textContent = L; $('big-ball-num').textContent = last; $('gm-announce-msg').textContent = `Just Drawn: ${L}-${last}`; }
     if (state.lastSpokenNum !== last) {
-      state.lastSpokenNum = last; playReveal();
+      state.lastSpokenNum = last; playReveal(); announce(`${L} ${last}`);
       const b = $('player-ball-sphere'); b.classList.remove('ball-reveal'); void b.offsetWidth; b.classList.add('ball-reveal');
     }
   } else {
     state.lastSpokenNum = null;
-    $('player-ball-letter').textContent = 'CES'; $('player-ball-num').textContent = '--'; $('player-caller-text').textContent = 'Waiting for Game Master...';
+    $('player-ball-letter').textContent = 'CES'; $('player-ball-num').textContent = '--'; $('player-caller-text').textContent = 'Waiting…';
     if (big) { $('big-ball-letter').textContent = 'READY'; $('big-ball-num').textContent = '--'; $('gm-announce-msg').textContent = 'Ready to draw ball'; }
   }
   const gmBall = $('big-bingo-ball');
@@ -1273,8 +1402,8 @@ function updateRoom(data) {
   if (drawButton) drawButton.disabled = state.isRolling || state.isResetting || !!pendingBall;
 
   const bar = $('recent-balls-bar'); bar.innerHTML = '';
-  if (drawn.length) drawn.slice(-6).reverse().forEach(n => { const L = getLetter(n), c = document.createElement('span'); c.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-black text-white font-mono'; c.style.backgroundColor = getColor(L); c.textContent = `${L}-${n}`; bar.appendChild(c); });
-  else bar.innerHTML = '<span class="text-xs text-slate-500 italic">None</span>';
+  if (drawn.length) drawn.slice(-6).reverse().forEach(n => { const L = getLetter(n), c = document.createElement('span'); c.className = 'px-3 py-1 rounded-full text-sm font-black text-white font-mono'; c.style.backgroundColor = getChipColor(L); c.textContent = `${L}-${n}`; bar.appendChild(c); });
+  else bar.innerHTML = '<span class="text-sm text-slate-400 italic">None</span>';
 
   applyAutoDaub(drawn);
   if (state.roundChoicePending) refreshRoundOptions();
@@ -1288,7 +1417,8 @@ function updateRoom(data) {
       ? `${all.slice(0, 3).map(label).join(', ')}${all.length > 3 ? ` & ${all.length - 3} more` : ''} got BINGO!`
       : `${label(w)} got BINGO${w.pattern ? ' — ' + w.pattern : ''}!`;
     $('player-win-banner').classList.remove('hidden');
-    if (w.timestamp !== state.seenWinTs) { state.seenWinTs = w.timestamp; if (w.uid !== state.userId && typeof confetti === 'function') confetti({ particleCount: 60, spread: 60 }); }
+    if (w.timestamp !== state.seenWinTs) announce($('player-win-text').textContent);
+    if (w.timestamp !== state.seenWinTs) { state.seenWinTs = w.timestamp; if (w.uid !== state.userId && typeof confetti === 'function') confetti({ particleCount: 60, spread: 60, disableForReducedMotion: true }); }
   } else if (!w && !state.hasClaimedBingo) $('player-win-banner').classList.add('hidden');
   refreshJoinGate();
 }
@@ -1333,10 +1463,10 @@ function renderPlayersNow() {
       id: w.uid,
       cls: 'flex items-center justify-between gap-2 p-2.5 rounded-2xl border bg-amber-500/20 border-amber-500/50 text-amber-200',
       html: `<div class="flex items-center gap-3 min-w-0"><span class="font-mono text-xs font-bold text-amber-400">#${i + 1}</span>${avatarMarkup(photos.get(w.uid) || w.avatar || '🎉', 'w-8 h-8')}
-        <div class="min-w-0"><span class="font-bold text-xs truncate block text-slate-100">${esc(w.name || 'Player')}</span><span class="text-[10px] block mt-0.5 text-amber-300 font-bold">${esc(w.pattern || 'BINGO')}${w.cardNo ? ` • Card ${esc(w.cardNo)}` : ''}</span></div></div>
-        <span class="text-[11px] font-mono px-2 py-0.5 rounded-full shrink-0 bg-amber-500 text-slate-950 font-black">★ BINGO!</span>`
+        <div class="min-w-0"><span class="font-bold text-xs truncate block text-slate-100">${esc(w.name || 'Player')}</span><span class="text-xs block mt-0.5 text-amber-300 font-bold">${esc(w.pattern || 'BINGO')}${w.cardNo ? ` • Card ${esc(w.cardNo)}` : ''}</span></div></div>
+        <span class="text-xs font-mono px-2 py-0.5 rounded-full shrink-0 bg-amber-500 text-slate-950 font-black">★ BINGO!</span>`
     }));
-    syncRows($('gm-participants-list'), rosterRows.gm, rows, 'div', '<div class="text-slate-500 text-center py-10 italic">No Bingo yet. Winners will appear here.</div>');
+    syncRows($('gm-participants-list'), rosterRows.gm, rows, 'div', '<div class="text-slate-400 text-center py-10 italic">No Bingo yet. Winners will appear here.</div>');
   }
 
   if (state.currentView === 'admin') {
@@ -1345,12 +1475,12 @@ function renderPlayersNow() {
     const rows = list.map((p, i) => {
       const n = Number(p.cardCount) || 0, won = winnerIds.has(p.id), pending = Number(p.roundAck) !== Number(state.round) && !state.started;
       const status = won ? 'BINGO' : pending ? 'CHOOSING NEXT ROUND' : 'PLAYING';
-      const html = `<td class="py-2.5 px-3 font-mono text-slate-500">${i + 1}</td><td class="py-2.5 px-3">${avatarMarkup(p.avatar || '👤', 'w-7 h-7 mr-2 inline-flex align-middle')}<span class="font-bold text-slate-200">${esc(p.name || 'Anon')}</span></td>
+      const html = `<td class="py-2.5 px-3 font-mono text-slate-400">${i + 1}</td><td class="py-2.5 px-3">${avatarMarkup(p.avatar || '👤', 'w-7 h-7 mr-2 inline-flex align-middle')}<span class="font-bold text-slate-200">${esc(p.name || 'Anon')}</span></td>
         <td class="py-2.5 px-3 text-cyan-400 font-mono font-bold">${n}</td><td class="py-2.5 px-3 text-slate-400">₱${formatMoney(state.pricePerCard)}</td><td class="py-2.5 px-3 text-emerald-400 font-mono font-bold">₱${formatMoney(n * state.pricePerCard)}</td>
-        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${won ? 'bg-amber-500 text-slate-950' : pending ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">${status}</span></td>`;
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${won ? 'bg-amber-500 text-slate-950' : pending ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">${status}</span></td>`;
       return { id: p.id, cls: '', html };
     });
-    syncRows($('admin-roster-tbody'), rosterRows.admin, rows, 'tr', '<tr><td colspan="6" class="text-center py-8 text-slate-500 italic">No participants registered yet</td></tr>');
+    syncRows($('admin-roster-tbody'), rosterRows.admin, rows, 'tr', '<tr><td colspan="6" class="text-center py-8 text-slate-400 italic">No participants registered yet</td></tr>');
   }
 }
 function refreshJoinPrice() {
@@ -1491,16 +1621,25 @@ async function changeAdminPasscode(currentPin, newPin) {
 }
 
 /* ---------- Init ---------- */
+function trackHeaderHeight() {
+  const h = $('app-header'); if (!h) return;
+  const set = () => document.documentElement.style.setProperty('--hdr-h', h.offsetHeight + 'px');
+  set(); if (window.ResizeObserver) new ResizeObserver(set).observe(h); else window.addEventListener('resize', set);
+}
 function init() {
+  trackHeaderHeight();
+  // The join dialog is open in the initial HTML; register it so Tab stays inside it.
+  if (isOpen($('modal-join'))) modalStack.push({ id: 'modal-join', opener: null });
   ['modal-pin', 'modal-change-pin', 'modal-reset-game', 'modal-confirm-clear', 'modal-qr', 'modal-gm-help', 'modal-round-options', 'modal-avatar-camera'].forEach(hideModal);
   switchView('player'); renderAllPlayerCards();
   authReady = initFirebase();
   refreshJoinGate();
 
-  const emojis = ['🎯','🦁','🦊','🐼','🚀','⭐','🎲','🍕','🎉','🔥','👑','🍀'], picker = $('join-avatar-picker');
-  emojis.forEach(e => {
+  const emojis = [['🎯','Target'],['🦁','Lion'],['🦊','Fox'],['🐼','Panda'],['🚀','Rocket'],['⭐','Star'],['🎲','Dice'],['🍕','Pizza'],['🎉','Party'],['🔥','Fire'],['👑','Crown'],['🍀','Clover']], picker = $('join-avatar-picker');
+  emojis.forEach(([e, label]) => {
     const b = document.createElement('button'); b.type = 'button'; b.dataset.emoji = e;
-    b.className = `p-2 rounded-xl hover:bg-slate-700 border ${e === state.playerAvatar ? 'border-amber-400 bg-amber-500/20' : 'border-slate-700 bg-slate-800'}`; b.textContent = e;
+    b.setAttribute('role', 'radio'); b.setAttribute('aria-label', `${label} avatar`);
+    b.className = `min-h-[2.75rem] rounded-xl hover:bg-slate-700 border-2 ${e === state.playerAvatar ? 'border-amber-400 bg-amber-500/20' : 'border-slate-700 bg-slate-800'}`; b.textContent = e;
     b.addEventListener('click', () => { state.playerAvatar = e; refreshAvatarSelection(); });
     picker.appendChild(b);
   });
@@ -1587,6 +1726,15 @@ function init() {
   on('btn-open-admin-from-gm', 'click', () => switchStaffView('admin'));
   on('btn-exit-gm-mode', 'click', () => { state.isAdmin = false; switchStaffView('player'); if (!state.joined) openJoin(); });
   on('btn-gm-music', 'click', toggleStaffMusic);
+  on('btn-gm-staff-menu', 'click', e => { e.stopPropagation(); toggleStaffMenu(); });
+  on('gm-staff-menu', 'click', e => { if (e.target.closest('[role=menuitem]')) closeStaffMenu(false); });
+  on('gm-staff-menu', 'keydown', e => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const items = [...$('gm-staff-menu').querySelectorAll('[role=menuitem]')], i = items.indexOf(document.activeElement);
+    items[(i + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length].focus();
+  });
+  document.addEventListener('click', e => { if (isOpen($('gm-staff-menu')) && !e.target.closest('#gm-staff-menu')) closeStaffMenu(false); });
   on('btn-admin-music', 'click', toggleStaffMusic);
   const openResetGame = () => { $('reset-game-pin').value = ''; $('reset-game-error').classList.add('hidden'); showModal('modal-reset-game'); setTimeout(() => $('reset-game-pin').focus(), 50); };
   on('btn-gm-reset-game', 'click', openResetGame);
@@ -1639,7 +1787,7 @@ function init() {
   on('btn-admin-show-qr', 'click', showQR); on('btn-gm-share-modal', 'click', showQR);
   on('btn-gm-help', 'click', () => { setGMHelpPage('mechanics'); showModal('modal-gm-help'); });
   on('btn-player-patterns', 'click', togglePatternsPanel);
-  on('btn-close-patterns-panel', 'click', () => $('patterns-panel').classList.add('hidden'));
+  on('btn-close-patterns-panel', 'click', () => { closePatternsPanel(); $('btn-player-patterns').focus(); });
   initPatternsPanelDrag();
   on('btn-gm-help-next', 'click', () => setGMHelpPage('patterns'));
   on('btn-gm-help-prev', 'click', () => setGMHelpPage('mechanics'));
@@ -1677,7 +1825,12 @@ function init() {
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   });
   on('btn-dismiss-win-banner', 'click', () => { state.dismissedWinTs = (state.roomState.lastWinner || {}).timestamp ?? state.seenWinTs; $('player-win-banner').classList.add('hidden'); });
-  on('btn-toggle-sound', 'click', () => { state.soundEnabled = !state.soundEnabled; $('sound-icon').textContent = state.soundEnabled ? '🔊' : '🔇'; resumeAudio(); });
+  on('btn-toggle-sound', 'click', () => {
+    state.soundEnabled = !state.soundEnabled;
+    $('sound-icon').innerHTML = icon(state.soundEnabled ? 'volume' : 'volume-x', 'w-5 h-5');
+    const b = $('btn-toggle-sound'); b.setAttribute('aria-pressed', String(state.soundEnabled)); b.setAttribute('aria-label', `Sound effects ${state.soundEnabled ? 'on' : 'off'}`);
+    resumeAudio();
+  });
   window.addEventListener('offline', () => setStatus('error', 'Browser is offline'));
   window.addEventListener('online', () => { if (fb) setStatus('connecting', 'Reconnecting...'); });
 }
