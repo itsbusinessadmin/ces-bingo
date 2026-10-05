@@ -89,7 +89,7 @@
     <section class="flex flex-col gap-3">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-2"><h2 class="font-display font-bold text-sm sm:text-base">Your Active Cards</h2>
-          <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>Auto-Daub</span></div>
+          <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>Tap to mark · auto in 5s</span></div>
         <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <button id="btn-player-patterns" type="button" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-200 font-display font-bold shadow-lg active:scale-95 transition-transform">▦ PATTERNS</button>
           <button id="btn-claim-bingo" disabled class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-slate-950 font-display font-bold shadow-lg">AUTO BINGO DETECTION</button>
@@ -149,7 +149,7 @@
 
       <div class="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col max-h-[75dvh] lg:max-h-[calc(100dvh-10rem)]">
         <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
-          <h2 class="font-display font-bold text-lg flex items-center gap-2">Room Participants <span id="gm-live-count-badge" class="bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-xs px-2.5 py-0.5 rounded-full font-mono">0 Online</span></h2>
+          <h2 class="font-display font-bold text-lg flex items-center gap-2">🏆 Bingo Winners <span id="gm-live-count-badge" class="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs px-2.5 py-0.5 rounded-full font-mono">0 Winners</span></h2>
           <div class="flex items-center gap-2 font-mono"><span class="text-xs text-slate-400">Pot:</span><span id="gm-total-pot-pill" class="text-sm font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-1 rounded-lg">₱0.00</span></div>
         </div>
         <div class="grid grid-cols-3 gap-2 sm:gap-3 my-3 text-center">
@@ -321,9 +321,9 @@
     <div id="gm-help-page-mechanics">
       <div class="space-y-3 text-sm text-slate-300">
         <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">1. Join before the first ball.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">Players enter through the shared link or QR code, choose their cards, and must finish joining before the Game Master rolls the first number. Once the first number is drawn, the room is locked to new players.</p></div>
-        <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">2. Numbers are automatic.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">Every number rolled by the Game Master is synced to all players. If that number exists on a player's card, it is automatically highlighted and cannot be removed.</p></div>
-        <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">3. Bingo is detected automatically.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">The system checks every active card against the approved Bingo patterns. No manual claim is required.</p></div>
-        <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">4. Winner and ranking update live.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">When a player completes a valid pattern, all players see the winner announcement. The Game Master participant list continuously ranks players by who is closest to completing a Bingo pattern.</p></div>
+        <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">2. Tap the called numbers.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">Every number revealed by the Game Master is synced to all players. Players tap it on their cards; if they don't within 5 seconds, it is marked automatically. Uncalled numbers cannot be marked.</p></div>
+        <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">3. Bingo is detected automatically.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">As soon as a player's marked numbers complete an approved pattern, Bingo is claimed and verified against the called numbers. No manual claim is required.</p></div>
+        <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">4. Winners update live.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">When a player completes a valid pattern, all players see the winner announcement and the Game Master screen lists the winners in order.</p></div>
         <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">5. Reset starts a choice period.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">After a round is reset, existing players can stay with the same cards, add more cards, or leave the game. The next first ball locks new entries again.</p></div>
       </div>
     </div>
@@ -363,11 +363,20 @@
   </div>
 </div>
 
+<!-- PLAYER PATTERNS PANEL: floating and draggable, no backdrop, so cards stay tappable -->
+<div id="patterns-panel" class="hidden fixed z-[45] w-[15rem] sm:w-[18rem] bg-slate-900/95 border border-indigo-500/40 rounded-2xl shadow-2xl backdrop-blur" style="right:12px;top:84px">
+  <div id="patterns-panel-handle" class="flex items-center justify-between gap-2 pl-3 pr-1.5 py-1.5 border-b border-slate-800 cursor-move select-none touch-none">
+    <span class="font-display font-bold text-xs text-amber-300">⠿ Winning Patterns <span class="text-[9px] font-sans font-semibold text-slate-500">drag to move</span></span>
+    <button id="btn-close-patterns-panel" type="button" aria-label="Close patterns" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold">✕</button>
+  </div>
+  <div id="patterns-panel-grid" class="grid grid-cols-3 gap-1.5 p-2 max-h-[60dvh] overflow-y-auto"></div>
+</div>
+
 <div id="toast-container" class="fixed bottom-4 left-1/2 -translate-x-1/2 sm:left-auto sm:right-4 sm:translate-x-0 z-[70] flex flex-col gap-2 pointer-events-none w-[90%] sm:w-auto items-center sm:items-end"></div>
 
 <script type="module">
 const $ = id => document.getElementById(id);
-const ROLL_DELAY = 350; // brief animation while keeping live number delivery fast
+const ROLL_DELAY = 300; // shake animation only; the server write runs in parallel
 const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
 const BGM_VOLUME = 0.20;
@@ -403,7 +412,7 @@ const state = {
   connected: false, statusMsg: '', started: false, restoreTried: false,
   autoRollTimer: null, isRolling: false, round: 0, seenWinTs: null, dismissedWinTs: null,
   players: [], roomState: { drawnNumbers: [], lastDrawn: null, lastWinner: null, winners: [] },
-  rosterUnsub: null, announcingWinnerIds: new Set(), roundInitialized: false, roundChoicePending: false, roundAddCount: 1,
+  rosterUnsub: null, claimsUnsub: null, bingoClaims: [], stats: { players: 0, cards: 0 }, announcingWinnerIds: new Set(), roundInitialized: false, roundChoicePending: false, roundAddCount: 1,
   currentView: 'player', isResetting: false, gameId: null, pendingBall: null
 };
 
@@ -568,7 +577,7 @@ async function initFirebase() {
     state.userId = cred.user.uid;
 
     subscribeRoom();
-    if (state.isAdmin && (state.currentView === 'admin' || state.currentView === 'gm')) ensureRosterListener();
+    if (state.isAdmin) ensureStaffListeners();
     return true;
   } catch (e) { console.error(e); setStatus('error', 'Cannot connect: ' + errMsg(e)); return false; }
 }
@@ -611,35 +620,63 @@ function decodeGrid(value) {
   const grid = Array.isArray(value) ? value.map(Number) : String(value || '').split(',').map(Number);
   return grid.length === 25 && grid.every(Number.isFinite) ? grid : null;
 }
-let rosterRetryTimer = null;
+const isStaffView = () => state.currentView === 'admin' || state.currentView === 'gm';
+let rosterRetryTimer = null, claimsRetryTimer = null, statsTimer = null, statsBusy = false;
+// Admin Desk: full roster (needed for payments). Game Master screen: only players who
+// claimed Bingo, plus a cheap server-side count for the stats, so the presenter
+// screen never downloads all 100 players' cards and photos.
+function ensureStaffListeners() {
+  if (!fb || !state.gameId || !isStaffView()) return; // retried from updateRoom once the room snapshot arrives
+  if (state.currentView === 'admin') ensureRosterListener(); else stopRosterListener();
+  ensureClaimsListener();
+  if (state.currentView === 'gm') { if (!statsTimer) { refreshRoomStats(); statsTimer = setInterval(refreshRoomStats, 10000); } }
+  else { clearInterval(statsTimer); statsTimer = null; }
+}
+function stopStaffListeners() {
+  stopRosterListener();
+  clearTimeout(claimsRetryTimer); clearInterval(statsTimer); statsTimer = null;
+  if (state.claimsUnsub) { try { state.claimsUnsub(); } catch (e) {} state.claimsUnsub = null; }
+  state.bingoClaims = [];
+}
 function ensureRosterListener() {
-  if (!fb || state.rosterUnsub || (state.currentView !== 'admin' && state.currentView !== 'gm')) return;
-  if (!state.gameId) return; // retried from updateRoom once the room snapshot arrives
+  if (state.rosterUnsub) return;
   const activePlayers = fb.query(playersCol(), fb.where('gameId', '==', state.gameId));
-  // Only re-decode grids for documents that actually changed; with 100 players a
-  // single join/update should not re-parse every roster entry.
-  const decoded = new Map();
   state.rosterUnsub = fb.onSnapshot(activePlayers, snap => {
-    snap.docChanges().forEach(ch => { if (ch.type === 'removed') decoded.delete(ch.doc.id); else decoded.set(ch.doc.id, null); });
-    state.players = snap.docs.map(d => {
-      let raw = decoded.get(d.id);
-      if (!raw) {
-        raw = { id: d.id, ...d.data() };
-        raw._decodedGrids = Array.isArray(raw.grids) ? raw.grids.map(decodeGrid).filter(Boolean) : [];
-        decoded.set(d.id, raw);
-      }
-      return raw;
-    });
+    state.players = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    state.stats = { players: state.players.length, cards: state.players.reduce((s, p) => s + (Number(p.cardCount) || 0), 0) };
     renderPlayers();
   }, e => {
     console.error(e); showToast('Roster sync error: ' + errMsg(e) + ' — retrying', true);
     state.rosterUnsub = null; clearTimeout(rosterRetryTimer);
-    rosterRetryTimer = setTimeout(ensureRosterListener, 3000 + Math.random() * 2000);
+    rosterRetryTimer = setTimeout(ensureStaffListeners, 3000 + Math.random() * 2000);
   });
 }
 function stopRosterListener() {
   clearTimeout(rosterRetryTimer);
   if (state.rosterUnsub) { try { state.rosterUnsub(); } catch (e) {} state.rosterUnsub = null; }
+  state.players = [];
+}
+function ensureClaimsListener() {
+  if (state.claimsUnsub) return;
+  const claims = fb.query(playersCol(), fb.where('gameId', '==', state.gameId), fb.where('hasBingo', '==', true));
+  state.claimsUnsub = fb.onSnapshot(claims, snap => {
+    state.bingoClaims = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderPlayers();
+  }, e => {
+    console.error(e); state.claimsUnsub = null; clearTimeout(claimsRetryTimer);
+    claimsRetryTimer = setTimeout(ensureStaffListeners, 3000 + Math.random() * 2000);
+  });
+}
+async function refreshRoomStats() {
+  if (!fb || !state.gameId || state.currentView !== 'gm' || statsBusy) return;
+  statsBusy = true;
+  try {
+    const q = fb.query(playersCol(), fb.where('gameId', '==', state.gameId));
+    const agg = (await fb.getAggregateFromServer(q, { players: fb.count(), cards: fb.sum('cardCount') })).data();
+    state.stats = { players: Number(agg.players) || 0, cards: Number(agg.cards) || 0 };
+    renderPlayers();
+  } catch (e) { console.warn('Stats refresh failed', errMsg(e)); }
+  finally { statsBusy = false; }
 }
 async function syncPlayer(extra = {}) {
   if (!state.joined || !fb) return;
@@ -774,6 +811,7 @@ function copyText(text, ok) {
 }
 const switchView = v => {
   state.currentView = v;
+  if (v !== 'player') $('patterns-panel').classList.add('hidden');
   ['player', 'gm', 'admin'].forEach(n => { const el = $('view-' + n), show = n === v; el.classList.toggle('hidden', !show); el.classList.toggle('flex', show); });
 };
 
@@ -815,24 +853,24 @@ function switchStaffView(v) {
   if (v !== 'gm') stopAutoRoll();
   switchView(v);
   if (v === 'admin' || v === 'gm') {
-    ensureRosterListener();
+    ensureStaffListeners();
     if (v === 'gm' && state.roomState) updateRoom(state.roomState);
     else renderPlayers();
     startStaffMusic();
-  } else { stopRosterListener(); stopStaffMusic(); }
+  } else { stopStaffListeners(); stopStaffMusic(); }
 }
 
 
 /* ---------- Cards ---------- */
 // DOM references per card so a new ball only repaints the cells it marks.
 let cardViews = [];
-const CELL_BASE = 'bingo-cell rounded-lg sm:rounded-xl flex flex-col items-center justify-center cursor-default font-display font-bold text-sm sm:text-base select-none border transition ';
-const CELL_ON = 'bg-gradient-to-tr from-amber-500 to-rose-500 text-white border-amber-300', CELL_OFF = 'bg-slate-800 text-slate-200 border-slate-700';
-function paintCell(cell, num, idx, marked, animate) {
+const CELL_BASE = 'bingo-cell rounded-lg sm:rounded-xl flex flex-col items-center justify-center cursor-pointer active:scale-95 font-display font-bold text-sm sm:text-base select-none border transition ';
+const CELL_ON = 'bg-gradient-to-tr from-amber-500 to-rose-500 text-white border-amber-300', CELL_OFF = 'bg-slate-800 text-slate-200 border-slate-700 hover:border-slate-500';
+function paintCell(cell, num, idx, marked, animate, auto) {
   cell.className = CELL_BASE + (marked ? CELL_ON : CELL_OFF);
   if (idx === 12) { cell.innerHTML = '<span class="text-[9px] sm:text-[10px] font-black text-amber-200">★ FREE</span>'; return; }
   cell.textContent = num;
-  if (marked) { const st = document.createElement('span'); st.className = 'text-[8px] sm:text-[9px] uppercase font-sans font-black text-amber-200 leading-none' + (animate ? ' stamp-anim' : ''); st.textContent = 'AUTO'; cell.appendChild(st); }
+  if (marked) { const st = document.createElement('span'); st.className = 'text-[8px] sm:text-[9px] uppercase font-sans font-black text-amber-200 leading-none' + (animate ? ' stamp-anim' : ''); st.textContent = auto ? 'AUTO' : '✓'; cell.appendChild(st); }
 }
 function renderAllPlayerCards() {
   const box = $('cards-container'); box.innerHTML = ''; cardViews = [];
@@ -849,7 +887,8 @@ function renderAllPlayerCards() {
     const grid = document.createElement('div'); grid.className = 'grid grid-cols-5 gap-1 sm:gap-1.5 w-full';
     const cells = card.grid.map((num, idx) => {
       const cell = document.createElement('div');
-      paintCell(cell, num, idx, card.stamped.has(idx), false);
+      cell.dataset.ci = ci; cell.dataset.idx = idx;
+      paintCell(cell, num, idx, card.stamped.has(idx), false, card.auto.has(idx));
       grid.appendChild(cell);
       return cell;
     });
@@ -859,21 +898,54 @@ function renderAllPlayerCards() {
   box.appendChild(frag);
 }
 
+/* Daubing: players tap called numbers themselves. Any called number left unmarked
+   for AUTO_DAUB_MS is marked automatically. Numbers already called when the cards
+   load (refresh mid-game) are marked right away. */
+const AUTO_DAUB_MS = 5000;
+const daubTimers = new Map(), daubSeen = new Set();
+let daubPrimed = false;
+function clearDaubTimers(primed = daubPrimed) { daubTimers.forEach(clearTimeout); daubTimers.clear(); daubSeen.clear(); daubPrimed = primed; }
+function markCell(ci, idx, auto) {
+  const card = state.playerCards[ci];
+  if (!card || card.stamped.has(idx)) return false;
+  card.stamped.add(idx); if (auto) card.auto.add(idx);
+  const view = cardViews[ci];
+  if (view) { paintCell(view.cells[idx], card.grid[idx], idx, true, true, auto); view.counter.textContent = `${card.stamped.size}/25`; }
+  checkWin(card);
+  return true;
+}
+function autoMarkNumber(n) {
+  daubTimers.delete(n);
+  let changed = false;
+  state.playerCards.forEach((card, ci) => { const idx = card.grid.indexOf(n); if (idx >= 0 && idx !== 12 && markCell(ci, idx, true)) changed = true; });
+  return changed;
+}
 function applyAutoDaub(drawn) {
-  const set = new Set(drawn); let changed = false;
   if (cardViews.length !== state.playerCards.length) renderAllPlayerCards();
-  state.playerCards.forEach((card, ci) => {
-    const view = cardViews[ci]; let cardChanged = false;
-    card.grid.forEach((n, i) => {
-      if ((i === 12 || set.has(n)) && !card.stamped.has(i)) {
-        card.stamped.add(i); changed = cardChanged = true;
-        if (view) paintCell(view.cells[i], n, i, true, true);
-      }
-    });
-    if (cardChanged && view) view.counter.textContent = `${card.stamped.size}/25`;
-    checkWin(card, set);
+  if (!state.joined) return;
+  let changed = false;
+  drawn.forEach(n => {
+    if (!daubSeen.has(n)) {
+      daubSeen.add(n);
+      if (!daubPrimed) { if (autoMarkNumber(n)) changed = true; }
+      else daubTimers.set(n, setTimeout(() => { if (autoMarkNumber(n)) { playBeep(720, 'triangle', 0.08); persist(); } }, AUTO_DAUB_MS));
+    } else if (!daubTimers.has(n) && autoMarkNumber(n)) changed = true; // e.g. cards rebuilt after the timer fired
   });
-  if (changed) { playBeep(720, 'triangle', 0.08); persist(); }
+  daubPrimed = true;
+  if (changed) persist();
+}
+function onCardTap(e) {
+  const cell = e.target.closest('[data-idx]');
+  if (!cell || !state.joined) return;
+  const ci = Number(cell.dataset.ci), idx = Number(cell.dataset.idx), card = state.playerCards[ci];
+  if (!card || idx === 12 || card.stamped.has(idx)) return;
+  if ((state.roomState.drawnNumbers || []).includes(card.grid[idx])) {
+    markCell(ci, idx, false); playBeep(880, 'triangle', 0.08); persist();
+  } else {
+    cell.classList.remove('shake-invalid'); void cell.offsetWidth; cell.classList.add('shake-invalid');
+    setTimeout(() => cell.classList.remove('shake-invalid'), 400);
+    playBeep(180, 'square', 0.1);
+  }
 }
 
 // Special Bingo patterns from the latest supplied reference image.
@@ -891,28 +963,55 @@ const PATTERNS = [
 ];
 
 
-function renderPatternGuide() {
-  const box = $('gm-patterns-grid');
-  if (!box) return;
+function renderPatternGuide(boxId = 'gm-patterns-grid', compact = false) {
+  const box = $(boxId);
+  if (!box || box.childElementCount) return;
   box.innerHTML = '';
   PATTERNS.forEach(pattern => {
     const card = document.createElement('div');
-    card.className = 'bg-slate-800/70 border border-slate-700 rounded-2xl p-3';
+    card.className = compact ? 'bg-slate-800/70 border border-slate-700 rounded-xl p-1.5' : 'bg-slate-800/70 border border-slate-700 rounded-2xl p-3';
     const title = document.createElement('div');
-    title.className = 'font-display font-bold text-xs sm:text-sm text-center text-amber-300 mb-2';
+    title.className = compact ? 'font-display font-bold text-[9px] sm:text-[10px] leading-tight text-center text-amber-300 mb-1 min-h-[2.3em] flex items-center justify-center' : 'font-display font-bold text-xs sm:text-sm text-center text-amber-300 mb-2';
     title.textContent = pattern.name;
     const grid = document.createElement('div');
-    grid.className = 'grid grid-cols-5 gap-1 max-w-[150px] mx-auto';
+    grid.className = compact ? 'grid grid-cols-5 gap-[2px] mx-auto' : 'grid grid-cols-5 gap-1 max-w-[150px] mx-auto';
     for (let i = 0; i < 25; i++) {
       const cell = document.createElement('div');
       const active = pattern.cells.includes(i);
       cell.className = `aspect-square rounded-[4px] border flex items-center justify-center text-[7px] sm:text-[8px] ${active ? 'bg-rose-500 border-rose-300 text-white' : 'bg-slate-900 border-slate-700 text-slate-600'}`;
-      if (i === 12) cell.textContent = 'FREE';
+      if (i === 12 && !compact) cell.textContent = 'FREE';
       grid.appendChild(cell);
     }
     card.append(title, grid);
     box.appendChild(card);
   });
+}
+function togglePatternsPanel() {
+  const panel = $('patterns-panel');
+  renderPatternGuide('patterns-panel-grid', true);
+  panel.classList.toggle('hidden');
+  if (!panel.classList.contains('hidden')) clampPatternsPanel();
+}
+function clampPatternsPanel() {
+  const panel = $('patterns-panel'), r = panel.getBoundingClientRect();
+  const left = Math.min(Math.max(4, r.left), window.innerWidth - r.width - 4), top = Math.min(Math.max(4, r.top), window.innerHeight - Math.min(r.height, 120));
+  panel.style.right = 'auto'; panel.style.left = left + 'px'; panel.style.top = top + 'px';
+}
+function initPatternsPanelDrag() {
+  const panel = $('patterns-panel'), handle = $('patterns-panel-handle');
+  let dx = 0, dy = 0, dragging = false;
+  handle.addEventListener('pointerdown', e => {
+    if (e.target.closest('button')) return;
+    const r = panel.getBoundingClientRect(); dx = e.clientX - r.left; dy = e.clientY - r.top; dragging = true;
+    handle.setPointerCapture(e.pointerId);
+  });
+  handle.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    panel.style.right = 'auto'; panel.style.left = (e.clientX - dx) + 'px'; panel.style.top = (e.clientY - dy) + 'px';
+  });
+  const end = () => { if (dragging) { dragging = false; clampPatternsPanel(); } };
+  handle.addEventListener('pointerup', end); handle.addEventListener('pointercancel', end);
+  window.addEventListener('resize', () => { if (!panel.classList.contains('hidden')) clampPatternsPanel(); });
 }
 function setGMHelpPage(page) {
   const mechanics = page !== 'patterns';
@@ -925,37 +1024,24 @@ function setGMHelpPage(page) {
   if (!mechanics) renderPatternGuide();
 }
 
-function patternProgress(grid, drawnSet) {
-  let best = null;
-  PATTERNS.forEach(pattern => {
-    const matched = pattern.cells.reduce((n, i) => n + (i === 12 || drawnSet.has(grid[i]) ? 1 : 0), 0);
-    const missing = pattern.cells.length - matched;
-    const pct = matched / pattern.cells.length;
-    const cand = { name: pattern.name, matched, missing, pct, size: pattern.cells.length, won: missing === 0 };
-    if (!best || missing < best.missing || (missing === best.missing && pct > best.pct)) best = cand;
-  });
-  return best || { name: 'No pattern', matched: 0, missing: 99, pct: 0, size: 0, won: false };
-}
-
-function playerProgress(player, drawn = state.roomState.drawnNumbers || []) {
-  const grids = Array.isArray(player._decodedGrids) ? player._decodedGrids : (Array.isArray(player.grids) ? player.grids.map(decodeGrid).filter(Boolean) : []);
-  const set = new Set(drawn);
-  let best = null, bestCard = 0;
-  grids.forEach((grid, i) => {
-    const p = patternProgress(grid, set);
-    if (!best || p.missing < best.missing || (p.missing === best.missing && p.pct > best.pct)) { best = p; bestCard = i + 1; }
-  });
-  return best ? { ...best, cardNo: bestCard } : { name: 'Waiting for card data', matched: 0, missing: 99, pct: 0, size: 0, won: false, cardNo: 0 };
-}
-
-function checkWin(card, set = new Set(state.roomState.drawnNumbers || [])) {
+// A pattern counts only when every one of its cells is marked on the card.
+const completedPattern = isMarked => PATTERNS.find(p => p.cells.every(i => i === 12 || isMarked(i))) || null;
+function checkWin(card) {
   if (!state.joined || state.hasClaimedBingo) return false;
-  const progress = patternProgress(card.grid, set);
-  if (progress.won) {
-    celebrate(progress.name, state.playerCards.indexOf(card) + 1);
-    return true;
-  }
+  const pattern = completedPattern(i => card.stamped.has(i));
+  if (pattern) { celebrate(pattern.name, state.playerCards.indexOf(card) + 1); return true; }
   return false;
+}
+// Game Master side: a Bingo claim is published only if the claimed card really
+// completes the claimed pattern with numbers that have been called.
+function verifiedClaims() {
+  const drawn = new Set(state.roomState.drawnNumbers || []);
+  return state.bingoClaims.filter(c => c.bingoRound != null && Number(c.bingoRound) === Number(state.round)).map(c => {
+    const grid = decodeGrid((Array.isArray(c.grids) ? c.grids : [])[(Number(c.winningCard) || 0) - 1]);
+    const pattern = PATTERNS.find(p => p.name === c.winningPattern);
+    if (!grid || !pattern || !pattern.cells.every(i => i === 12 || drawn.has(grid[i]))) return null;
+    return { id: c.id, name: c.name, avatar: c.avatar, pattern: pattern.name, cardNo: Number(c.winningCard) };
+  }).filter(Boolean);
 }
 
 async function celebrate(patternName = 'BINGO', cardNo = 1) {
@@ -999,12 +1085,12 @@ let announceInFlight = false, announceAgain = false;
 function announceDerivedWinners(list) {
   if (!state.isAdmin || !fb) return;
   const known = new Set((state.roomState.winners || []).map(w => w.uid));
-  const fresh = list.filter(p => p.rank.won && !known.has(p.id));
+  const fresh = list.filter(p => !known.has(p.id));
   if (!fresh.length) return;
   if (announceInFlight) { announceAgain = true; return; }
   announceInFlight = true;
   const expectedRound = state.round, expectedGameId = state.gameId, now = Date.now();
-  const candidates = fresh.map((p, i) => ({ uid: p.id, name: p.name || 'Player', avatar: winnerAvatar(p.avatar || '🎉'), pattern: p.rank.name, cardNo: p.rank.cardNo, round: expectedRound, timestamp: now + i }));
+  const candidates = fresh.map((p, i) => ({ uid: p.id, name: p.name || 'Player', avatar: winnerAvatar(p.avatar || '🎉'), pattern: p.pattern, cardNo: p.cardNo, round: expectedRound, timestamp: now + i }));
   fb.runTransaction(db, async tx => {
     const snap = await tx.get(roomRef()), data = snap.exists() ? snap.data() : {};
     if (data.gameId !== expectedGameId || Number(data.round || 0) !== Number(expectedRound)) return;
@@ -1019,7 +1105,8 @@ function announceDerivedWinners(list) {
 /* ---------- Joining ---------- */
 function applyJoin(name, avatar, grids, won) {
   state.playerName = name; state.playerAvatar = avatar; state.cardCount = grids.length; state.hasClaimedBingo = !!won; state.joined = true;
-  state.playerCards = grids.map((g, i) => ({ cardId: 'card-' + (i + 1), grid: g, stamped: new Set([12]) }));
+  state.playerCards = grids.map((g, i) => ({ cardId: 'card-' + (i + 1), grid: g, stamped: new Set([12]), auto: new Set() }));
+  clearDaubTimers(false);
   $('player-name-display').textContent = name; setAvatarElement($('player-avatar-icon'), avatar);
   $('player-cards-badge').textContent = `${grids.length} ${grids.length > 1 ? 'Cards' : 'Card'}`;
   const badge = $('player-profile-badge'); badge.classList.remove('hidden'); badge.classList.add('flex');
@@ -1053,7 +1140,7 @@ async function stayForNewRound(addCount = 0) {
 }
 async function applyRoundChoice(addCount) {
   const adding = Math.max(0, Math.min(Number(addCount) || 0, MAX_CARDS - state.playerCards.length));
-  const newCards = Array.from({ length: adding }, () => ({ cardId: '', grid: generateCard(), stamped: new Set([12]) }));
+  const newCards = Array.from({ length: adding }, () => ({ cardId: '', grid: generateCard(), stamped: new Set([12]), auto: new Set() }));
   const candidateCards = [...state.playerCards, ...newCards].map((c, i) => ({ ...c, cardId: 'card-' + (i + 1) }));
   try {
     if (adding > 0) {
@@ -1084,7 +1171,7 @@ async function applyRoundChoice(addCount) {
 async function leaveGame() {
   if (!state.joined) return;
   try { await fb.deleteDoc(playerRef()); } catch (e) { showToast('Could not leave: ' + errMsg(e), true); return; }
-  state.joined = false; state.playerName = ''; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false;
+  clearDaubTimers(false); state.joined = false; state.playerName = ''; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false;
   try { localStorage.removeItem(storeKey()); } catch (e) {}
   $('player-profile-badge').classList.add('hidden'); $('player-profile-badge').classList.remove('flex');
   hideModal('modal-round-options'); renderAllPlayerCards(); refreshJoinPrice(); openJoin(); showToast('You left the game. You may rejoin before the next first ball.');
@@ -1093,11 +1180,11 @@ async function leaveGame() {
 /* ---------- Room state -> UI ---------- */
 function resetLocalRound() {
   state.hasClaimedBingo = false; state.seenWinTs = null; state.dismissedWinTs = null; state.lastSpokenNum = null;
-  state.playerCards.forEach(c => c.stamped = new Set([12]));
+  clearDaubTimers(); state.playerCards.forEach(c => { c.stamped = new Set([12]); c.auto = new Set(); });
   renderAllPlayerCards(); $('player-win-banner').classList.add('hidden');
 }
 function handleFullGameReset(nextGameId, freshRoomData = null) {
-  stopAutoRoll(); stopRosterListener(); stopStaffMusic(); stopAvatarCamera();
+  stopAutoRoll(); stopStaffListeners(); stopStaffMusic(); stopAvatarCamera(); clearDaubTimers(false);
   const freshRoom = freshRoomData || {
     gameId: nextGameId,
     drawnNumbers: [],
@@ -1145,6 +1232,7 @@ function updateRoom(data) {
     const wasJoined = state.joined;
     state.round = incomingRound; state.announcingWinnerIds.clear(); resetLocalRound();
     if (wasJoined) { state.roundChoicePending = true; showRoundOptions(); persist(); }
+    if (state.currentView === 'gm') refreshRoomStats();
   }
   if (data.pricePerCard && data.pricePerCard !== state.pricePerCard) { state.pricePerCard = data.pricePerCard; const priceInput = $('admin-card-price-input'); if (priceInput) priceInput.value = data.pricePerCard; refreshJoinPrice(); if (state.roundChoicePending) refreshRoundOptions(); if (state.currentView === 'admin' || state.currentView === 'gm') renderPlayers(); }
 
@@ -1154,7 +1242,7 @@ function updateRoom(data) {
   if (last) {
     const L = getLetter(last), col = getColor(L);
     $('player-ball-sphere').style.setProperty('--ball-color', col);
-    $('player-ball-letter').textContent = L; $('player-ball-num').textContent = last; $('player-caller-text').textContent = `Called: ${L}-${last}`;
+    $('player-ball-letter').textContent = L; $('player-ball-num').textContent = last; $('player-caller-text').textContent = state.joined ? `Called: ${L}-${last} — tap it on your card!` : `Called: ${L}-${last}`;
     if (big) { $('big-bingo-ball').style.setProperty('--ball-color', col); $('big-ball-letter').textContent = L; $('big-ball-num').textContent = last; $('gm-announce-msg').textContent = `Just Drawn: ${L}-${last}`; }
     if (state.lastSpokenNum !== last) {
       state.lastSpokenNum = last; playReveal();
@@ -1187,7 +1275,7 @@ function updateRoom(data) {
 
   applyAutoDaub(drawn);
   if (state.roundChoicePending) refreshRoundOptions();
-  if (state.currentView === 'admin' || state.currentView === 'gm') { ensureRosterListener(); renderPlayers(); }
+  if (isStaffView()) { ensureStaffListeners(); renderPlayers(); }
 
   const w = data.lastWinner;
   if (w && w.timestamp !== state.dismissedWinTs) {
@@ -1228,42 +1316,35 @@ function syncRows(container, cache, rows, tagName, emptyHtml) {
   cache.forEach((entry, id) => { if (!keep.has(id)) { entry.el.remove(); cache.delete(id); } });
 }
 function renderPlayersNow() {
-  const drawn = state.roomState.drawnNumbers || [];
-  const list = state.players.map(p => ({ ...p, rank: playerProgress(p, drawn) }));
-  announceDerivedWinners(list);
-  const cards = list.reduce((sum, p) => sum + (Number(p.cardCount) || 0), 0), money = cards * state.pricePerCard;
-  $('gm-live-count-badge').textContent = `${list.length} Players`;
-  $('gm-stat-players').textContent = list.length; $('gm-stat-cards').textContent = cards; $('gm-stat-income').textContent = `₱${formatMoney(money)}`; $('gm-total-pot-pill').textContent = `₱${formatMoney(money)}`;
-  $('admin-total-players').textContent = list.length; $('admin-total-cards').textContent = cards; $('admin-total-income').textContent = `₱${formatMoney(money)}`;
-
-  list.sort((a, b) => {
-    const aw = a.rank.won, bw = b.rank.won;
-    if (aw !== bw) return bw - aw;
-    if (a.rank.missing !== b.rank.missing) return a.rank.missing - b.rank.missing;
-    if (a.rank.pct !== b.rank.pct) return b.rank.pct - a.rank.pct;
-    return (a.joinedAt || 0) - (b.joinedAt || 0);
-  });
+  announceDerivedWinners(verifiedClaims());
+  const { players, cards } = state.stats, money = cards * state.pricePerCard;
+  const winners = Array.isArray(state.roomState.winners) ? state.roomState.winners : [];
+  $('gm-live-count-badge').textContent = `${winners.length} ${winners.length === 1 ? 'Winner' : 'Winners'}`;
+  $('gm-stat-players').textContent = players; $('gm-stat-cards').textContent = cards; $('gm-stat-income').textContent = `₱${formatMoney(money)}`; $('gm-total-pot-pill').textContent = `₱${formatMoney(money)}`;
+  $('admin-total-players').textContent = players; $('admin-total-cards').textContent = cards; $('admin-total-income').textContent = `₱${formatMoney(money)}`;
 
   if (state.currentView === 'gm') {
-    const rows = list.map((p, i) => {
-      const n = Number(p.cardCount) || 0, won = p.rank.won, pending = Number(p.roundAck) !== Number(state.round);
-      const near = pending && !state.started ? 'Choosing next-round option…' : p.rank.cardNo ? (won ? `★ BINGO • ${p.rank.name} • Card ${p.rank.cardNo}` : `${p.rank.missing} away • ${Math.round(p.rank.pct * 100)}% • ${p.rank.name} • Card ${p.rank.cardNo}`) : 'Waiting for card data';
-      const cls = `flex items-center justify-between gap-2 p-2.5 rounded-2xl border ${won ? 'bg-amber-500/20 border-amber-500/50 text-amber-200' : i < 3 ? 'bg-indigo-500/10 border-indigo-500/30' : 'bg-slate-800/60 border-slate-700/60'}`;
-      const html = `<div class="flex items-center gap-3 min-w-0"><span class="font-mono text-xs font-bold ${i < 3 ? 'text-amber-400' : 'text-slate-500'}">#${i + 1}</span>${avatarMarkup(p.avatar || '🎯', 'w-8 h-8')}
-        <div class="min-w-0"><span class="font-bold text-xs truncate block text-slate-200">${esc(p.name || 'Anon')}</span><span class="text-[10px] text-slate-400">${n} Cards • ₱${formatMoney(n * state.pricePerCard)}</span><span class="text-[10px] block mt-0.5 ${won ? 'text-amber-300 font-bold' : pending && !state.started ? 'text-violet-300 font-bold' : p.rank.missing <= 1 ? 'text-emerald-300 font-bold' : 'text-cyan-300'}">${esc(near)}</span></div></div>
-        <span class="text-[11px] font-mono px-2 py-0.5 rounded-full shrink-0 ${won ? 'bg-amber-500 text-slate-950 font-black animate-pulse' : pending && !state.started ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : p.rank.missing <= 1 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-700 text-slate-300'}">${won ? '★ BINGO!' : pending && !state.started ? 'CHOOSING' : p.rank.cardNo ? `${p.rank.missing} AWAY` : 'READY'}</span>`;
-      return { id: p.id, cls, html };
-    });
-    syncRows($('gm-participants-list'), rosterRows.gm, rows, 'div', '<div class="text-slate-500 text-center py-10 italic">No participants yet. Share the link to join!</div>');
+    // Winners only, in the order they got Bingo. Photo avatars come from the claim docs.
+    const photos = new Map(state.bingoClaims.map(c => [c.id, c.avatar]));
+    const rows = winners.map((w, i) => ({
+      id: w.uid,
+      cls: 'flex items-center justify-between gap-2 p-2.5 rounded-2xl border bg-amber-500/20 border-amber-500/50 text-amber-200',
+      html: `<div class="flex items-center gap-3 min-w-0"><span class="font-mono text-xs font-bold text-amber-400">#${i + 1}</span>${avatarMarkup(photos.get(w.uid) || w.avatar || '🎉', 'w-8 h-8')}
+        <div class="min-w-0"><span class="font-bold text-xs truncate block text-slate-100">${esc(w.name || 'Player')}</span><span class="text-[10px] block mt-0.5 text-amber-300 font-bold">${esc(w.pattern || 'BINGO')}${w.cardNo ? ` • Card ${esc(w.cardNo)}` : ''}</span></div></div>
+        <span class="text-[11px] font-mono px-2 py-0.5 rounded-full shrink-0 bg-amber-500 text-slate-950 font-black">★ BINGO!</span>`
+    }));
+    syncRows($('gm-participants-list'), rosterRows.gm, rows, 'div', '<div class="text-slate-500 text-center py-10 italic">No Bingo yet. Winners will appear here.</div>');
   }
 
   if (state.currentView === 'admin') {
+    const winnerIds = new Set(winners.map(w => w.uid));
+    const list = [...state.players].sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0));
     const rows = list.map((p, i) => {
-      const n = Number(p.cardCount) || 0, won = p.rank.won, pending = Number(p.roundAck) !== Number(state.round);
-      const status = won ? `BINGO • ${p.rank.name}` : pending && !state.started ? 'CHOOSING NEXT ROUND' : p.rank.cardNo ? `${p.rank.missing} away • ${Math.round(p.rank.pct * 100)}%` : 'PLAYING';
-      const html = `<td class="py-2.5 px-3 font-mono ${i < 3 ? 'text-amber-400 font-bold' : 'text-slate-500'}">${i + 1}</td><td class="py-2.5 px-3">${avatarMarkup(p.avatar || '👤', 'w-7 h-7 mr-2 inline-flex align-middle')}<span class="font-bold text-slate-200">${esc(p.name || 'Anon')}</span></td>
+      const n = Number(p.cardCount) || 0, won = winnerIds.has(p.id), pending = Number(p.roundAck) !== Number(state.round) && !state.started;
+      const status = won ? 'BINGO' : pending ? 'CHOOSING NEXT ROUND' : 'PLAYING';
+      const html = `<td class="py-2.5 px-3 font-mono text-slate-500">${i + 1}</td><td class="py-2.5 px-3">${avatarMarkup(p.avatar || '👤', 'w-7 h-7 mr-2 inline-flex align-middle')}<span class="font-bold text-slate-200">${esc(p.name || 'Anon')}</span></td>
         <td class="py-2.5 px-3 text-cyan-400 font-mono font-bold">${n}</td><td class="py-2.5 px-3 text-slate-400">₱${formatMoney(state.pricePerCard)}</td><td class="py-2.5 px-3 text-emerald-400 font-mono font-bold">₱${formatMoney(n * state.pricePerCard)}</td>
-        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${won ? 'bg-amber-500 text-slate-950' : pending && !state.started ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : p.rank.missing <= 1 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">${esc(status)}</span></td>`;
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${won ? 'bg-amber-500 text-slate-950' : pending ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">${status}</span></td>`;
       return { id: p.id, cls: '', html };
     });
     syncRows($('admin-roster-tbody'), rosterRows.admin, rows, 'tr', '<tr><td colspan="6" class="text-center py-8 text-slate-500 italic">No participants registered yet</td></tr>');
@@ -1275,91 +1356,62 @@ function refreshJoinPrice() {
   $('join-total-due-text').textContent = `₱${formatMoney(state.cardCount * state.pricePerCard)}`;
 }
 
-/* ---------- Game Master: fast, transaction-safe ball draw ---------- */
-async function drawNextBall() {
+/* ---------- Game Master: instant ball draw ----------
+   Only the Game Master device draws and its room state is live, so the ball is picked
+   locally and saved with one non-blocking write (no transaction round-trips).
+   Firestore applies it on this screen immediately and syncs players in the background. */
+function drawNextBall() {
   if (state.isRolling || state.isResetting) return;
   if (state.pendingBall || Number(state.roomState.pendingBall)) { showToast('Reveal the current letter first by tapping the big ball.', true); return; }
-  if (!state.connected || !fb || !(await authReady)) { showToast('Not connected to the server. Cannot roll.', true); return; }
-  if ((state.roomState.drawnNumbers || []).length >= 75) { showToast('All 75 balls drawn!', true); return; }
-  state.isRolling = true;
-  const expectedRound = state.round, expectedGameId = state.gameId, btn = $('btn-draw-ball'), resetBtn = $('btn-trigger-clear-room'), ball = $('big-bingo-ball');
+  if (!state.connected || !fb) { showToast('Not connected to the server. Cannot roll.', true); return; }
+  const taken = new Set(state.roomState.drawnNumbers || []), avail = [];
+  for (let i = 1; i <= 75; i++) if (!taken.has(i)) avail.push(i);
+  if (!avail.length) { showToast('All 75 balls drawn!', true); stopAutoRoll(); return; }
+  const n = avail[Math.floor(Math.random() * avail.length)];
+  const btn = $('btn-draw-ball'), resetBtn = $('btn-trigger-clear-room'), ball = $('big-bingo-ball');
+  state.isRolling = true; state.pendingBall = n;
   btn.disabled = true; resetBtn.disabled = true; ball.classList.remove('ball-reveal', 'letter-only', 'ball-awaiting-reveal'); ball.classList.add('ball-rolling');
   $('big-ball-letter').textContent = 'ROLLING'; $('big-ball-num').textContent = ''; $('gm-announce-msg').textContent = 'Rolling the balls...';
   playBottleShake();
-  await new Promise(r => setTimeout(r, ROLL_DELAY));
-  let picked = null;
-  try {
-    picked = await fb.runTransaction(db, async tx => {
-      const snap = await tx.get(roomRef()), d = snap.exists() ? snap.data() : {};
-      if (d.gameId !== expectedGameId || Number(d.round || 0) !== Number(expectedRound)) throw Object.assign(new Error('Game or round changed'), { code: 'stale-round' });
-      if (Number(d.pendingBall)) return Number(d.pendingBall);
-      const drawn = Array.isArray(d.drawnNumbers) ? d.drawnNumbers : [], avail = [];
-      for (let i = 1; i <= 75; i++) if (!drawn.includes(i)) avail.push(i);
-      if (!avail.length) return null;
-      const n = avail[Math.floor(Math.random() * avail.length)];
-      // Reserve the ball and lock the room now, but do not broadcast the number
-      // into drawnNumbers until the Game Master taps the large ball.
-      tx.set(roomRef(), { pendingBall: n, started: true }, { merge: true });
-      return n;
-    });
-  } catch (e) {
-    if (e.code !== 'stale-round') showToast('Roll failed: ' + errMsg(e), true);
-  } finally {
+  // Reserve the ball and lock the room to new players; the number is broadcast into
+  // drawnNumbers only when the Game Master taps the big ball.
+  fb.updateDoc(roomRef(), { pendingBall: n, started: true }).catch(e => {
+    if (state.pendingBall === n) state.pendingBall = null;
+    showToast('Roll failed: ' + errMsg(e), true);
+  });
+  setTimeout(() => {
     state.isRolling = false; ball.classList.remove('ball-rolling'); resetBtn.disabled = false;
-  }
-  if (picked) {
-    state.pendingBall = picked;
-    const L = getLetter(picked), col = getColor(L);
-    ball.style.setProperty('--ball-color', col);
+    if (state.pendingBall !== n) { btn.disabled = false; if (state.roomState) updateRoom(state.roomState); return; }
+    const L = getLetter(n);
+    ball.style.setProperty('--ball-color', getColor(L));
     ball.classList.add('letter-only', 'ball-awaiting-reveal', 'ball-reveal');
     ball.title = `Tap to reveal the ${L} number`;
     $('big-ball-letter').textContent = L; $('big-ball-num').textContent = '';
     $('gm-announce-msg').textContent = `Letter ${L} — tap the ball to reveal the number`;
     btn.disabled = true;
     playBeep(760, 'triangle', 0.14);
-  } else {
-    btn.disabled = false;
-  }
+  }, ROLL_DELAY);
 }
 
-let isRevealing = false;
-async function revealPendingBall() {
-  if (isRevealing || state.isRolling || state.isResetting || state.currentView !== 'gm') return;
-  const localPending = Number(state.pendingBall || state.roomState.pendingBall);
-  if (!localPending) { showToast('Roll a letter first.'); return; }
-  if (!state.connected || !fb || !(await authReady)) { showToast('Not connected to the server. Cannot reveal.', true); return; }
-  const expectedRound = state.round, expectedGameId = state.gameId, ball = $('big-bingo-ball'), btn = $('btn-draw-ball'), resetBtn = $('btn-trigger-clear-room');
-  ball.classList.remove('letter-only', 'ball-awaiting-reveal');
-  ball.classList.add('ball-reveal');
-  resetBtn.disabled = true; isRevealing = true;
-  let revealed = null;
-  try {
-    revealed = await fb.runTransaction(db, async tx => {
-      const snap = await tx.get(roomRef()), d = snap.exists() ? snap.data() : {};
-      if (d.gameId !== expectedGameId || Number(d.round || 0) !== Number(expectedRound)) throw Object.assign(new Error('Game or round changed'), { code: 'stale-round' });
-      const n = Number(d.pendingBall);
-      if (!n) return null;
-      const drawn = Array.isArray(d.drawnNumbers) ? d.drawnNumbers : [];
-      const nextDrawn = drawn.includes(n) ? drawn : [...drawn, n];
-      tx.set(roomRef(), { drawnNumbers: nextDrawn, lastDrawn: n, pendingBall: null, started: true }, { merge: true });
-      return n;
-    });
-  } catch (e) {
-    if (e.code !== 'stale-round') showToast('Reveal failed: ' + errMsg(e), true);
-  } finally {
-    resetBtn.disabled = false; isRevealing = false;
-  }
-  if (revealed) {
-    state.pendingBall = null;
-    const localDrawn = Array.isArray(state.roomState.drawnNumbers) ? state.roomState.drawnNumbers : [];
-    state.roomState = { ...state.roomState, pendingBall: null, lastDrawn: revealed, drawnNumbers: localDrawn.includes(revealed) ? localDrawn : [...localDrawn, revealed], started: true };
-    const L = getLetter(revealed), col = getColor(L);
-    ball.style.setProperty('--ball-color', col); ball.title = 'Roll a letter first';
-    $('big-ball-letter').textContent = L; $('big-ball-num').textContent = revealed;
-    $('gm-announce-msg').textContent = `Just Drawn: ${L}-${revealed}`;
-    $('gm-total-drawn-pill').textContent = `${state.roomState.drawnNumbers.length} / 75 Balls`;
-    btn.disabled = false;
-  }
+let lastRevealAt = 0;
+function revealPendingBall() {
+  if (state.isRolling || state.isResetting || state.currentView !== 'gm') return;
+  const n = Number(state.pendingBall || state.roomState.pendingBall);
+  if (!n) { if (Date.now() - lastRevealAt > 1500) showToast('Roll a letter first.'); return; }
+  if (!state.connected || !fb) { showToast('Not connected to the server. Cannot reveal.', true); return; }
+  lastRevealAt = Date.now();
+  state.pendingBall = null;
+  const localDrawn = Array.isArray(state.roomState.drawnNumbers) ? state.roomState.drawnNumbers : [];
+  state.roomState = { ...state.roomState, pendingBall: null, lastDrawn: n, drawnNumbers: localDrawn.includes(n) ? localDrawn : [...localDrawn, n], started: true };
+  const ball = $('big-bingo-ball'), L = getLetter(n);
+  ball.classList.remove('letter-only', 'ball-awaiting-reveal', 'ball-reveal'); void ball.offsetWidth; ball.classList.add('ball-reveal');
+  ball.style.setProperty('--ball-color', getColor(L)); ball.title = 'Roll a letter first';
+  $('big-ball-letter').textContent = L; $('big-ball-num').textContent = n;
+  $('gm-announce-msg').textContent = `Just Drawn: ${L}-${n}`;
+  $('gm-total-drawn-pill').textContent = `${state.roomState.drawnNumbers.length} / 75 Balls`;
+  $('btn-draw-ball').disabled = false;
+  fb.updateDoc(roomRef(), { drawnNumbers: fb.arrayUnion(n), lastDrawn: n, pendingBall: null, started: true })
+    .catch(e => showToast('Reveal failed: ' + errMsg(e), true));
 }
 
 async function resetRound() {
@@ -1518,9 +1570,9 @@ function init() {
   on('pin-input', 'keydown', e => { if (e.key === 'Enter') submitPin(); });
   on('btn-cancel-pin', 'click', () => hideModal('modal-pin'));
 
-  on('btn-launch-gm-from-admin', 'click', () => { ensureRosterListener(); switchStaffView('gm'); });
+  on('btn-launch-gm-from-admin', 'click', () => switchStaffView('gm'));
   on('btn-exit-admin', 'click', () => { state.isAdmin = false; switchStaffView('player'); if (!state.joined) openJoin(); });
-  on('btn-open-admin-from-gm', 'click', () => { ensureRosterListener(); switchStaffView('admin'); });
+  on('btn-open-admin-from-gm', 'click', () => switchStaffView('admin'));
   on('btn-exit-gm-mode', 'click', () => { state.isAdmin = false; switchStaffView('player'); if (!state.joined) openJoin(); });
   on('btn-gm-music', 'click', toggleStaffMusic);
   on('btn-admin-music', 'click', toggleStaffMusic);
@@ -1549,6 +1601,7 @@ function init() {
     finally { b.disabled = false; b.textContent = 'Save Passcode'; }
   });
 
+  on('cards-container', 'click', onCardTap);
   on('btn-draw-ball', 'click', drawNextBall);
   on('big-bingo-ball', 'click', revealPendingBall);
   on('big-bingo-ball', 'keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && state.currentView === 'gm') { e.preventDefault(); revealPendingBall(); } });
@@ -1573,7 +1626,9 @@ function init() {
   const showQR = () => { const l = shareLink(); $('qr-modal-room-id').textContent = state.roomId; drawQR(l); showModal('modal-qr'); };
   on('btn-admin-show-qr', 'click', showQR); on('btn-gm-share-modal', 'click', showQR);
   on('btn-gm-help', 'click', () => { setGMHelpPage('mechanics'); showModal('modal-gm-help'); });
-  on('btn-player-patterns', 'click', () => { setGMHelpPage('patterns'); showModal('modal-gm-help'); });
+  on('btn-player-patterns', 'click', togglePatternsPanel);
+  on('btn-close-patterns-panel', 'click', () => $('patterns-panel').classList.add('hidden'));
+  initPatternsPanelDrag();
   on('btn-gm-help-next', 'click', () => setGMHelpPage('patterns'));
   on('btn-gm-help-prev', 'click', () => setGMHelpPage('mechanics'));
   on('btn-close-gm-help', 'click', () => hideModal('modal-gm-help'));
@@ -1601,8 +1656,9 @@ function init() {
   });
   on('btn-export-csv', 'click', () => {
     let csv = 'Index,Player Name,Cards,Price Per Card,Total Due (PHP),Status\n';
+    const winnerIds = new Set((state.roomState.winners || []).map(w => w.uid));
     state.players.forEach((p, i) => {
-      const n = Number(p.cardCount) || 0, progress = playerProgress(p), status = progress.won ? `BINGO - ${progress.name}` : 'Playing';
+      const n = Number(p.cardCount) || 0, status = winnerIds.has(p.id) ? 'BINGO' : 'Playing';
       csv += `${i + 1},"${String(p.name || 'Player').replace(/"/g, '""')}",${n},${state.pricePerCard},${n * state.pricePerCard},"${status.replace(/"/g, '""')}"\n`;
     });
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `ces_bingo_roster_${Date.now()}.csv`;
