@@ -15,7 +15,7 @@
   [hidden]{display:none!important}
   html,body{min-height:100%}
   .-top-1{top:-.25rem}.w-0{width:0}.h-0{height:0}.max-w-lg{max-width:32rem}.max-w-\[22rem\]{max-width:22rem}.min-h-\[2rem\]{min-height:2rem}
-  .bg-amber-500\/15{background-color:rgb(245 158 11/.15)}.hover\:bg-amber-500\/25:hover{background-color:rgb(245 158 11/.25)}.border-amber-500\/30{border-color:rgb(245 158 11/.3)}.max-w-\[85\%\]{max-width:85%}.break-words{overflow-wrap:break-word}.bg-slate-950\/90{background-color:rgb(2 6 23/.9)}.bg-amber-500\/10{background-color:rgb(245 158 11/.1)}.h-60{height:15rem}.w-60{width:15rem}.max-w-full{max-width:100%}.text-slate-500{color:#64748b}.bg-rose-500\/15{background-color:rgb(244 63 94/.15)}.w-48{width:12rem}.h-48{height:12rem}.bg-indigo-600\/30{background-color:rgb(79 70 229/.3)}.bg-slate-900\/70{background-color:rgb(15 23 42/.7)}.border-dashed{border-style:dashed}@media (min-width:640px){.sm\:flex-row{flex-direction:row}.sm\:items-center{align-items:center}}
+  .bg-amber-500\/15{background-color:rgb(245 158 11/.15)}.hover\:bg-amber-500\/25:hover{background-color:rgb(245 158 11/.25)}.border-amber-500\/30{border-color:rgb(245 158 11/.3)}.max-w-\[85\%\]{max-width:85%}.break-words{overflow-wrap:break-word}.bg-slate-950\/90{background-color:rgb(2 6 23/.9)}.bg-amber-500\/10{background-color:rgb(245 158 11/.1)}.h-60{height:15rem}.w-60{width:15rem}.max-w-full{max-width:100%}.text-slate-500{color:#64748b}.bg-rose-500\/15{background-color:rgb(244 63 94/.15)}.w-48{width:12rem}.h-48{height:12rem}.bg-indigo-600\/30{background-color:rgb(79 70 229/.3)}.bg-slate-900\/70{background-color:rgb(15 23 42/.7)}.border-dashed{border-style:dashed}.bg-rose-600\/15{background-color:rgb(225 29 72/.15)}.ml-auto{margin-left:auto}@media (min-width:640px){.sm\:flex-row{flex-direction:row}.sm\:items-center{align-items:center}}
   body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;touch-action:manipulation;-webkit-tap-highlight-color:transparent;overflow-x:hidden;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
   .font-display{font-family:'Fredoka',system-ui,sans-serif}
   .hidden{display:none!important}
@@ -389,6 +389,16 @@
   </div>
 </div>
 
+<!-- KICK PLAYER MODAL -->
+<div id="modal-kick" class="fixed inset-0 z-[60] hidden items-center justify-center p-3 bg-slate-950/90 backdrop-blur-sm">
+  <div role="dialog" aria-modal="true" aria-labelledby="modal-kick-title" class="modal-box bg-slate-900 border border-rose-500/40 w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center">
+    <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-300"><svg class="w-7 h-7 shrink-0" aria-hidden="true"><use href="#i-logout"/></svg></div>
+    <h3 id="modal-kick-title" class="font-display font-bold text-xl mb-1">Kick <span id="kick-player-name">this player</span>?</h3>
+    <p class="text-xs text-slate-400 mb-5">They're removed from the game and the roster right away, and their cards are taken away. They can join again with new cards if you let them.</p>
+    <div class="grid grid-cols-2 gap-2"><button id="btn-cancel-kick" type="button" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold">Cancel</button><button id="btn-confirm-kick" type="button" class="py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-black">KICK PLAYER</button></div>
+  </div>
+</div>
+
 <!-- PIN MODAL -->
 <div id="modal-pin" class="fixed inset-0 z-[55] hidden items-center justify-center p-3 bg-slate-950/85 backdrop-blur-sm">
   <div role="dialog" aria-modal="true" aria-labelledby="modal-pin-title" class="modal-box bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-6 shadow-2xl text-center">
@@ -515,7 +525,7 @@ const $ = id => document.getElementById(id);
 const ROLL_DELAY = 2000; // shake animation only; the server write runs in parallel
 const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
-const APP_BUILD = 20261028120707;
+const APP_BUILD = 20261028123558;
 let BGM_VOLUME = 0.20;
 try { const v = Number(localStorage.getItem('ces-bingo:music-volume')); if (localStorage.getItem('ces-bingo:music-volume') !== null && v >= 0 && v <= 1) BGM_VOLUME = v; } catch (e) {}
 const SFX_VOLUME = 0.80;
@@ -791,7 +801,7 @@ function ensureRosterListener() {
   const activePlayers = fb.query(playersCol(), fb.where('gameId', '==', state.gameId));
   state.rosterUnsub = fb.onSnapshot(activePlayers, snap => {
     state.players = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    const paidCards = p => Math.min(Number(p.cardCount) || 0, confirmedCardsFor(p.id));
+    const paidCards = p => isKickedPlayer(p) ? 0 : Math.min(Number(p.cardCount) || 0, confirmedCardsFor(p.id));
     state.stats = { players: state.players.filter(p => paidCards(p) > 0).length, cards: state.players.reduce((s, p) => s + paidCards(p), 0) };
     renderPlayers();
   }, e => {
@@ -888,6 +898,26 @@ function syncPaymentSettings(data) {
   state.payment = { qr, payTo: String(data.paymentPayTo || '').slice(0, 60), updatedAt: Number(data.paymentUpdatedAt) || 0 };
   window.__paintAdminPayment && window.__paintAdminPayment();
 }
+
+/* ---------- Kick: the host marks a player as removed in the shared room record ----------
+   room.kicked[playerId] = { joinedAt, at }. It matches only that player's current
+   session (same joinedAt), so a removed player can still join again later. */
+const kickEntryFor = uid => ((state.roomState && state.roomState.kicked) || {})[uid] || null;
+const isKickedPlayer = p => { const k = kickEntryFor(p.id); return !!k && Number(k.joinedAt) === Number(p.joinedAt || 0); };
+let kickInFlight = false;
+async function checkKicked() {
+  if (!state.joined || !state.userId || kickInFlight) return;
+  const k = kickEntryFor(state.userId);
+  if (!k || !state.joinedAt || Number(k.joinedAt) !== Number(state.joinedAt)) return;
+  kickInFlight = true;
+  try { if (fb) await fb.deleteDoc(playerRef()).catch(() => {}); } finally { kickInFlight = false; }
+  clearDaubTimers(false); state.joined = false; state.joinedAt = 0; state.payRequestAt = 0; state.playerName = ''; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false;
+  try { localStorage.removeItem(storeKey()); } catch (e) {}
+  $('player-profile-badge').classList.add('hidden'); $('player-profile-badge').classList.remove('flex');
+  ['modal-round-options', 'modal-pay', 'modal-add-cards'].forEach(hideModal);
+  renderAllPlayerCards(); refreshPaymentStatus(); refreshJoinPrice(); openJoin();
+  showToast('The host removed you from the game.', true); announce('The host removed you from the game.');
+}
 function checkAppBuild(d) {
   const live = Number(d && d.appBuild) || 0;
   if (live > APP_BUILD) {
@@ -899,7 +929,7 @@ function checkAppBuild(d) {
 const storeKey = () => `ces-bingo:${state.appId}:${state.roomId}`;
 function persist() {
   if (!state.joined) return;
-  try { localStorage.setItem(storeKey(), JSON.stringify({ uid: state.userId, gameId: state.gameId, round: state.round, pending: state.roundChoicePending, name: state.playerName, avatar: state.playerAvatar, won: state.hasClaimedBingo, payReq: state.payRequestAt || 0, grids: state.playerCards.map(c => c.grid) })); } catch (e) {}
+  try { localStorage.setItem(storeKey(), JSON.stringify({ uid: state.userId, gameId: state.gameId, round: state.round, pending: state.roundChoicePending, name: state.playerName, avatar: state.playerAvatar, won: state.hasClaimedBingo, payReq: state.payRequestAt || 0, joinedAt: state.joinedAt || 0, grids: state.playerCards.map(c => c.grid) })); } catch (e) {}
 }
 function tryRestore() {
   if (state.joined) return;
@@ -911,7 +941,7 @@ function tryRestore() {
     const savedRound = Number(saved.round || 0);
     const needsChoice = !!saved.pending || savedRound !== Number(state.round || 0);
     state.roundChoicePending = needsChoice;
-    state.payRequestAt = Number(saved.payReq) || 0;
+    state.payRequestAt = Number(saved.payReq) || 0; state.joinedAt = Number(saved.joinedAt) || 0;
     applyJoin(saved.name || 'Player', saved.avatar || '🎯', grids, needsChoice ? false : !!saved.won);
     if (needsChoice) { resetLocalRound(); persist(); showRoundOptions(); }
     else syncPlayer({ roundAck: state.round });
@@ -981,7 +1011,7 @@ const hideModal = id => {
   if (i >= 0) { const [m] = modalStack.splice(i, 1); if (wasOpen && m.opener && document.contains(m.opener) && (!modalStack.length || modalStack.some(o => isOpen($(o.id)) && $(o.id).contains(m.opener)))) try { m.opener.focus({ preventScroll: true }); } catch (e) {} }
 };
 // Escape closes dialogs that are safe to dismiss (not the join gate or round choice for players).
-const ESC_CLOSE = { 'modal-add-cards': 1, 'modal-pay-settings': 1, 'modal-pay': 1, 'modal-wheel': 1, 'modal-pin': 1, 'modal-change-pin': 1, 'modal-reset-game': 1, 'modal-confirm-clear': 1, 'modal-qr': 1, 'modal-gm-help': 1 };
+const ESC_CLOSE = { 'modal-kick': 1, 'modal-add-cards': 1, 'modal-pay-settings': 1, 'modal-pay': 1, 'modal-wheel': 1, 'modal-pin': 1, 'modal-change-pin': 1, 'modal-reset-game': 1, 'modal-confirm-clear': 1, 'modal-qr': 1, 'modal-gm-help': 1 };
 document.addEventListener('keydown', e => {
   const top = [...modalStack].reverse().find(m => isOpen($(m.id)));
   if (e.key === 'Escape') {
@@ -1346,7 +1376,7 @@ function checkWin(card) {
 // completes the claimed pattern with numbers that have been called.
 function verifiedClaims() {
   const drawn = new Set(state.roomState.drawnNumbers || []);
-  return state.bingoClaims.filter(c => (Number(c.winningCard) || 1) <= confirmedCardsFor(c.id) && c.bingoRound != null && Number(c.bingoRound) === Number(state.round)).map(c => {
+  return state.bingoClaims.filter(c => !isKickedPlayer(c) && (Number(c.winningCard) || 1) <= confirmedCardsFor(c.id) && c.bingoRound != null && Number(c.bingoRound) === Number(state.round)).map(c => {
     const grid = decodeGrid((Array.isArray(c.grids) ? c.grids : [])[(Number(c.winningCard) || 0) - 1]);
     const pattern = PATTERNS.find(p => p.name === c.winningPattern);
     if (!grid || !pattern || !pattern.cells.every(i => i === 12 || drawn.has(grid[i]))) return null;
@@ -1610,7 +1640,7 @@ function updateRoom(data) {
     if (w.timestamp !== state.seenWinTs) announce($('player-win-text').textContent);
     if (w.timestamp !== state.seenWinTs) { state.seenWinTs = w.timestamp; if (w.uid !== state.userId && typeof confetti === 'function') confetti({ particleCount: 60, spread: 60, disableForReducedMotion: true }); }
   } else if (!w && !state.hasClaimedBingo) $('player-win-banner').classList.add('hidden');
-  syncPaymentSettings(data); refreshPaymentStatus(); checkAppBuild(data);
+  syncPaymentSettings(data); refreshPaymentStatus(); checkAppBuild(data); checkKicked();
   refreshJoinGate();
 }
 
@@ -1639,7 +1669,7 @@ function syncRows(container, cache, rows, tagName, emptyHtml) {
   });
   cache.forEach((entry, id) => { if (!keep.has(id)) { entry.el.remove(); cache.delete(id); } });
 }
-const rosterList = () => [...state.players].sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0));
+const rosterList = () => state.players.filter(p => !isKickedPlayer(p)).sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0));
 const payStateOf = p => paymentStatusFor(p.id, Number(p.cardCount) || 0, p.payRequestAt);
 const amountDueOf = p => Math.max(0, (Number(p.cardCount) || 0) - confirmedCardsFor(p.id)) * state.pricePerCard;
 const playerStatus = (p, winnerIds) => payStateOf(p) === 'pending' ? 'AWAITING PAYMENT' : payStateOf(p) === 'rejected' ? 'PAYMENT REJECTED' : winnerIds.has(p.id) ? 'BINGO' : (Number(p.roundAck) !== Number(state.round) && !state.started) ? 'CHOOSING NEXT ROUND' : 'PLAYING';
@@ -1670,7 +1700,7 @@ function renderPlayersNow() {
       const n = Number(p.cardCount) || 0, status = playerStatus(p, winnerIds), won = status === 'BINGO', pending = status === 'CHOOSING NEXT ROUND';
       const html = `<td class="py-2.5 px-3 font-mono text-slate-400">${i + 1}</td><td class="py-2.5 px-3">${avatarMarkup(p.avatar || '👤', 'w-7 h-7 mr-2 inline-flex align-middle')}<span class="font-bold text-slate-200">${esc(p.name || 'Anon')}</span></td>
         <td class="py-2.5 px-3 text-cyan-400 font-mono font-bold">${n}</td><td class="py-2.5 px-3 text-slate-400">₱${formatMoney(state.pricePerCard)}</td><td class="py-2.5 px-3 text-emerald-400 font-mono font-bold">₱${formatMoney(n * state.pricePerCard)}</td>
-        <td class="py-2.5 px-3"><div class="flex items-center gap-2"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${won ? 'bg-amber-500 text-slate-950' : pending ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : status === 'AWAITING PAYMENT' ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40' : status === 'PAYMENT REJECTED' ? 'bg-rose-500/15 text-rose-300 border border-rose-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">${status}${status === 'AWAITING PAYMENT' && amountDueOf(p) ? ' · ₱' + formatMoney(amountDueOf(p)) : ''}</span>${status === 'AWAITING PAYMENT' ? `<button type="button" data-pay-action="confirm" data-id="${esc(p.id)}" class="px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black">Confirm</button><button type="button" data-pay-action="reject" data-id="${esc(p.id)}" class="px-3 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-rose-300 text-xs font-bold">Reject</button>` : ''}</div></td>`;
+        <td class="py-2.5 px-3"><div class="flex items-center gap-2"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${won ? 'bg-amber-500 text-slate-950' : pending ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : status === 'AWAITING PAYMENT' ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40' : status === 'PAYMENT REJECTED' ? 'bg-rose-500/15 text-rose-300 border border-rose-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">${status}${status === 'AWAITING PAYMENT' && amountDueOf(p) ? ' · ₱' + formatMoney(amountDueOf(p)) : ''}</span>${status === 'AWAITING PAYMENT' ? `<button type="button" data-pay-action="confirm" data-id="${esc(p.id)}" class="px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black">Confirm</button><button type="button" data-pay-action="reject" data-id="${esc(p.id)}" class="px-3 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-rose-300 text-xs font-bold">Reject</button>` : ''}<button type="button" data-kick="${esc(p.id)}" aria-label="Kick ${esc(p.name || 'player')}" class="ml-auto px-3 rounded-lg bg-rose-600/15 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 text-xs font-bold">Kick</button></div></td>`;
       return { id: p.id, cls: '', html };
     });
     syncRows($('admin-roster-tbody'), rosterRows.admin, rows, 'tr', '<tr><td colspan="6" class="text-center py-8 text-slate-400 italic">No participants registered yet</td></tr>');
@@ -1825,7 +1855,7 @@ function init() {
   trackHeaderHeight();
   // The join dialog is open in the initial HTML; register it so Tab stays inside it.
   if (isOpen($('modal-join'))) modalStack.push({ id: 'modal-join', opener: null });
-  ['modal-add-cards', 'modal-pay-settings', 'modal-pay', 'modal-wheel', 'modal-pin', 'modal-change-pin', 'modal-reset-game', 'modal-confirm-clear', 'modal-qr', 'modal-gm-help', 'modal-round-options', 'modal-avatar-camera'].forEach(hideModal);
+  ['modal-kick', 'modal-add-cards', 'modal-pay-settings', 'modal-pay', 'modal-wheel', 'modal-pin', 'modal-change-pin', 'modal-reset-game', 'modal-confirm-clear', 'modal-qr', 'modal-gm-help', 'modal-round-options', 'modal-avatar-camera'].forEach(hideModal);
   switchView('player'); renderAllPlayerCards();
   authReady = initFirebase();
   refreshJoinGate();
@@ -1897,10 +1927,10 @@ function init() {
         const round = Number(rd.round || 0), gameId = rd.gameId, now = Date.now();
         if (!gameId) throw new Error('Game session is still initializing.');
         tx.set(playerRef(), { name, avatar: state.playerAvatar, cardCount: grids.length, grids: grids.map(g => g.join(',')), gameId, hasBingo: false, bingoRound: null, roundAck: round, joinedAt: now, updatedAt: now, payRequestAt: now });
-        return { round, gameId, payReq: now };
+        return { round, gameId, payReq: now, joinedAt: now };
       });
       state.round = joinedRound.round; state.gameId = joinedRound.gameId; state.roundInitialized = true; state.roundChoicePending = false;
-      state.payRequestAt = joinedRound.payReq;
+      state.payRequestAt = joinedRound.payReq; state.joinedAt = joinedRound.joinedAt;
       applyJoin(name, state.playerAvatar, grids, false);
       showToast('Payment sent for confirmation. Your cards unlock once the host confirms.');
     } catch (e) {
@@ -2279,6 +2309,27 @@ function init() {
     window.__openPayModal(n, () => requestMoreCards(n), null, () => { refreshAddCardsModal(); showModal('modal-add-cards'); });
   });
   on('cards-container', 'click', e => { if (e.target.closest('[data-show-pay]')) window.__openPayModal(Math.max(1, state.playerCards.length - confirmedCardsFor(state.userId)), null, state.amountDue || null); });
+  /* ---------- Admin: kick a player ---------- */
+  let kickTargetId = null;
+  on('admin-roster-tbody', 'click', e => {
+    const btn = e.target.closest('[data-kick]'); if (!btn) return;
+    const p = state.players.find(x => x.id === btn.dataset.kick); if (!p) return;
+    kickTargetId = p.id; $('kick-player-name').textContent = p.name || 'this player'; showModal('modal-kick');
+  });
+  on('btn-cancel-kick', 'click', () => { kickTargetId = null; hideModal('modal-kick'); });
+  on('modal-kick', 'click', e => { if (e.target.id === 'modal-kick') { kickTargetId = null; hideModal('modal-kick'); } });
+  on('btn-confirm-kick', 'click', async () => {
+    const p = state.players.find(x => x.id === kickTargetId); if (!p || !fb) { hideModal('modal-kick'); return; }
+    const b = $('btn-confirm-kick'); b.disabled = true; b.textContent = 'KICKING…';
+    try {
+      const at = Date.now();
+      await fb.setDoc(roomRef(), { kicked: { [p.id]: { joinedAt: Number(p.joinedAt) || 0, at } }, payments: { [p.id]: { confirmedCards: 0, rejectedFor: null, kicked: true, at } } }, { merge: true });
+      // Also try to remove their record directly; the player's own screen removes it if this is not allowed.
+      fb.deleteDoc(fb.doc(db, ...basePath(), state.roomId, 'players', p.id)).catch(() => {});
+      hideModal('modal-kick'); showToast(`${p.name || 'Player'} was kicked from the game.`);
+    } catch (err) { showToast('Could not kick player: ' + errMsg(err), true); }
+    finally { b.disabled = false; b.textContent = 'KICK PLAYER'; kickTargetId = null; }
+  });
   on('btn-export-csv', 'click', () => {
     // Quote every text cell and neutralise leading = + - @ so spreadsheet apps never run a name as a formula.
     const cell = v => { let t = String(v ?? ''); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
