@@ -584,7 +584,7 @@ const $ = id => document.getElementById(id);
 const ROLL_DELAY = 2000; // shake animation only; the server write runs in parallel
 const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
-const APP_BUILD = 20261028130459;
+const APP_BUILD = 20261028131035;
 let BGM_VOLUME = 0.20;
 try { const v = Number(localStorage.getItem('ces-bingo:music-volume')); if (localStorage.getItem('ces-bingo:music-volume') !== null && v >= 0 && v <= 1) BGM_VOLUME = v; } catch (e) {}
 const SFX_VOLUME = 0.80;
@@ -1855,6 +1855,14 @@ const amountDueOf = p => Math.max(0, (Number(p.cardCount) || 0) - confirmedCards
 const playerStatus = (p, winnerIds) => payStateOf(p) === 'pending' ? 'AWAITING PAYMENT' : payStateOf(p) === 'rejected' ? 'PAYMENT REJECTED' : winnerIds.has(p.id) ? 'BINGO' : (Number(p.roundAck) !== Number(state.round) && !state.started) ? 'CHOOSING NEXT ROUND' : 'PLAYING';
 function renderPlayersNow() {
   announceDerivedWinners(verifiedClaims());
+  if (state.currentView === 'admin') {
+    const paidCards = p => isKickedPlayer(p) ? 0 : Math.min(Number(p.cardCount) || 0, confirmedCardsFor(payKey(p)));
+    const vis = visiblePlayers();
+    state.stats = { players: vis.filter(p => paidCards(p) > 0).length, cards: vis.reduce((s, p) => s + paidCards(p), 0) };
+  } else if (state.currentView === 'gm') {
+    const paid = Object.values(state.roomState.payments || {}).map(e => Number(e && e.confirmedCards) || 0).filter(n => n > 0);
+    state.stats = { players: paid.length, cards: paid.reduce((s, n) => s + n, 0) };
+  }
   const { players, cards } = state.stats, money = cards * state.pricePerCard;
   const winners = Array.isArray(state.roomState.winners) ? state.roomState.winners : [];
   $('gm-live-count-badge').textContent = `${winners.length} ${winners.length === 1 ? 'Winner' : 'Winners'}`;
