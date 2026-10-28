@@ -14,7 +14,7 @@
 <style>
   html,body{min-height:100%}
   .-top-1{top:-.25rem}.w-0{width:0}.h-0{height:0}.max-w-lg{max-width:32rem}.max-w-\[22rem\]{max-width:22rem}.min-h-\[2rem\]{min-height:2rem}
-  .bg-amber-500\/15{background-color:rgb(245 158 11/.15)}.hover\:bg-amber-500\/25:hover{background-color:rgb(245 158 11/.25)}.border-amber-500\/30{border-color:rgb(245 158 11/.3)}.max-w-\[85\%\]{max-width:85%}.break-words{overflow-wrap:break-word}.bg-slate-950\/90{background-color:rgb(2 6 23/.9)}
+  .bg-amber-500\/15{background-color:rgb(245 158 11/.15)}.hover\:bg-amber-500\/25:hover{background-color:rgb(245 158 11/.25)}.border-amber-500\/30{border-color:rgb(245 158 11/.3)}.max-w-\[85\%\]{max-width:85%}.break-words{overflow-wrap:break-word}.bg-slate-950\/90{background-color:rgb(2 6 23/.9)}.bg-amber-500\/10{background-color:rgb(245 158 11/.1)}.h-60{height:15rem}.w-60{width:15rem}.max-w-full{max-width:100%}.text-slate-500{color:#64748b}.bg-rose-500\/15{background-color:rgb(244 63 94/.15)}.w-48{width:12rem}.h-48{height:12rem}@media (min-width:640px){.sm\:flex-row{flex-direction:row}.sm\:items-center{align-items:center}}
   body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;touch-action:manipulation;-webkit-tap-highlight-color:transparent;overflow-x:hidden;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
   .font-display{font-family:'Fredoka',system-ui,sans-serif}
   .hidden{display:none!important}
@@ -104,6 +104,17 @@
         <div id="player-caller-text" class="font-display font-bold text-xl sm:text-2xl text-amber-300 truncate">Waiting…</div>
       </div>
       <button id="btn-player-patterns" type="button" aria-label="Show winning patterns" aria-expanded="false" aria-controls="patterns-panel" class="shrink-0 px-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-100 font-bold text-sm flex items-center gap-2 active:scale-95 transition-transform"><svg class="w-5 h-5 shrink-0" aria-hidden="true"><use href="#i-grid"/></svg><span>Patterns</span></button>
+    </section>
+
+    <section id="player-pay-wait" hidden aria-live="polite" class="rounded-3xl border border-emerald-500/30 bg-slate-900/90 p-5 sm:p-8 text-center shadow-xl">
+      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-300"><svg class="w-7 h-7 shrink-0" aria-hidden="true"><use href="#i-lock"/></svg></div>
+      <h2 id="pay-wait-title" class="font-display font-bold text-2xl">Waiting for payment confirmation</h2>
+      <p id="pay-wait-text" class="text-sm text-slate-300 mt-2 max-w-md mx-auto">The host is checking your payment. Your cards will appear here as soon as it is confirmed. Keep this page open.</p>
+      <p id="pay-wait-amount" class="font-mono font-black text-xl text-emerald-400 mt-3"></p>
+      <div class="flex flex-wrap justify-center gap-2 mt-4">
+        <button id="btn-pay-wait-qr" type="button" class="px-4 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-100 text-sm font-bold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-qr"/></svg>Show payment QR</button>
+        <button id="btn-pay-wait-leave" type="button" class="px-4 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-sm font-bold active:scale-95">Leave game</button>
+      </div>
     </section>
 
     <section class="flex flex-col gap-3" aria-labelledby="your-cards-title">
@@ -219,6 +230,7 @@
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <button id="btn-admin-copy-link" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-link"/></svg>Copy Link</button>
+        <button id="btn-admin-pay-settings" type="button" class="px-3 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-200 border border-emerald-500/40 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-qr"/></svg>Payment Settings</button>
         <button id="btn-admin-wheel" type="button" class="px-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-200 border border-amber-500/40 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-wheel"/></svg>Spin Wheel</button>
         <button id="btn-admin-show-qr" type="button" class="px-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-200 border border-indigo-500/30 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-qr"/></svg>Show QR</button>
         <button id="btn-export-csv" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-download"/></svg>Export CSV</button>
@@ -264,7 +276,7 @@
         </div></div>
       <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-3 flex items-center justify-between"><span class="text-xs text-slate-400">Total Payment Due:</span><span id="join-total-due-text" class="font-mono font-black text-lg text-emerald-400">₱10.00</span></div>
       <p id="join-gate-msg" class="hidden text-xs font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-xl p-3"></p>
-      <button id="btn-confirm-join" type="button" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-brand-pinkdeep to-brand-blue text-white font-display font-bold text-lg hover:brightness-110 shadow-lg active:scale-95">GET CARDS &amp; ENTER</button>
+      <button id="btn-confirm-join" type="button" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-brand-pinkdeep to-brand-blue text-white font-display font-bold text-lg hover:brightness-110 shadow-lg active:scale-95">PAY &amp; GET CARDS</button>
       <button id="btn-close-join" type="button" class="hidden w-full text-sm text-slate-300 hover:text-white">Cancel</button>
     </div>
   </div>
@@ -313,6 +325,44 @@
     <div class="grid grid-cols-2 gap-2 mt-3">
       <button id="btn-wheel-reset" type="button" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold">Bring Everyone Back</button>
       <button id="btn-wheel-spin" type="button" class="py-2.5 rounded-xl bg-gradient-to-r from-brand-pinkdeep to-brand-blue text-white font-display font-bold text-base active:scale-95">SPIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT QR MODAL (shown before cards are issued) -->
+<div id="modal-pay" class="fixed inset-0 z-[60] hidden items-center justify-center p-3 bg-slate-950/90 backdrop-blur-sm">
+  <div role="dialog" aria-modal="true" aria-labelledby="modal-pay-title" class="modal-box bg-slate-900 border border-emerald-500/30 w-full max-w-sm rounded-3xl p-5 sm:p-6 shadow-2xl text-center">
+    <p class="text-xs uppercase tracking-[.18em] font-black text-emerald-300">Payment</p>
+    <h3 id="modal-pay-title" class="font-display font-bold text-2xl mt-1">Scan to Pay</h3>
+    <p class="text-sm text-slate-300 mt-1"><span id="pay-card-count">1 card</span> · <span id="pay-total" class="font-mono font-black text-emerald-400">₱10.00</span></p>
+    <div id="pay-qr-wrap" class="bg-white p-3 rounded-2xl w-60 h-60 max-w-full mx-auto flex items-center justify-center mt-4"><img id="pay-qr-img" alt="Payment QR code" class="w-full h-full object-contain"></div>
+    <p id="pay-qr-missing" hidden class="mt-4 text-xs font-semibold text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-xl p-3">The host hasn't added a payment QR yet. Pay the host directly, then continue.</p>
+    <p id="pay-to-label" class="text-sm font-bold text-slate-100 mt-3 break-words"></p>
+    <p class="text-xs text-slate-400 mt-2">Pay the exact amount above, then tap the button below. Your cards unlock once the host confirms your payment.</p>
+    <div class="flex flex-col gap-2 mt-4">
+      <button id="btn-pay-done" type="button" class="w-full py-3 rounded-2xl bg-gradient-to-r from-brand-pinkdeep to-brand-blue text-white font-display font-bold text-base active:scale-95">I'VE PAID · SEND FOR CONFIRMATION</button>
+      <button id="btn-pay-back" type="button" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold">Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT SETTINGS MODAL -->
+<div id="modal-pay-settings" class="fixed inset-0 z-[60] hidden items-center justify-center p-3 bg-slate-950/90 backdrop-blur-sm">
+  <div role="dialog" aria-modal="true" aria-labelledby="modal-pay-settings-title" class="modal-box bg-slate-900 border border-emerald-500/30 w-full max-w-sm rounded-3xl p-5 sm:p-6 shadow-2xl">
+    <div class="flex items-start justify-between gap-3 mb-4">
+      <div><p class="text-xs uppercase tracking-[.18em] font-black text-emerald-300">Admin</p><h3 id="modal-pay-settings-title" class="font-display font-bold text-xl mt-1">Payment Settings</h3><p class="text-xs text-slate-400 mt-1">Players see this QR with their total before they get their cards.</p></div>
+      <button id="btn-close-pay-settings" type="button" aria-label="Close" class="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center shrink-0"><svg class="w-5 h-5 shrink-0" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <div id="admin-pay-qr-preview" class="bg-white rounded-2xl w-48 h-48 mx-auto flex items-center justify-center overflow-hidden"><span class="text-xs text-slate-500 font-semibold px-2 text-center">No QR yet</span></div>
+    <div class="flex flex-col gap-2 mt-4">
+      <label for="admin-pay-to-input" class="text-xs font-bold text-slate-300 uppercase">Pay to</label>
+      <input type="text" id="admin-pay-to-input" maxlength="60" placeholder="e.g. GCash · Juan D." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-400">
+      <div class="grid grid-cols-2 gap-2 mt-1">
+        <label for="admin-pay-qr-file" class="px-3 min-h-[2.75rem] rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-200 text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-qr"/></svg>Upload QR</label>
+        <button id="btn-admin-pay-remove" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold active:scale-95">Remove QR</button>
+      </div>
+      <input type="file" id="admin-pay-qr-file" accept="image/*" class="hidden">
+      <button id="btn-admin-pay-save" type="button" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-sm active:scale-95">Save</button>
     </div>
   </div>
 </div>
@@ -718,7 +768,8 @@ function ensureRosterListener() {
   const activePlayers = fb.query(playersCol(), fb.where('gameId', '==', state.gameId));
   state.rosterUnsub = fb.onSnapshot(activePlayers, snap => {
     state.players = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    state.stats = { players: state.players.length, cards: state.players.reduce((s, p) => s + (Number(p.cardCount) || 0), 0) };
+    const paid = state.players.filter(p => (p.paymentStatus || 'confirmed') === 'confirmed');
+    state.stats = { players: paid.length, cards: paid.reduce((s, p) => s + (Number(p.cardCount) || 0), 0) };
     renderPlayers();
   }, e => {
     console.error(e); showToast('Roster sync error: ' + errMsg(e) + ' — retrying', true);
@@ -746,7 +797,7 @@ async function refreshRoomStats() {
   if (!fb || !state.gameId || state.currentView !== 'gm' || statsBusy) return;
   statsBusy = true;
   try {
-    const q = fb.query(playersCol(), fb.where('gameId', '==', state.gameId));
+    const q = fb.query(playersCol(), fb.where('gameId', '==', state.gameId), fb.where('paymentStatus', '==', 'confirmed'));
     const agg = (await fb.getAggregateFromServer(q, { players: fb.count(), cards: fb.sum('cardCount') })).data();
     state.stats = { players: Number(agg.players) || 0, cards: Number(agg.cards) || 0 };
     renderPlayers();
@@ -770,6 +821,31 @@ async function syncPlayer(extra = {}) {
   } catch (e) { console.warn('Player sync failed', errMsg(e)); }
 }
 
+
+/* Each player watches their own record so a confirmed payment unlocks the cards. */
+let ownDocUnsub = null;
+const isPaid = () => (state.paymentStatus || 'confirmed') === 'confirmed';
+function stopOwnDocListener() { if (ownDocUnsub) { try { ownDocUnsub(); } catch (e) {} ownDocUnsub = null; } }
+function ensureOwnDocListener() {
+  if (ownDocUnsub || !fb || !state.userId) return;
+  ownDocUnsub = fb.onSnapshot(playerRef(), snap => {
+    if (!snap.exists() || !state.joined) return;
+    const d = snap.data(), was = state.paymentStatus;
+    state.paymentStatus = d.paymentStatus || 'confirmed';
+    state.amountDue = Number(d.amountDue) || 0;
+    const grids = (Array.isArray(d.grids) ? d.grids : []).map(decodeGrid).filter(Boolean);
+    if (isPaid() && grids.length && grids.length < state.playerCards.length) {
+      state.playerCards = state.playerCards.slice(0, grids.length); state.cardCount = grids.length;
+      $('player-cards-badge').textContent = `${grids.length} ${grids.length > 1 ? 'Cards' : 'Card'}`;
+      renderAllPlayerCards(); persist();
+    }
+    window.__renderPaymentGate && window.__renderPaymentGate();
+    if (was && was !== 'confirmed' && state.paymentStatus === 'confirmed') {
+      clearDaubTimers(false); renderAllPlayerCards(); applyAutoDaub(state.roomState.drawnNumbers || []);
+      if (was !== 'checking') { playBeep(880, 'triangle', 0.15); showToast('Payment confirmed! Your cards are ready.'); announce('Payment confirmed. Your cards are ready.'); }
+    } else if (was !== 'checking' && was !== 'rejected' && state.paymentStatus === 'rejected') showToast('The host could not confirm your payment.', true);
+  }, e => { console.warn('Own record sync failed', errMsg(e)); ownDocUnsub = null; });
+}
 /* ---------- Local persistence (survive refresh) ---------- */
 const storeKey = () => `ces-bingo:${state.appId}:${state.roomId}`;
 function persist() {
@@ -786,6 +862,7 @@ function tryRestore() {
     const savedRound = Number(saved.round || 0);
     const needsChoice = !!saved.pending || savedRound !== Number(state.round || 0);
     state.roundChoicePending = needsChoice;
+    state.paymentStatus = 'checking';
     applyJoin(saved.name || 'Player', saved.avatar || '🎯', grids, needsChoice ? false : !!saved.won);
     if (needsChoice) { resetLocalRound(); persist(); showRoundOptions(); }
     else syncPlayer({ roundAck: state.round });
@@ -855,7 +932,7 @@ const hideModal = id => {
   if (i >= 0) { const [m] = modalStack.splice(i, 1); if (wasOpen && m.opener && document.contains(m.opener) && (!modalStack.length || modalStack.some(o => isOpen($(o.id)) && $(o.id).contains(m.opener)))) try { m.opener.focus({ preventScroll: true }); } catch (e) {} }
 };
 // Escape closes dialogs that are safe to dismiss (not the join gate or round choice for players).
-const ESC_CLOSE = { 'modal-wheel': 1, 'modal-pin': 1, 'modal-change-pin': 1, 'modal-reset-game': 1, 'modal-confirm-clear': 1, 'modal-qr': 1, 'modal-gm-help': 1 };
+const ESC_CLOSE = { 'modal-pay-settings': 1, 'modal-pay': 1, 'modal-wheel': 1, 'modal-pin': 1, 'modal-change-pin': 1, 'modal-reset-game': 1, 'modal-confirm-clear': 1, 'modal-qr': 1, 'modal-gm-help': 1 };
 document.addEventListener('keydown', e => {
   const top = [...modalStack].reverse().find(m => isOpen($(m.id)));
   if (e.key === 'Escape') {
@@ -1085,7 +1162,7 @@ function autoMarkNumber(n) {
 }
 function applyAutoDaub(drawn) {
   if (cardViews.length !== state.playerCards.length) renderAllPlayerCards();
-  if (!state.joined) return;
+  if (!state.joined || !isPaid()) return;
   let changed = false;
   drawn.forEach(n => {
     if (!daubSeen.has(n)) {
@@ -1099,7 +1176,7 @@ function applyAutoDaub(drawn) {
 }
 function onCardTap(e) {
   const cell = e.target.closest('[data-idx]');
-  if (!cell || !state.joined) return;
+  if (!cell || !state.joined || !isPaid()) return;
   const ci = Number(cell.dataset.ci), idx = Number(cell.dataset.idx), card = state.playerCards[ci];
   if (!card || idx === 12 || card.stamped.has(idx)) return;
   if ((state.roomState.drawnNumbers || []).includes(card.grid[idx])) {
@@ -1203,7 +1280,7 @@ function setGMHelpPage(page) {
 // A pattern counts only when every one of its cells is marked on the card.
 const completedPattern = isMarked => PATTERNS.find(p => p.cells.every(i => i === 12 || isMarked(i))) || null;
 function checkWin(card) {
-  if (!state.joined || state.hasClaimedBingo) return false;
+  if (!state.joined || state.hasClaimedBingo || !isPaid()) return false;
   const pattern = completedPattern(i => card.stamped.has(i));
   if (pattern) { celebrate(pattern.name, state.playerCards.indexOf(card) + 1); return true; }
   return false;
@@ -1212,7 +1289,7 @@ function checkWin(card) {
 // completes the claimed pattern with numbers that have been called.
 function verifiedClaims() {
   const drawn = new Set(state.roomState.drawnNumbers || []);
-  return state.bingoClaims.filter(c => c.bingoRound != null && Number(c.bingoRound) === Number(state.round)).map(c => {
+  return state.bingoClaims.filter(c => (c.paymentStatus || 'confirmed') === 'confirmed' && c.bingoRound != null && Number(c.bingoRound) === Number(state.round)).map(c => {
     const grid = decodeGrid((Array.isArray(c.grids) ? c.grids : [])[(Number(c.winningCard) || 0) - 1]);
     const pattern = PATTERNS.find(p => p.name === c.winningPattern);
     if (!grid || !pattern || !pattern.cells.every(i => i === 12 || drawn.has(grid[i]))) return null;
@@ -1287,7 +1364,7 @@ function applyJoin(name, avatar, grids, won) {
   $('player-name-display').textContent = name; setAvatarElement($('player-avatar-icon'), avatar);
   $('player-cards-badge').textContent = `${grids.length} ${grids.length > 1 ? 'Cards' : 'Card'}`;
   const badge = $('player-profile-badge'); badge.classList.remove('hidden'); badge.classList.add('flex');
-  hideModal('modal-join'); renderAllPlayerCards();
+  hideModal('modal-join'); renderAllPlayerCards(); ensureOwnDocListener(); window.__renderPaymentGate && window.__renderPaymentGate();
   applyAutoDaub(state.roomState.drawnNumbers || []); persist();
 }
 
@@ -1329,7 +1406,8 @@ async function applyRoundChoice(addCount) {
         tx.set(playerRef(), {
           name: state.playerName, avatar: state.playerAvatar, cardCount: candidateCards.length,
           grids: candidateCards.map(c => c.grid.join(',')), gameId: state.gameId, hasBingo: false, bingoRound: null,
-          winningPattern: null, winningCard: null, roundAck: state.round, updatedAt: Date.now()
+          winningPattern: null, winningCard: null, roundAck: state.round, updatedAt: Date.now(),
+          paymentStatus: 'pending', amountDue: adding * (Number(room.pricePerCard) || state.pricePerCard)
         }, { merge: true });
       });
     } else {
@@ -1340,7 +1418,9 @@ async function applyRoundChoice(addCount) {
     showToast(started ? 'The next round has already started. You can keep your current cards, but no new cards can be added.' : 'Could not update your cards: ' + errMsg(e), true);
     state.started = state.started || started; refreshRoundOptions(); return;
   }
+  if (adding > 0) { state.paymentStatus = 'pending'; state.amountDue = adding * state.pricePerCard; }
   state.playerCards = candidateCards; state.cardCount = candidateCards.length; state.hasClaimedBingo = false; state.roundChoicePending = false;
+  window.__renderPaymentGate && window.__renderPaymentGate();
   $('player-cards-badge').textContent = `${state.cardCount} ${state.cardCount === 1 ? 'Card' : 'Cards'}`;
   renderAllPlayerCards(); applyAutoDaub(state.roomState.drawnNumbers || []); persist(); hideModal('modal-round-options');
   showToast(adding ? `${adding} new card${adding > 1 ? 's' : ''} added. You're ready for the next round!` : 'You kept your cards for the next round.');
@@ -1349,7 +1429,7 @@ async function leaveGame() {
   if (!state.joined) return;
   if (!fb) { showToast('Not connected to the server. Try again in a moment.', true); return; }
   try { await fb.deleteDoc(playerRef()); } catch (e) { showToast('Could not leave: ' + errMsg(e), true); return; }
-  clearDaubTimers(false); state.joined = false; state.playerName = ''; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false;
+  stopOwnDocListener(); state.paymentStatus = null; state.amountDue = 0; clearDaubTimers(false); state.joined = false; state.playerName = ''; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false;
   try { localStorage.removeItem(storeKey()); } catch (e) {}
   $('player-profile-badge').classList.add('hidden'); $('player-profile-badge').classList.remove('flex');
   hideModal('modal-round-options'); renderAllPlayerCards(); refreshJoinPrice(); openJoin(); showToast('You left the game. You may rejoin before the next first ball.');
@@ -1381,6 +1461,7 @@ function handleFullGameReset(nextGameId, freshRoomData = null) {
   state.pendingBall = null;
   state.started = false;
   state.pricePerCard = Number(freshRoom.pricePerCard) > 0 ? Number(freshRoom.pricePerCard) : 10;
+  stopOwnDocListener(); state.paymentStatus = null; state.amountDue = 0;
   state.players = []; state.joined = false; state.isAdmin = !!keepStaffView; state.playerName = ''; state.playerAvatar = '🎯'; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false; state.roundAddCount = 1; state.round = Number(freshRoom.round || 0); state.roundInitialized = true; state.lastSpokenNum = null; state.seenWinTs = null; state.dismissedWinTs = null; state.announcingWinnerIds.clear();
   try { localStorage.removeItem(storeKey()); } catch (e) {}
   ['modal-pin','modal-change-pin','modal-reset-game','modal-confirm-clear','modal-qr','modal-gm-help','modal-round-options','modal-avatar-camera'].forEach(hideModal);
@@ -1500,7 +1581,7 @@ function syncRows(container, cache, rows, tagName, emptyHtml) {
   cache.forEach((entry, id) => { if (!keep.has(id)) { entry.el.remove(); cache.delete(id); } });
 }
 const rosterList = () => [...state.players].sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0));
-const playerStatus = (p, winnerIds) => winnerIds.has(p.id) ? 'BINGO' : (Number(p.roundAck) !== Number(state.round) && !state.started) ? 'CHOOSING NEXT ROUND' : 'PLAYING';
+const playerStatus = (p, winnerIds) => p.paymentStatus === 'pending' ? 'AWAITING PAYMENT' : p.paymentStatus === 'rejected' ? 'PAYMENT REJECTED' : winnerIds.has(p.id) ? 'BINGO' : (Number(p.roundAck) !== Number(state.round) && !state.started) ? 'CHOOSING NEXT ROUND' : 'PLAYING';
 function renderPlayersNow() {
   announceDerivedWinners(verifiedClaims());
   const { players, cards } = state.stats, money = cards * state.pricePerCard;
@@ -1528,7 +1609,7 @@ function renderPlayersNow() {
       const n = Number(p.cardCount) || 0, status = playerStatus(p, winnerIds), won = status === 'BINGO', pending = status === 'CHOOSING NEXT ROUND';
       const html = `<td class="py-2.5 px-3 font-mono text-slate-400">${i + 1}</td><td class="py-2.5 px-3">${avatarMarkup(p.avatar || '👤', 'w-7 h-7 mr-2 inline-flex align-middle')}<span class="font-bold text-slate-200">${esc(p.name || 'Anon')}</span></td>
         <td class="py-2.5 px-3 text-cyan-400 font-mono font-bold">${n}</td><td class="py-2.5 px-3 text-slate-400">₱${formatMoney(state.pricePerCard)}</td><td class="py-2.5 px-3 text-emerald-400 font-mono font-bold">₱${formatMoney(n * state.pricePerCard)}</td>
-        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${won ? 'bg-amber-500 text-slate-950' : pending ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">${status}</span></td>`;
+        <td class="py-2.5 px-3"><div class="flex items-center gap-2"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${won ? 'bg-amber-500 text-slate-950' : pending ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : status === 'AWAITING PAYMENT' ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40' : status === 'PAYMENT REJECTED' ? 'bg-rose-500/15 text-rose-300 border border-rose-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">${status}${status === 'AWAITING PAYMENT' && Number(p.amountDue) ? ' · ₱' + formatMoney(p.amountDue) : ''}</span>${status === 'AWAITING PAYMENT' ? `<button type="button" data-pay-action="confirm" data-id="${esc(p.id)}" class="px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black">Confirm</button><button type="button" data-pay-action="reject" data-id="${esc(p.id)}" class="px-3 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-rose-300 text-xs font-bold">Reject</button>` : ''}</div></td>`;
       return { id: p.id, cls: '', html };
     });
     syncRows($('admin-roster-tbody'), rosterRows.admin, rows, 'tr', '<tr><td colspan="6" class="text-center py-8 text-slate-400 italic">No participants registered yet</td></tr>');
@@ -1682,7 +1763,7 @@ function init() {
   trackHeaderHeight();
   // The join dialog is open in the initial HTML; register it so Tab stays inside it.
   if (isOpen($('modal-join'))) modalStack.push({ id: 'modal-join', opener: null });
-  ['modal-pin', 'modal-change-pin', 'modal-reset-game', 'modal-confirm-clear', 'modal-qr', 'modal-gm-help', 'modal-round-options', 'modal-avatar-camera'].forEach(hideModal);
+  ['modal-pay-settings', 'modal-pay', 'modal-wheel', 'modal-pin', 'modal-change-pin', 'modal-reset-game', 'modal-confirm-clear', 'modal-qr', 'modal-gm-help', 'modal-round-options', 'modal-avatar-camera'].forEach(hideModal);
   switchView('player'); renderAllPlayerCards();
   authReady = initFirebase();
   refreshJoinGate();
@@ -1724,7 +1805,18 @@ function init() {
   on('join-name-input', 'keydown', e => { if (e.key === 'Enter') $('btn-confirm-join').click(); });
   on('conn-status', 'click', () => showToast(state.statusMsg || (state.connected ? 'Live: synced with the server' : 'Not connected'), !state.connected));
 
-  on('btn-confirm-join', 'click', async () => {
+  on('btn-confirm-join', 'click', () => {
+    if (joinGateMessage()) { refreshJoinGate(); return; }
+    const nameInput = $('join-name-input');
+    if (!nameInput.value.trim()) {
+      $('join-name-error').classList.remove('hidden');
+      nameInput.classList.remove('shake-invalid'); void nameInput.offsetWidth; nameInput.classList.add('shake-invalid');
+      setTimeout(() => nameInput.classList.remove('shake-invalid'), 400);
+      nameInput.focus(); return;
+    }
+    openPayModal();
+  });
+  const doJoin = async () => {
     if (joinGateMessage()) { refreshJoinGate(); return; }
     const nameInput = $('join-name-input');
     if (!nameInput.value.trim()) {
@@ -1742,18 +1834,20 @@ function init() {
         if (rd.started || (rd.drawnNumbers || []).length) throw Object.assign(new Error('started'), { code: 'started' });
         const round = Number(rd.round || 0), gameId = rd.gameId, now = Date.now();
         if (!gameId) throw new Error('Game session is still initializing.');
-        tx.set(playerRef(), { name, avatar: state.playerAvatar, cardCount: grids.length, grids: grids.map(g => g.join(',')), gameId, hasBingo: false, bingoRound: null, roundAck: round, joinedAt: now, updatedAt: now });
+        tx.set(playerRef(), { name, avatar: state.playerAvatar, cardCount: grids.length, grids: grids.map(g => g.join(',')), gameId, hasBingo: false, bingoRound: null, roundAck: round, joinedAt: now, updatedAt: now, paymentStatus: 'pending', amountDue: grids.length * (Number(rd.pricePerCard) || state.pricePerCard), paidTotal: 0, confirmedCards: 0 });
         return { round, gameId };
       });
       state.round = joinedRound.round; state.gameId = joinedRound.gameId; state.roundInitialized = true; state.roundChoicePending = false;
+      state.paymentStatus = 'pending'; state.amountDue = grids.length * state.pricePerCard;
       applyJoin(name, state.playerAvatar, grids, false);
+      showToast('Payment sent for confirmation. Your cards unlock once the host confirms.');
     } catch (e) {
       const locked = e.code === 'started' || e.code === 'permission-denied';
       if (locked) state.started = true;
       showToast(locked ? 'The game has already started. You cannot join.' : 'Could not join: ' + errMsg(e), true);
     }
-    b.textContent = 'GET CARDS & ENTER'; refreshJoinGate();
-  });
+    b.textContent = 'PAY & GET CARDS'; refreshJoinGate();
+  };
 
   const openPin = () => { $('pin-input').value = ''; $('pin-error-msg').textContent = 'Incorrect PIN code'; $('pin-error-msg').classList.add('hidden'); showModal('modal-pin'); setTimeout(() => $('pin-input').focus(), 50); };
   let clicks = 0, timer;
@@ -1872,7 +1966,7 @@ function init() {
   on('btn-round-add-minus', 'click', () => { if (state.roundAddCount > 1) { state.roundAddCount--; refreshRoundOptions(); } });
   on('btn-round-add-plus', 'click', () => { if (!state.started && state.playerCards.length + state.roundAddCount < MAX_CARDS) { state.roundAddCount++; refreshRoundOptions(); } });
   on('btn-round-stay', 'click', () => stayForNewRound(0));
-  on('btn-round-add-confirm', 'click', () => stayForNewRound(state.roundAddCount));
+  on('btn-round-add-confirm', 'click', () => { const n = state.roundAddCount; hideModal('modal-round-options'); window.__openPayModal(n, async () => { showModal('modal-round-options'); await stayForNewRound(n); }, null, () => showModal('modal-round-options')); });
   on('btn-round-leave', 'click', leaveGame);
   on('btn-admin-copy-link', 'click', () => copyText(shareLink(), () => showToast('Link copied!')));
   ['modal-qr', 'modal-confirm-clear', 'modal-pin', 'modal-change-pin', 'modal-reset-game', 'modal-gm-help'].forEach(id => on(id, 'click', e => { if (e.target.id === id) hideModal(id); }));
@@ -1968,6 +2062,116 @@ function init() {
   on('modal-wheel', 'click', e => { if (e.target.id === 'modal-wheel' && !wheel.spinning) hideModal('modal-wheel'); });
   on('btn-wheel-reset', 'click', () => { wheel.picked.clear(); wheel.history = []; renderWheelHistory(); hideWinnerCard(); buildWheelSlices(); $('wheel-result').textContent = ''; drawWheel(); });
   on('wheel-remove-picked', 'change', () => { if (!wheel.spinning) { buildWheelSlices(); drawWheel(); } });
+  /* ---------- Payment QR: shown to players before their cards are issued ---------- */
+  const payRef = () => fb.doc(db, ...basePath(), state.roomId, 'settings', 'payment');
+  state.payment = { qr: null, payTo: '' };
+  let payDraftQr; // undefined = no change pending; null = remove
+  function paintAdminPayment() {
+    const box = $('admin-pay-qr-preview'), qr = payDraftQr !== undefined ? payDraftQr : state.payment.qr;
+    box.innerHTML = qr ? `<img src="${esc(qr)}" alt="Payment QR preview" class="w-full h-full object-contain">` : '<span class="text-xs text-slate-500 font-semibold px-2 text-center">No QR yet</span>';
+    const input = $('admin-pay-to-input'); if (input && document.activeElement !== input && payDraftQr === undefined) input.value = state.payment.payTo || '';
+  }
+  async function watchPayment() {
+    if (!(await authReady) || !fb) return;
+    fb.onSnapshot(payRef(), snap => {
+      const d = snap.exists() ? snap.data() : {};
+      state.payment = { qr: typeof d.qr === 'string' && /^data:image\/(png|jpeg|webp);base64,/.test(d.qr) ? d.qr : null, payTo: String(d.payTo || '').slice(0, 60) };
+      paintAdminPayment();
+    }, e => console.warn('Payment settings sync failed', errMsg(e)));
+  }
+  watchPayment();
+  async function qrFromFile(file) {
+    if (!file || !String(file.type || '').startsWith('image/')) throw new Error('Choose an image of your payment QR.');
+    const url = URL.createObjectURL(file);
+    try {
+      const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('Could not read that image.')); im.src = url; });
+      const scale = Math.min(1, 640 / Math.max(img.naturalWidth, img.naturalHeight));
+      const cv = document.createElement('canvas'); cv.width = Math.round(img.naturalWidth * scale); cv.height = Math.round(img.naturalHeight * scale);
+      const ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.drawImage(img, 0, 0, cv.width, cv.height);
+      let out = cv.toDataURL('image/png');
+      if (out.length > 180000) out = cv.toDataURL('image/jpeg', 0.92);
+      if (out.length > 180000) out = cv.toDataURL('image/jpeg', 0.8);
+      if (out.length > 200000) throw new Error('That image is too large. Try a smaller screenshot of the QR.');
+      return out;
+    } finally { URL.revokeObjectURL(url); }
+  }
+  on('admin-pay-qr-file', 'change', async e => {
+    const f = e.target.files?.[0]; if (!f) return;
+    try { payDraftQr = await qrFromFile(f); paintAdminPayment(); showToast('QR loaded. Tap Save to show it to players.'); }
+    catch (err) { showToast(err.message, true); } finally { e.target.value = ''; }
+  });
+  on('btn-admin-pay-settings', 'click', () => { payDraftQr = undefined; paintAdminPayment(); const i = $('admin-pay-to-input'); if (i) i.value = state.payment.payTo || ''; showModal('modal-pay-settings'); });
+  on('btn-close-pay-settings', 'click', () => hideModal('modal-pay-settings'));
+  on('modal-pay-settings', 'click', e => { if (e.target.id === 'modal-pay-settings') hideModal('modal-pay-settings'); });
+  on('btn-admin-pay-remove', 'click', () => { payDraftQr = null; paintAdminPayment(); showToast('QR removed. Tap Save to apply.'); });
+  on('btn-admin-pay-save', 'click', async () => {
+    if (!fb) { showToast('Not connected to the server.', true); return; }
+    const b = $('btn-admin-pay-save'); b.disabled = true;
+    try {
+      const qr = payDraftQr !== undefined ? payDraftQr : state.payment.qr;
+      await fb.setDoc(payRef(), { qr: qr || null, payTo: $('admin-pay-to-input').value.trim().slice(0, 60), updatedAt: Date.now() });
+      payDraftQr = undefined; showToast('Payment details saved.'); hideModal('modal-pay-settings');
+    } catch (err) { showToast('Could not save payment details: ' + errMsg(err), true); }
+    finally { b.disabled = false; }
+  });
+  let payOnDone = null, payOnBack = null;
+  function openPayModal(n = state.cardCount, onDone = doJoin, amount = null, onBack = null) {
+    payOnDone = onDone; payOnBack = onBack;
+    $('pay-card-count').textContent = `${n} ${n === 1 ? 'card' : 'cards'}`;
+    $('pay-total').textContent = `₱${formatMoney(amount != null ? amount : n * state.pricePerCard)}`;
+    const qr = state.payment.qr;
+    $('pay-qr-wrap').hidden = !qr; $('pay-qr-missing').hidden = !!qr;
+    if (qr) $('pay-qr-img').src = qr;
+    $('pay-to-label').textContent = state.payment.payTo ? `Pay to: ${state.payment.payTo}` : '';
+    $('btn-pay-done').hidden = !onDone;
+    $('btn-pay-back').textContent = onDone ? 'Back' : 'Close';
+    showModal('modal-pay');
+  }
+  window.__openPayModal = openPayModal;
+  on('btn-pay-back', 'click', () => { hideModal('modal-pay'); const fn = payOnBack; payOnBack = null; if (fn) fn(); });
+  on('btn-pay-done', 'click', async () => {
+    const b = $('btn-pay-done'); b.disabled = true;
+    try { hideModal('modal-pay'); const fn = payOnDone; payOnDone = null; payOnBack = null; if (fn) await fn(); } finally { b.disabled = false; }
+  });
+
+  /* ---------- Payment confirmation: cards stay locked until the host confirms ---------- */
+  function renderPaymentGate() {
+    const panel = $('player-pay-wait'), cardsSection = $('your-cards-title')?.closest('section');
+    const waiting = state.joined && !isPaid();
+    panel.hidden = !waiting; if (cardsSection) cardsSection.hidden = waiting;
+    if (!waiting) return;
+    const rejected = state.paymentStatus === 'rejected', checking = state.paymentStatus === 'checking';
+    if (checking) { $('pay-wait-title').textContent = 'Loading your cards…'; $('pay-wait-text').textContent = 'Checking your payment status.'; $('pay-wait-amount').textContent = ''; $('btn-pay-wait-leave').hidden = true; return; }
+    $('pay-wait-title').textContent = rejected ? 'Payment not confirmed' : 'Waiting for payment confirmation';
+    $('pay-wait-text').textContent = rejected
+      ? 'The host could not confirm your payment. Talk to the host, or leave and join again.'
+      : 'The host is checking your payment. Your cards will appear here as soon as it is confirmed. Keep this page open.';
+    $('pay-wait-amount').textContent = state.amountDue > 0 ? `Amount due: ₱${formatMoney(state.amountDue)}` : '';
+    $('btn-pay-wait-leave').hidden = !rejected;
+  }
+  window.__renderPaymentGate = renderPaymentGate;
+  on('btn-pay-wait-qr', 'click', () => openPayModal(Math.max(1, Math.round((state.amountDue || 0) / (state.pricePerCard || 1))), null, state.amountDue || null));
+  on('btn-pay-wait-leave', 'click', () => leaveGame());
+  // Admin: confirm or reject a player's payment from the roster.
+  on('admin-roster-tbody', 'click', async e => {
+    const btn = e.target.closest('[data-pay-action]'); if (!btn || !fb) return;
+    const p = state.players.find(x => x.id === btn.dataset.id); if (!p) return;
+    btn.disabled = true;
+    try {
+      const ref = fb.doc(db, ...basePath(), state.roomId, 'players', p.id);
+      if (btn.dataset.payAction === 'confirm') {
+        const cards = Number(p.cardCount) || 0;
+        await fb.updateDoc(ref, { paymentStatus: 'confirmed', paidTotal: (Number(p.paidTotal) || 0) + (Number(p.amountDue) || 0), amountDue: 0, confirmedCards: cards, confirmedAt: Date.now() });
+        showToast(`Payment confirmed for ${p.name || 'player'}.`);
+      } else {
+        const keep = Number(p.confirmedCards) || 0, grids = Array.isArray(p.grids) ? p.grids : [];
+        // Rejecting extra cards keeps the cards they already paid for.
+        if (keep > 0) await fb.updateDoc(ref, { paymentStatus: 'confirmed', amountDue: 0, grids: grids.slice(0, keep), cardCount: Math.min(keep, grids.length) });
+        else await fb.updateDoc(ref, { paymentStatus: 'rejected' });
+        showToast(keep > 0 ? `Extra cards rejected. ${p.name || 'Player'} keeps ${keep} paid card${keep > 1 ? 's' : ''}.` : `Payment rejected for ${p.name || 'player'}.`);
+      }
+    } catch (err) { showToast('Could not update payment: ' + errMsg(err), true); btn.disabled = false; }
+  });
   on('btn-export-csv', 'click', () => {
     // Quote every text cell and neutralise leading = + - @ so spreadsheet apps never run a name as a formula.
     const cell = v => { let t = String(v ?? ''); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
