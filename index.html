@@ -15,7 +15,7 @@
   [hidden]{display:none!important}
   html,body{min-height:100%}
   .-top-1{top:-.25rem}.w-0{width:0}.h-0{height:0}.max-w-lg{max-width:32rem}.max-w-\[22rem\]{max-width:22rem}.min-h-\[2rem\]{min-height:2rem}
-  .bg-amber-500\/15{background-color:rgb(245 158 11/.15)}.hover\:bg-amber-500\/25:hover{background-color:rgb(245 158 11/.25)}.border-amber-500\/30{border-color:rgb(245 158 11/.3)}.max-w-\[85\%\]{max-width:85%}.break-words{overflow-wrap:break-word}.bg-slate-950\/90{background-color:rgb(2 6 23/.9)}.bg-amber-500\/10{background-color:rgb(245 158 11/.1)}.h-60{height:15rem}.w-60{width:15rem}.max-w-full{max-width:100%}.text-slate-500{color:#64748b}.bg-rose-500\/15{background-color:rgb(244 63 94/.15)}.w-48{width:12rem}.h-48{height:12rem}@media (min-width:640px){.sm\:flex-row{flex-direction:row}.sm\:items-center{align-items:center}}
+  .bg-amber-500\/15{background-color:rgb(245 158 11/.15)}.hover\:bg-amber-500\/25:hover{background-color:rgb(245 158 11/.25)}.border-amber-500\/30{border-color:rgb(245 158 11/.3)}.max-w-\[85\%\]{max-width:85%}.break-words{overflow-wrap:break-word}.bg-slate-950\/90{background-color:rgb(2 6 23/.9)}.bg-amber-500\/10{background-color:rgb(245 158 11/.1)}.h-60{height:15rem}.w-60{width:15rem}.max-w-full{max-width:100%}.text-slate-500{color:#64748b}.bg-rose-500\/15{background-color:rgb(244 63 94/.15)}.w-48{width:12rem}.h-48{height:12rem}.bg-indigo-600\/30{background-color:rgb(79 70 229/.3)}.bg-slate-900\/70{background-color:rgb(15 23 42/.7)}.border-dashed{border-style:dashed}@media (min-width:640px){.sm\:flex-row{flex-direction:row}.sm\:items-center{align-items:center}}
   body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;touch-action:manipulation;-webkit-tap-highlight-color:transparent;overflow-x:hidden;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
   .font-display{font-family:'Fredoka',system-ui,sans-serif}
   .hidden{display:none!important}
@@ -104,6 +104,7 @@
         <div class="text-xs font-bold uppercase tracking-wide text-slate-400 whitespace-nowrap">Ball <span id="player-balls-count" class="font-mono text-emerald-300">0</span> of 75</div>
         <div id="player-caller-text" class="font-display font-bold text-xl sm:text-2xl text-amber-300 truncate">Waiting…</div>
       </div>
+      <button id="btn-player-add-cards" type="button" hidden aria-label="Add more cards" class="shrink-0 px-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-200 font-bold text-sm flex items-center gap-1.5 active:scale-95"><span class="text-lg leading-none" aria-hidden="true">+</span><span>Cards</span></button>
       <button id="btn-player-patterns" type="button" aria-label="Show winning patterns" aria-expanded="false" aria-controls="patterns-panel" class="shrink-0 px-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-100 font-bold text-sm flex items-center gap-2 active:scale-95 transition-transform"><svg class="w-5 h-5 shrink-0" aria-hidden="true"><use href="#i-grid"/></svg><span>Patterns</span></button>
     </section>
 
@@ -369,6 +370,25 @@
   </div>
 </div>
 
+<!-- ADD MORE CARDS MODAL -->
+<div id="modal-add-cards" class="fixed inset-0 z-[60] hidden items-center justify-center p-3 bg-slate-950/90 backdrop-blur-sm">
+  <div role="dialog" aria-modal="true" aria-labelledby="modal-add-cards-title" class="modal-box bg-slate-900 border border-amber-500/30 w-full max-w-sm rounded-3xl p-5 sm:p-6 shadow-2xl text-center">
+    <h3 id="modal-add-cards-title" class="font-display font-bold text-2xl">Add More Cards</h3>
+    <p class="text-xs text-slate-400 mt-1">New cards stay blank until the host confirms your payment.</p>
+    <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 rounded-2xl p-2 mt-4">
+      <button id="btn-add-cards-minus" type="button" aria-label="Fewer cards" class="w-11 h-11 rounded-xl bg-slate-700 hover:bg-slate-600 font-black text-xl active:scale-90">−</button>
+      <div class="text-center"><span id="add-cards-count" aria-live="polite" class="font-display font-bold text-2xl text-amber-400">1</span><span class="text-xs text-slate-400 block font-bold">NEW CARD(S)</span></div>
+      <button id="btn-add-cards-plus" type="button" aria-label="More cards" class="w-11 h-11 rounded-xl bg-slate-700 hover:bg-slate-600 font-black text-xl active:scale-90">+</button>
+    </div>
+    <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-3 mt-3 flex items-center justify-between"><span class="text-xs text-slate-400">Amount to pay:</span><span id="add-cards-cost" class="font-mono font-black text-lg text-emerald-400">₱10.00</span></div>
+    <p id="add-cards-limit" class="text-xs text-slate-400 mt-2"></p>
+    <div class="flex flex-col gap-2 mt-4">
+      <button id="btn-add-cards-continue" type="button" class="w-full py-3 rounded-2xl bg-gradient-to-r from-brand-pinkdeep to-brand-blue text-white font-display font-bold text-base active:scale-95">CONTINUE TO PAYMENT</button>
+      <button id="btn-add-cards-cancel" type="button" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- PIN MODAL -->
 <div id="modal-pin" class="fixed inset-0 z-[55] hidden items-center justify-center p-3 bg-slate-950/85 backdrop-blur-sm">
   <div role="dialog" aria-modal="true" aria-labelledby="modal-pin-title" class="modal-box bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-6 shadow-2xl text-center">
@@ -495,7 +515,7 @@ const $ = id => document.getElementById(id);
 const ROLL_DELAY = 2000; // shake animation only; the server write runs in parallel
 const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
-const APP_BUILD = 20261028120107;
+const APP_BUILD = 20261028120707;
 let BGM_VOLUME = 0.20;
 try { const v = Number(localStorage.getItem('ces-bingo:music-volume')); if (localStorage.getItem('ces-bingo:music-volume') !== null && v >= 0 && v <= 1) BGM_VOLUME = v; } catch (e) {}
 const SFX_VOLUME = 0.80;
@@ -837,9 +857,10 @@ function paymentStatusFor(uid, cards, requestAt) {
   if (e && e.rejectedFor != null && Number(e.rejectedFor) === Number(requestAt || 0)) return ok > 0 ? 'trim' : 'rejected';
   return 'pending';
 }
-const isPaid = () => state.paymentStatus === 'confirmed';
+const isPaid = () => !!state.joined && confirmedCardsFor(state.userId) > 0;
+const cardUnlocked = ci => ci < confirmedCardsFor(state.userId);
 function refreshPaymentStatus() {
-  if (!state.joined) { state.paymentStatus = null; state.amountDue = 0; window.__renderPaymentGate && window.__renderPaymentGate(); return; }
+  if (!state.joined) { state.paymentStatus = null; state.amountDue = 0; state.lastOkCards = null; const ab = $('btn-player-add-cards'); if (ab) ab.hidden = true; window.__renderPaymentGate && window.__renderPaymentGate(); return; }
   let s = paymentStatusFor(state.userId, state.playerCards.length, state.payRequestAt);
   const ok = confirmedCardsFor(state.userId);
   if (s === 'trim') {
@@ -850,12 +871,15 @@ function refreshPaymentStatus() {
     showToast(`The host did not confirm your extra cards. You keep your ${ok} paid card${ok > 1 ? 's' : ''}.`, true);
     s = 'confirmed';
   }
-  const was = state.paymentStatus;
+  const was = state.paymentStatus, okChanged = state.lastOkCards !== ok;
+  state.lastOkCards = ok;
   state.paymentStatus = s;
+  const addBtn = $('btn-player-add-cards'); if (addBtn) { addBtn.hidden = !isPaid(); }
   state.amountDue = Math.max(0, state.playerCards.length - ok) * state.pricePerCard;
   window.__renderPaymentGate && window.__renderPaymentGate();
+  if (okChanged && was != null) { clearDaubTimers(false); renderAllPlayerCards(); applyAutoDaub(state.roomState.drawnNumbers || []); }
   if (s === 'confirmed' && was !== 'confirmed') {
-    clearDaubTimers(false); renderAllPlayerCards(); applyAutoDaub(state.roomState.drawnNumbers || []);
+    if (!okChanged) { clearDaubTimers(false); renderAllPlayerCards(); applyAutoDaub(state.roomState.drawnNumbers || []); }
     if (was === 'pending' || was === 'rejected') { playBeep(880, 'triangle', 0.15); showToast('Payment confirmed! Your cards are ready.'); announce('Payment confirmed. Your cards are ready.'); }
   } else if (s === 'rejected' && was === 'pending') showToast('The host could not confirm your payment.', true);
 }
@@ -957,7 +981,7 @@ const hideModal = id => {
   if (i >= 0) { const [m] = modalStack.splice(i, 1); if (wasOpen && m.opener && document.contains(m.opener) && (!modalStack.length || modalStack.some(o => isOpen($(o.id)) && $(o.id).contains(m.opener)))) try { m.opener.focus({ preventScroll: true }); } catch (e) {} }
 };
 // Escape closes dialogs that are safe to dismiss (not the join gate or round choice for players).
-const ESC_CLOSE = { 'modal-pay-settings': 1, 'modal-pay': 1, 'modal-wheel': 1, 'modal-pin': 1, 'modal-change-pin': 1, 'modal-reset-game': 1, 'modal-confirm-clear': 1, 'modal-qr': 1, 'modal-gm-help': 1 };
+const ESC_CLOSE = { 'modal-add-cards': 1, 'modal-pay-settings': 1, 'modal-pay': 1, 'modal-wheel': 1, 'modal-pin': 1, 'modal-change-pin': 1, 'modal-reset-game': 1, 'modal-confirm-clear': 1, 'modal-qr': 1, 'modal-gm-help': 1 };
 document.addEventListener('keydown', e => {
   const top = [...modalStack].reverse().find(m => isOpen($(m.id)));
   if (e.key === 'Escape') {
@@ -1146,6 +1170,14 @@ function renderAllPlayerCards() {
   const frag = document.createDocumentFragment();
   state.playerCards.forEach((card, ci) => {
     const wrap = document.createElement('div');
+    if (!cardUnlocked(ci)) {
+      // Unpaid card: no numbers until the host confirms the payment.
+      wrap.className = 'bg-slate-900/70 border-2 border-dashed border-slate-700 rounded-3xl p-3 sm:p-4 shadow-xl flex flex-col items-center';
+      wrap.innerHTML = `<div class="w-full flex items-center justify-between mb-2 text-xs"><span class="font-display font-bold text-slate-400 uppercase">Card #${ci + 1}</span><span class="text-xs font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/40 px-1.5 py-0.5 rounded">AWAITING PAYMENT</span></div>
+        <div class="relative w-full"><div class="grid grid-cols-5 gap-1 sm:gap-1.5 w-full" aria-hidden="true">${'<div class="aspect-square rounded-lg sm:rounded-xl bg-slate-800/70 border-2 border-slate-700/60"></div>'.repeat(25)}</div>
+        <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center p-3"><svg class="w-8 h-8 text-slate-300" aria-hidden="true"><use href="#i-lock"/></svg><p class="text-sm font-bold text-slate-100">Numbers appear once the host confirms your payment</p><button type="button" data-show-pay class="px-3 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/40 border border-indigo-500/40 text-indigo-100 text-xs font-bold">Show payment QR</button></div></div>`;
+      frag.appendChild(wrap); cardViews.push(null); return;
+    }
     wrap.className = 'bg-slate-900/90 border-2 border-slate-800 rounded-3xl p-3 sm:p-4 shadow-xl flex flex-col items-center';
     wrap.innerHTML = `<div class="w-full flex items-center justify-between mb-2 text-xs"><span class="font-display font-bold text-amber-400 uppercase">Card #${ci + 1}</span><span data-counter class="text-xs text-slate-400 font-mono bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">${card.stamped.size}/25</span></div>
       <div class="grid grid-cols-5 gap-1 sm:gap-1.5 w-full mb-1.5 text-center font-display font-bold text-sm text-white"><div class="bg-blue-600 rounded-lg py-1">B</div><div class="bg-rose-600 rounded-lg py-1">I</div><div class="bg-amber-600 rounded-lg py-1">N</div><div class="bg-emerald-600 rounded-lg py-1">G</div><div class="bg-purple-600 rounded-lg py-1">O</div></div>`;
@@ -1172,7 +1204,7 @@ let daubPrimed = false;
 function clearDaubTimers(primed = daubPrimed) { daubTimers.forEach(clearTimeout); daubTimers.clear(); daubSeen.clear(); daubPrimed = primed; }
 function markCell(ci, idx, auto) {
   const card = state.playerCards[ci];
-  if (!card || card.stamped.has(idx)) return false;
+  if (!card || card.stamped.has(idx) || !cardUnlocked(ci)) return false;
   card.stamped.add(idx); if (auto) card.auto.add(idx);
   const view = cardViews[ci];
   if (view) { paintCell(view.cells[idx], card.grid[idx], idx, true, true, auto); view.counter.textContent = `${card.stamped.size}/25`; }
@@ -1793,7 +1825,7 @@ function init() {
   trackHeaderHeight();
   // The join dialog is open in the initial HTML; register it so Tab stays inside it.
   if (isOpen($('modal-join'))) modalStack.push({ id: 'modal-join', opener: null });
-  ['modal-pay-settings', 'modal-pay', 'modal-wheel', 'modal-pin', 'modal-change-pin', 'modal-reset-game', 'modal-confirm-clear', 'modal-qr', 'modal-gm-help', 'modal-round-options', 'modal-avatar-camera'].forEach(hideModal);
+  ['modal-add-cards', 'modal-pay-settings', 'modal-pay', 'modal-wheel', 'modal-pin', 'modal-change-pin', 'modal-reset-game', 'modal-confirm-clear', 'modal-qr', 'modal-gm-help', 'modal-round-options', 'modal-avatar-camera'].forEach(hideModal);
   switchView('player'); renderAllPlayerCards();
   authReady = initFirebase();
   refreshJoinGate();
@@ -2206,6 +2238,47 @@ function init() {
       }
     } catch (err) { showToast('Could not update payment: ' + errMsg(err), true); btn.disabled = false; }
   });
+  /* ---------- Add more cards: extra cards stay blank until the host confirms payment ---------- */
+  let addCardsCount = 1;
+  function refreshAddCardsModal() {
+    const have = state.playerCards.length, room = Math.max(0, MAX_CARDS - have);
+    addCardsCount = Math.max(1, Math.min(addCardsCount, Math.max(1, room)));
+    $('add-cards-count').textContent = addCardsCount;
+    $('add-cards-cost').textContent = `₱${formatMoney(addCardsCount * state.pricePerCard)}`;
+    $('btn-add-cards-minus').disabled = addCardsCount <= 1;
+    $('btn-add-cards-plus').disabled = addCardsCount >= room;
+    $('btn-add-cards-continue').disabled = !room;
+    $('add-cards-limit').textContent = room ? `You have ${have} card${have === 1 ? '' : 's'}. Up to ${MAX_CARDS} per player.` : `You already have the maximum of ${MAX_CARDS} cards.`;
+  }
+  function openAddCards() {
+    if (!state.joined) return;
+    if (state.playerCards.length > confirmedCardsFor(state.userId)) { showToast('Wait for the host to confirm your last payment first.', true); return; }
+    addCardsCount = 1; refreshAddCardsModal(); showModal('modal-add-cards');
+  }
+  async function requestMoreCards(n) {
+    if (!state.joined || !fb) { showToast('Not connected to the server. Try again in a moment.', true); return; }
+    const adding = Math.max(0, Math.min(n, MAX_CARDS - state.playerCards.length));
+    if (!adding) return;
+    const now = Date.now();
+    const cards = [...state.playerCards, ...Array.from({ length: adding }, () => ({ cardId: '', grid: generateCard(), stamped: new Set([12]), auto: new Set() }))].map((c, i) => ({ ...c, cardId: 'card-' + (i + 1) }));
+    try {
+      await fb.setDoc(playerRef(), { cardCount: cards.length, grids: cards.map(c => c.grid.join(',')), payRequestAt: now, updatedAt: now }, { merge: true });
+    } catch (e) { showToast('Could not add cards: ' + errMsg(e), true); return; }
+    state.payRequestAt = now; state.playerCards = cards; state.cardCount = cards.length;
+    $('player-cards-badge').textContent = `${cards.length} ${cards.length === 1 ? 'Card' : 'Cards'}`;
+    renderAllPlayerCards(); applyAutoDaub(state.roomState.drawnNumbers || []); persist(); refreshPaymentStatus();
+    showToast(`${adding} card${adding > 1 ? 's' : ''} added. They unlock once the host confirms your payment.`);
+  }
+  on('btn-player-add-cards', 'click', openAddCards);
+  on('btn-add-cards-minus', 'click', () => { addCardsCount--; refreshAddCardsModal(); });
+  on('btn-add-cards-plus', 'click', () => { addCardsCount++; refreshAddCardsModal(); });
+  on('btn-add-cards-cancel', 'click', () => hideModal('modal-add-cards'));
+  on('modal-add-cards', 'click', e => { if (e.target.id === 'modal-add-cards') hideModal('modal-add-cards'); });
+  on('btn-add-cards-continue', 'click', () => {
+    const n = addCardsCount; hideModal('modal-add-cards');
+    window.__openPayModal(n, () => requestMoreCards(n), null, () => { refreshAddCardsModal(); showModal('modal-add-cards'); });
+  });
+  on('cards-container', 'click', e => { if (e.target.closest('[data-show-pay]')) window.__openPayModal(Math.max(1, state.playerCards.length - confirmedCardsFor(state.userId)), null, state.amountDue || null); });
   on('btn-export-csv', 'click', () => {
     // Quote every text cell and neutralise leading = + - @ so spreadsheet apps never run a name as a formula.
     const cell = v => { let t = String(v ?? ''); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
