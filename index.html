@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
+  [hidden]{display:none!important}
   html,body{min-height:100%}
   .-top-1{top:-.25rem}.w-0{width:0}.h-0{height:0}.max-w-lg{max-width:32rem}.max-w-\[22rem\]{max-width:22rem}.min-h-\[2rem\]{min-height:2rem}
   .bg-amber-500\/15{background-color:rgb(245 158 11/.15)}.hover\:bg-amber-500\/25:hover{background-color:rgb(245 158 11/.25)}.border-amber-500\/30{border-color:rgb(245 158 11/.3)}.max-w-\[85\%\]{max-width:85%}.break-words{overflow-wrap:break-word}.bg-slate-950\/90{background-color:rgb(2 6 23/.9)}.bg-amber-500\/10{background-color:rgb(245 158 11/.1)}.h-60{height:15rem}.w-60{width:15rem}.max-w-full{max-width:100%}.text-slate-500{color:#64748b}.bg-rose-500\/15{background-color:rgb(244 63 94/.15)}.w-48{width:12rem}.h-48{height:12rem}@media (min-width:640px){.sm\:flex-row{flex-direction:row}.sm\:items-center{align-items:center}}
@@ -494,6 +495,7 @@ const $ = id => document.getElementById(id);
 const ROLL_DELAY = 2000; // shake animation only; the server write runs in parallel
 const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
+const APP_BUILD = 20261028120107;
 let BGM_VOLUME = 0.20;
 try { const v = Number(localStorage.getItem('ces-bingo:music-volume')); if (localStorage.getItem('ces-bingo:music-volume') !== null && v >= 0 && v <= 1) BGM_VOLUME = v; } catch (e) {}
 const SFX_VOLUME = 0.80;
@@ -861,6 +863,13 @@ function syncPaymentSettings(data) {
   const qr = typeof data.paymentQr === 'string' && /^data:image\/(png|jpeg|webp);base64,/.test(data.paymentQr) ? data.paymentQr : null;
   state.payment = { qr, payTo: String(data.paymentPayTo || '').slice(0, 60), updatedAt: Number(data.paymentUpdatedAt) || 0 };
   window.__paintAdminPayment && window.__paintAdminPayment();
+}
+function checkAppBuild(d) {
+  const live = Number(d && d.appBuild) || 0;
+  if (live > APP_BUILD) {
+    try { const k = 'ces-bingo:reloaded-for'; if (sessionStorage.getItem(k) === String(live)) return; sessionStorage.setItem(k, String(live)); } catch (e) {}
+    const u = new URL(location.href); u.searchParams.set('v', String(live)); location.replace(u.toString());
+  } else if (live < APP_BUILD && state.isAdmin && fb) roomWrite({ appBuild: APP_BUILD }).catch(() => {});
 }
 /* ---------- Local persistence (survive refresh) ---------- */
 const storeKey = () => `ces-bingo:${state.appId}:${state.roomId}`;
@@ -1569,7 +1578,7 @@ function updateRoom(data) {
     if (w.timestamp !== state.seenWinTs) announce($('player-win-text').textContent);
     if (w.timestamp !== state.seenWinTs) { state.seenWinTs = w.timestamp; if (w.uid !== state.userId && typeof confetti === 'function') confetti({ particleCount: 60, spread: 60, disableForReducedMotion: true }); }
   } else if (!w && !state.hasClaimedBingo) $('player-win-banner').classList.add('hidden');
-  syncPaymentSettings(data); refreshPaymentStatus();
+  syncPaymentSettings(data); refreshPaymentStatus(); checkAppBuild(data);
   refreshJoinGate();
 }
 
@@ -1879,7 +1888,7 @@ function init() {
   const submitPin = async () => {
     const b = $('btn-submit-pin'); b.disabled = true;
     try {
-      if (await verifyAdminPin($('pin-input').value.trim())) { state.isAdmin = true; hideModal('modal-pin'); if (!state.joined) hideModal('modal-join'); switchStaffView('admin'); }
+      if (await verifyAdminPin($('pin-input').value.trim())) { state.isAdmin = true; checkAppBuild(state.roomState); hideModal('modal-pin'); if (!state.joined) hideModal('modal-join'); switchStaffView('admin'); }
       else { $('pin-error-msg').textContent = 'Incorrect PIN code'; $('pin-error-msg').classList.remove('hidden'); }
     } catch (e) { $('pin-error-msg').textContent = errMsg(e); $('pin-error-msg').classList.remove('hidden'); }
     finally { b.disabled = false; }
@@ -2143,13 +2152,18 @@ function init() {
     payOnDone = onDone; payOnBack = onBack;
     $('pay-card-count').textContent = `${n} ${n === 1 ? 'card' : 'cards'}`;
     $('pay-total').textContent = `₱${formatMoney(amount != null ? amount : n * state.pricePerCard)}`;
-    const qr = state.payment.qr;
-    $('pay-qr-wrap').hidden = !qr; $('pay-qr-missing').hidden = !!qr;
-    if (qr) $('pay-qr-img').src = qr;
-    $('pay-to-label').textContent = state.payment.payTo ? `Pay to: ${state.payment.payTo}` : '';
+    paintPayModalQr();
     $('btn-pay-done').hidden = !onDone;
     $('btn-pay-back').textContent = onDone ? 'Back' : 'Close';
     showModal('modal-pay');
+    // Always pull the latest QR from the server when the payment screen opens.
+    if (fb) (fb.getDocFromServer || fb.getDoc)(roomRef()).then(s => { if (s.exists()) { syncPaymentSettings(s.data()); if (isOpen($('modal-pay'))) paintPayModalQr(); } }).catch(() => {});
+  }
+  function paintPayModalQr() {
+    const qr = state.payment.qr;
+    $('pay-qr-wrap').hidden = !qr; $('pay-qr-missing').hidden = !!qr;
+    if (qr && $('pay-qr-img').getAttribute('src') !== qr) $('pay-qr-img').src = qr;
+    $('pay-to-label').textContent = state.payment.payTo ? `Pay to: ${state.payment.payTo}` : '';
   }
   window.__openPayModal = openPayModal;
   on('btn-pay-back', 'click', () => { hideModal('modal-pay'); const fn = payOnBack; payOnBack = null; if (fn) fn(); });
