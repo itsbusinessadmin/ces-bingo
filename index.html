@@ -15,7 +15,7 @@
   [hidden]{display:none!important}
   html,body{min-height:100%}
   .-top-1{top:-.25rem}.w-0{width:0}.h-0{height:0}.max-w-lg{max-width:32rem}.max-w-\[22rem\]{max-width:22rem}.min-h-\[2rem\]{min-height:2rem}
-  .bg-amber-500\/15{background-color:rgb(245 158 11/.15)}.hover\:bg-amber-500\/25:hover{background-color:rgb(245 158 11/.25)}.border-amber-500\/30{border-color:rgb(245 158 11/.3)}.max-w-\[85\%\]{max-width:85%}.break-words{overflow-wrap:break-word}.bg-slate-950\/90{background-color:rgb(2 6 23/.9)}.bg-amber-500\/10{background-color:rgb(245 158 11/.1)}.h-60{height:15rem}.w-60{width:15rem}.max-w-full{max-width:100%}.text-slate-500{color:#64748b}.bg-rose-500\/15{background-color:rgb(244 63 94/.15)}.w-48{width:12rem}.h-48{height:12rem}.bg-indigo-600\/30{background-color:rgb(79 70 229/.3)}.bg-slate-900\/70{background-color:rgb(15 23 42/.7)}.border-dashed{border-style:dashed}.bg-rose-600\/15{background-color:rgb(225 29 72/.15)}.ml-auto{margin-left:auto}@media (min-width:640px){.sm\:flex-row{flex-direction:row}.sm\:items-center{align-items:center}}
+  .bg-amber-500\/15{background-color:rgb(245 158 11/.15)}.hover\:bg-amber-500\/25:hover{background-color:rgb(245 158 11/.25)}.border-amber-500\/30{border-color:rgb(245 158 11/.3)}.max-w-\[85\%\]{max-width:85%}.break-words{overflow-wrap:break-word}.bg-slate-950\/90{background-color:rgb(2 6 23/.9)}.bg-amber-500\/10{background-color:rgb(245 158 11/.1)}.h-60{height:15rem}.w-60{width:15rem}.max-w-full{max-width:100%}.text-slate-500{color:#64748b}.bg-rose-500\/15{background-color:rgb(244 63 94/.15)}.w-48{width:12rem}.h-48{height:12rem}.bg-indigo-600\/30{background-color:rgb(79 70 229/.3)}.bg-slate-900\/70{background-color:rgb(15 23 42/.7)}.border-dashed{border-style:dashed}.bg-rose-600\/15{background-color:rgb(225 29 72/.15)}.ml-auto{margin-left:auto}.hover\:text-sky-200:hover{color:#bae6fd}.text-sky-300{color:#7dd3fc}.resize-y{resize:vertical}.whitespace-pre-wrap{white-space:pre-wrap}.z-\[66\]{z-index:66}@media (min-width:640px){.sm\:flex-row{flex-direction:row}.sm\:items-center{align-items:center}}
   body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;touch-action:manipulation;-webkit-tap-highlight-color:transparent;overflow-x:hidden;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
   .font-display{font-family:'Fredoka',system-ui,sans-serif}
   .hidden{display:none!important}
@@ -232,6 +232,7 @@
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <button id="btn-admin-copy-link" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-link"/></svg>Copy Link</button>
+        <button id="btn-admin-send-msg" type="button" class="px-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-200 border border-indigo-500/40 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-info"/></svg>Send Message</button>
         <button id="btn-admin-pay-settings" type="button" class="px-3 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-200 border border-emerald-500/40 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-qr"/></svg>Payment Settings</button>
         <button id="btn-admin-wheel" type="button" class="px-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-200 border border-amber-500/40 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-wheel"/></svg>Spin Wheel</button>
         <button id="btn-admin-show-qr" type="button" class="px-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-200 border border-indigo-500/30 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-qr"/></svg>Show QR</button>
@@ -399,6 +400,39 @@
   </div>
 </div>
 
+<!-- ADMIN: SEND MESSAGE MODAL -->
+<div id="modal-send-msg" class="fixed inset-0 z-[60] hidden items-center justify-center p-3 bg-slate-950/90 backdrop-blur-sm">
+  <div role="dialog" aria-modal="true" aria-labelledby="modal-send-msg-title" class="modal-box bg-slate-900 border border-indigo-500/30 w-full max-w-md rounded-3xl p-5 sm:p-6 shadow-2xl">
+    <div class="flex items-start justify-between gap-3 mb-4">
+      <div><p class="text-xs uppercase tracking-[.18em] font-black text-indigo-300">Admin</p><h3 id="modal-send-msg-title" class="font-display font-bold text-xl mt-1">Message to Players</h3><p class="text-xs text-slate-400 mt-1">Pops up on every player's screen. Links you type become clickable.</p></div>
+      <button id="btn-close-send-msg" type="button" aria-label="Close" class="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center shrink-0"><svg class="w-5 h-5 shrink-0" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="flex flex-col gap-2">
+      <label for="send-msg-title" class="text-xs font-bold text-slate-300 uppercase">Title</label>
+      <input type="text" id="send-msg-title" maxlength="60" placeholder="e.g. Announcement" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:border-indigo-400">
+      <label for="send-msg-text" class="text-xs font-bold text-slate-300 uppercase mt-1">Message</label>
+      <textarea id="send-msg-text" rows="5" maxlength="600" placeholder="e.g. Round 2 starts in 5 minutes! Join our group chat: https://m.me/..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 resize-y"></textarea>
+      <p id="send-msg-current" class="text-xs text-slate-400"></p>
+      <div class="grid grid-cols-2 gap-2 mt-1">
+        <button id="btn-clear-msg" type="button" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold">Clear Message</button>
+        <button id="btn-send-msg" type="button" class="py-2.5 rounded-xl bg-gradient-to-r from-brand-pinkdeep to-brand-blue text-white font-display font-bold text-sm active:scale-95">SEND TO PLAYERS</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PLAYER: MESSAGE FROM THE HOST -->
+<div id="modal-host-msg" class="fixed inset-0 z-[66] hidden items-center justify-center p-3 bg-slate-950/85 backdrop-blur-sm">
+  <div role="dialog" aria-modal="true" aria-labelledby="host-msg-title" class="modal-box bg-slate-900 border border-indigo-500/40 w-full max-w-md rounded-3xl p-5 sm:p-6 shadow-2xl">
+    <div class="flex items-start justify-between gap-3 mb-3">
+      <div class="min-w-0"><p class="text-xs uppercase tracking-[.18em] font-black text-indigo-300">Message from the host</p><h3 id="host-msg-title" class="font-display font-bold text-2xl mt-1 break-words">Announcement</h3></div>
+      <button id="btn-close-host-msg" type="button" aria-label="Close message" class="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center shrink-0"><svg class="w-5 h-5 shrink-0" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <p id="host-msg-text" class="text-base text-slate-100 whitespace-pre-wrap break-words"></p>
+    <button id="btn-ok-host-msg" type="button" class="w-full mt-5 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-slate-950 text-sm font-black">OK</button>
+  </div>
+</div>
+
 <!-- PIN MODAL -->
 <div id="modal-pin" class="fixed inset-0 z-[55] hidden items-center justify-center p-3 bg-slate-950/85 backdrop-blur-sm">
   <div role="dialog" aria-modal="true" aria-labelledby="modal-pin-title" class="modal-box bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-6 shadow-2xl text-center">
@@ -525,7 +559,7 @@ const $ = id => document.getElementById(id);
 const ROLL_DELAY = 2000; // shake animation only; the server write runs in parallel
 const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
-const APP_BUILD = 20261028123558;
+const APP_BUILD = 20261028125107;
 let BGM_VOLUME = 0.20;
 try { const v = Number(localStorage.getItem('ces-bingo:music-volume')); if (localStorage.getItem('ces-bingo:music-volume') !== null && v >= 0 && v <= 1) BGM_VOLUME = v; } catch (e) {}
 const SFX_VOLUME = 0.80;
@@ -918,6 +952,32 @@ async function checkKicked() {
   renderAllPlayerCards(); refreshPaymentStatus(); refreshJoinPrice(); openJoin();
   showToast('The host removed you from the game.', true); announce('The host removed you from the game.');
 }
+
+/* ---------- Host messages: room.announcement = { id, title, text } ---------- */
+const linkify = text => esc(text).replace(/(\bhttps?:\/\/[^\s<]+|\bwww\.[^\s<]+)/gi, m => {
+  const tail = (m.match(/[.,!?;:)\]]+$/) || [''])[0], url = tail ? m.slice(0, -tail.length) : m;
+  const href = /^https?:/i.test(url) ? url : 'https://' + url;
+  return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-sky-300 underline underline-offset-2 break-all hover:text-sky-200">${url}</a>${tail}`;
+});
+const msgSeenKey = () => `ces-bingo:${state.appId}:${state.roomId}:msg-seen`;
+let shownMsgId = 0;
+function checkHostMessage(data) {
+  const a = data && data.announcement;
+  const id = Number(a && a.id) || 0;
+  if (!id || !String(a.text || '').trim()) { if (shownMsgId) { hideModal('modal-host-msg'); shownMsgId = 0; } return; }
+  if (state.isAdmin && isStaffView()) return;
+  let seen = 0; try { seen = Number(localStorage.getItem(msgSeenKey())) || 0; } catch (e) {}
+  if (id <= seen || id === shownMsgId) return;
+  shownMsgId = id;
+  $('host-msg-title').textContent = String(a.title || '').trim() || 'Announcement';
+  $('host-msg-text').innerHTML = linkify(String(a.text).slice(0, 600));
+  showModal('modal-host-msg'); playBeep(660, 'sine', 0.12); playBeep(880, 'sine', 0.14, 0.12);
+  announce('Message from the host: ' + String(a.text).slice(0, 200));
+}
+function closeHostMessage() {
+  if (shownMsgId) { try { localStorage.setItem(msgSeenKey(), String(shownMsgId)); } catch (e) {} }
+  hideModal('modal-host-msg');
+}
 function checkAppBuild(d) {
   const live = Number(d && d.appBuild) || 0;
   if (live > APP_BUILD) {
@@ -1011,7 +1071,7 @@ const hideModal = id => {
   if (i >= 0) { const [m] = modalStack.splice(i, 1); if (wasOpen && m.opener && document.contains(m.opener) && (!modalStack.length || modalStack.some(o => isOpen($(o.id)) && $(o.id).contains(m.opener)))) try { m.opener.focus({ preventScroll: true }); } catch (e) {} }
 };
 // Escape closes dialogs that are safe to dismiss (not the join gate or round choice for players).
-const ESC_CLOSE = { 'modal-kick': 1, 'modal-add-cards': 1, 'modal-pay-settings': 1, 'modal-pay': 1, 'modal-wheel': 1, 'modal-pin': 1, 'modal-change-pin': 1, 'modal-reset-game': 1, 'modal-confirm-clear': 1, 'modal-qr': 1, 'modal-gm-help': 1 };
+const ESC_CLOSE = { 'modal-send-msg': 1, 'modal-kick': 1, 'modal-add-cards': 1, 'modal-pay-settings': 1, 'modal-pay': 1, 'modal-wheel': 1, 'modal-pin': 1, 'modal-change-pin': 1, 'modal-reset-game': 1, 'modal-confirm-clear': 1, 'modal-qr': 1, 'modal-gm-help': 1 };
 document.addEventListener('keydown', e => {
   const top = [...modalStack].reverse().find(m => isOpen($(m.id)));
   if (e.key === 'Escape') {
@@ -1019,6 +1079,7 @@ document.addEventListener('keydown', e => {
     if (isOpen(menu)) { closeStaffMenu(true); return; }
     if (top) {
       if (top.id === 'modal-avatar-camera') closeAvatarCamera();
+      else if (top.id === 'modal-host-msg') closeHostMessage();
       else if (ESC_CLOSE[top.id] || (top.id === 'modal-join' && state.isAdmin)) hideModal(top.id);
       return;
     }
@@ -1640,7 +1701,7 @@ function updateRoom(data) {
     if (w.timestamp !== state.seenWinTs) announce($('player-win-text').textContent);
     if (w.timestamp !== state.seenWinTs) { state.seenWinTs = w.timestamp; if (w.uid !== state.userId && typeof confetti === 'function') confetti({ particleCount: 60, spread: 60, disableForReducedMotion: true }); }
   } else if (!w && !state.hasClaimedBingo) $('player-win-banner').classList.add('hidden');
-  syncPaymentSettings(data); refreshPaymentStatus(); checkAppBuild(data); checkKicked();
+  syncPaymentSettings(data); refreshPaymentStatus(); checkAppBuild(data); checkKicked(); checkHostMessage(data);
   refreshJoinGate();
 }
 
@@ -1855,7 +1916,7 @@ function init() {
   trackHeaderHeight();
   // The join dialog is open in the initial HTML; register it so Tab stays inside it.
   if (isOpen($('modal-join'))) modalStack.push({ id: 'modal-join', opener: null });
-  ['modal-kick', 'modal-add-cards', 'modal-pay-settings', 'modal-pay', 'modal-wheel', 'modal-pin', 'modal-change-pin', 'modal-reset-game', 'modal-confirm-clear', 'modal-qr', 'modal-gm-help', 'modal-round-options', 'modal-avatar-camera'].forEach(hideModal);
+  ['modal-send-msg', 'modal-host-msg', 'modal-kick', 'modal-add-cards', 'modal-pay-settings', 'modal-pay', 'modal-wheel', 'modal-pin', 'modal-change-pin', 'modal-reset-game', 'modal-confirm-clear', 'modal-qr', 'modal-gm-help', 'modal-round-options', 'modal-avatar-camera'].forEach(hideModal);
   switchView('player'); renderAllPlayerCards();
   authReady = initFirebase();
   refreshJoinGate();
@@ -2330,6 +2391,32 @@ function init() {
     } catch (err) { showToast('Could not kick player: ' + errMsg(err), true); }
     finally { b.disabled = false; b.textContent = 'KICK PLAYER'; kickTargetId = null; }
   });
+  /* ---------- Admin: send a message to all players ---------- */
+  function openSendMessage() {
+    const a = state.roomState && state.roomState.announcement;
+    const live = a && Number(a.id) && String(a.text || '').trim();
+    $('send-msg-current').textContent = live ? `Showing now: "${String(a.title || 'Announcement')}" · sent ${new Date(Number(a.id)).toLocaleTimeString()}` : 'No message is showing right now.';
+    if (live) { $('send-msg-title').value = a.title || ''; $('send-msg-text').value = a.text || ''; }
+    showModal('modal-send-msg'); setTimeout(() => $('send-msg-text').focus(), 50);
+  }
+  on('btn-admin-send-msg', 'click', openSendMessage);
+  on('btn-close-send-msg', 'click', () => hideModal('modal-send-msg'));
+  on('modal-send-msg', 'click', e => { if (e.target.id === 'modal-send-msg') hideModal('modal-send-msg'); });
+  on('btn-send-msg', 'click', async () => {
+    const text = $('send-msg-text').value.trim().slice(0, 600), title = $('send-msg-title').value.trim().slice(0, 60);
+    if (!text) { showToast('Type a message first.', true); $('send-msg-text').focus(); return; }
+    const b = $('btn-send-msg'); b.disabled = true; b.textContent = 'SENDING…';
+    try { await roomWrite({ announcement: { id: Date.now(), title, text } }); hideModal('modal-send-msg'); showToast('Message sent to all players.'); }
+    catch (err) { showToast('Could not send message: ' + errMsg(err), true); }
+    finally { b.disabled = false; b.textContent = 'SEND TO PLAYERS'; }
+  });
+  on('btn-clear-msg', 'click', async () => {
+    try { await roomWrite({ announcement: { id: 0, title: '', text: '' } }); $('send-msg-title').value = ''; $('send-msg-text').value = ''; hideModal('modal-send-msg'); showToast('Message cleared.'); }
+    catch (err) { showToast('Could not clear message: ' + errMsg(err), true); }
+  });
+  on('btn-close-host-msg', 'click', closeHostMessage);
+  on('btn-ok-host-msg', 'click', closeHostMessage);
+  on('modal-host-msg', 'click', e => { if (e.target.id === 'modal-host-msg') closeHostMessage(); });
   on('btn-export-csv', 'click', () => {
     // Quote every text cell and neutralise leading = + - @ so spreadsheet apps never run a name as a formula.
     const cell = v => { let t = String(v ?? ''); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
