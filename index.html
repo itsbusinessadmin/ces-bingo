@@ -439,7 +439,7 @@ const state = {
   playerName: '', playerAvatar: '🎯', cardCount: 1, pricePerCard: 10, soundEnabled: true,
   lastSpokenNum: null, playerCards: [], joined: false, isAdmin: false, hasClaimedBingo: false,
   connected: false, statusMsg: '', started: false, restoreTried: false,
-  autoRollTimer: null, isRolling: false, round: 0, seenWinTs: null, dismissedWinTs: null,
+  autoRollTimer: null, autoRevealTimer: null, isRolling: false, round: 0, seenWinTs: null, dismissedWinTs: null,
   players: [], roomState: { drawnNumbers: [], lastDrawn: null, lastWinner: null, winners: [] },
   rosterUnsub: null, claimsUnsub: null, bingoClaims: [], stats: { players: 0, cards: 0 }, announcingWinnerIds: new Set(), roundInitialized: false, roundChoicePending: false, roundAddCount: 1,
   currentView: 'player', isResetting: false, gameId: null, pendingBall: null
@@ -472,8 +472,9 @@ const avatarMarkup = (value, size = 'w-8 h-8') => {
   return html;
 };
 function setAvatarElement(el, value) { if (el) el.innerHTML = avatarMarkup(value, 'w-6 h-6'); }
-let avatarCameraStream = null;
+let avatarCameraStream = null, avatarCameraToken = 0;
 function stopAvatarCamera() {
+  avatarCameraToken++;
   if (avatarCameraStream) { avatarCameraStream.getTracks().forEach(t => t.stop()); avatarCameraStream = null; }
   const v = $('avatar-camera-video'); if (v) v.srcObject = null;
 }
@@ -513,9 +514,14 @@ async function openAvatarCamera() {
     return;
   }
   try {
-    avatarCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 640 } }, audio: false });
-    const video = $('avatar-camera-video'); video.srcObject = avatarCameraStream; await video.play(); if (cap) cap.disabled = false;
+    const token = avatarCameraToken;
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 640 } }, audio: false });
+    // The modal may have been closed while the permission prompt was showing.
+    if (token !== avatarCameraToken || !isOpen($('modal-avatar-camera'))) { stream.getTracks().forEach(t => t.stop()); return; }
+    avatarCameraStream = stream;
+    const video = $('avatar-camera-video'); video.srcObject = stream; await video.play(); if (cap) cap.disabled = false;
   } catch (e) {
+    if (!isOpen($('modal-avatar-camera'))) return;
     if (err) { err.textContent = 'Camera access was not available. Allow camera permission or use the device camera/photo option below.'; err.classList.remove('hidden'); }
   }
 }
@@ -535,6 +541,9 @@ async function hashAdminPin(pin) {
   return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
 async function verifyAdminPin(pin) {
+  // Without the room document we cannot know whether a custom passcode was set,
+  // so never fall back to the default PINs before it has loaded.
+  if (!state.roomState?.gameId) throw new Error('Still connecting to the room. Try again in a moment.');
   const stored = state.roomState?.adminPinHash;
   if (stored) return (await hashAdminPin(pin)) === stored;
   return DEFAULT_ADMIN_PINS.includes(String(pin));
@@ -807,7 +816,7 @@ const hideModal = id => {
   const wasOpen = isOpen(el);
   el.classList.add('hidden'); el.classList.remove('flex');
   const i = modalStack.findIndex(m => m.id === id);
-  if (i >= 0) { const [m] = modalStack.splice(i, 1); if (wasOpen && m.opener && document.contains(m.opener) && !modalStack.length) try { m.opener.focus({ preventScroll: true }); } catch (e) {} }
+  if (i >= 0) { const [m] = modalStack.splice(i, 1); if (wasOpen && m.opener && document.contains(m.opener) && (!modalStack.length || modalStack.some(o => isOpen($(o.id)) && $(o.id).contains(m.opener)))) try { m.opener.focus({ preventScroll: true }); } catch (e) {} }
 };
 // Escape closes dialogs that are safe to dismiss (not the join gate or round choice for players).
 const ESC_CLOSE = { 'modal-pin': 1, 'modal-change-pin': 1, 'modal-reset-game': 1, 'modal-confirm-clear': 1, 'modal-qr': 1, 'modal-gm-help': 1 };
@@ -918,7 +927,7 @@ function copyText(text, ok) {
   const fallback = () => {
     const ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px';
     document.body.appendChild(ta); ta.select();
-    try { document.execCommand('copy'); ok && ok(); } catch (e) { showToast('Copy failed. Please copy manually.', true); }
+    try { if (!document.execCommand('copy')) throw new Error('copy failed'); ok && ok(); } catch (e) { showToast('Copy failed. Please copy manually.', true); }
     ta.remove();
   };
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok).catch(fallback); else fallback();
@@ -961,7 +970,8 @@ function toggleStaffMusic() {
 }
 function stopAutoRoll() {
   if (state.autoRollTimer) clearInterval(state.autoRollTimer);
-  state.autoRollTimer = null;
+  clearTimeout(state.autoRevealTimer);
+  state.autoRollTimer = null; state.autoRevealTimer = null;
   const toggle = $('gm-auto-roll-toggle'); if (toggle) toggle.checked = false;
 }
 function switchStaffView(v) {
@@ -1301,6 +1311,7 @@ async function applyRoundChoice(addCount) {
 }
 async function leaveGame() {
   if (!state.joined) return;
+  if (!fb) { showToast('Not connected to the server. Try again in a moment.', true); return; }
   try { await fb.deleteDoc(playerRef()); } catch (e) { showToast('Could not leave: ' + errMsg(e), true); return; }
   clearDaubTimers(false); state.joined = false; state.playerName = ''; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false;
   try { localStorage.removeItem(storeKey()); } catch (e) {}
@@ -1315,7 +1326,9 @@ function resetLocalRound() {
   renderAllPlayerCards(); $('player-win-banner').classList.add('hidden');
 }
 function handleFullGameReset(nextGameId, freshRoomData = null) {
-  stopAutoRoll(); stopStaffListeners(); stopStaffMusic(); stopAvatarCamera(); clearDaubTimers(false);
+  // Players go back to the join screen; staff stay on the screen they were using.
+  const keepStaffView = state.isAdmin && isStaffView() ? state.currentView : null;
+  stopAutoRoll(); stopStaffListeners(); if (!keepStaffView) stopStaffMusic(); stopAvatarCamera(); clearDaubTimers(false);
   const freshRoom = freshRoomData || {
     gameId: nextGameId,
     drawnNumbers: [],
@@ -1332,7 +1345,7 @@ function handleFullGameReset(nextGameId, freshRoomData = null) {
   state.pendingBall = null;
   state.started = false;
   state.pricePerCard = Number(freshRoom.pricePerCard) > 0 ? Number(freshRoom.pricePerCard) : 10;
-  state.players = []; state.joined = false; state.isAdmin = false; state.playerName = ''; state.playerAvatar = '🎯'; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false; state.roundAddCount = 1; state.round = Number(freshRoom.round || 0); state.roundInitialized = true; state.lastSpokenNum = null; state.seenWinTs = null; state.dismissedWinTs = null; state.announcingWinnerIds.clear();
+  state.players = []; state.joined = false; state.isAdmin = !!keepStaffView; state.playerName = ''; state.playerAvatar = '🎯'; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false; state.roundAddCount = 1; state.round = Number(freshRoom.round || 0); state.roundInitialized = true; state.lastSpokenNum = null; state.seenWinTs = null; state.dismissedWinTs = null; state.announcingWinnerIds.clear();
   try { localStorage.removeItem(storeKey()); } catch (e) {}
   ['modal-pin','modal-change-pin','modal-reset-game','modal-confirm-clear','modal-qr','modal-gm-help','modal-round-options','modal-avatar-camera'].forEach(hideModal);
   $('player-profile-badge').classList.add('hidden'); $('player-profile-badge').classList.remove('flex'); $('player-win-banner').classList.add('hidden');
@@ -1344,7 +1357,9 @@ function handleFullGameReset(nextGameId, freshRoomData = null) {
   $('big-bingo-ball').classList.remove('letter-only', 'ball-awaiting-reveal'); $('big-bingo-ball').title = 'Roll a letter first';
   $('recent-balls-bar').innerHTML = '<span class="text-sm text-slate-400 italic">None</span>';
   const priceInput = $('admin-card-price-input'); if (priceInput) priceInput.value = state.pricePerCard;
-  switchView('player'); renderAllPlayerCards(); refreshJoinPrice(); renderPlayers(); refreshJoinGate(); openJoin();
+  renderAllPlayerCards(); refreshJoinPrice(); refreshJoinGate();
+  if (keepStaffView) switchStaffView(keepStaffView);
+  else { switchView('player'); renderPlayers(); openJoin(); }
 }
 function updateRoom(data) {
   const incomingGameId = data.gameId || null;
@@ -1448,6 +1463,8 @@ function syncRows(container, cache, rows, tagName, emptyHtml) {
   });
   cache.forEach((entry, id) => { if (!keep.has(id)) { entry.el.remove(); cache.delete(id); } });
 }
+const rosterList = () => [...state.players].sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0));
+const playerStatus = (p, winnerIds) => winnerIds.has(p.id) ? 'BINGO' : (Number(p.roundAck) !== Number(state.round) && !state.started) ? 'CHOOSING NEXT ROUND' : 'PLAYING';
 function renderPlayersNow() {
   announceDerivedWinners(verifiedClaims());
   const { players, cards } = state.stats, money = cards * state.pricePerCard;
@@ -1471,10 +1488,8 @@ function renderPlayersNow() {
 
   if (state.currentView === 'admin') {
     const winnerIds = new Set(winners.map(w => w.uid));
-    const list = [...state.players].sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0));
-    const rows = list.map((p, i) => {
-      const n = Number(p.cardCount) || 0, won = winnerIds.has(p.id), pending = Number(p.roundAck) !== Number(state.round) && !state.started;
-      const status = won ? 'BINGO' : pending ? 'CHOOSING NEXT ROUND' : 'PLAYING';
+    const rows = rosterList().map((p, i) => {
+      const n = Number(p.cardCount) || 0, status = playerStatus(p, winnerIds), won = status === 'BINGO', pending = status === 'CHOOSING NEXT ROUND';
       const html = `<td class="py-2.5 px-3 font-mono text-slate-400">${i + 1}</td><td class="py-2.5 px-3">${avatarMarkup(p.avatar || '👤', 'w-7 h-7 mr-2 inline-flex align-middle')}<span class="font-bold text-slate-200">${esc(p.name || 'Anon')}</span></td>
         <td class="py-2.5 px-3 text-cyan-400 font-mono font-bold">${n}</td><td class="py-2.5 px-3 text-slate-400">₱${formatMoney(state.pricePerCard)}</td><td class="py-2.5 px-3 text-emerald-400 font-mono font-bold">₱${formatMoney(n * state.pricePerCard)}</td>
         <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${won ? 'bg-amber-500 text-slate-950' : pending ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">${status}</span></td>`;
@@ -1703,7 +1718,7 @@ function init() {
     b.textContent = 'GET CARDS & ENTER'; refreshJoinGate();
   });
 
-  const openPin = () => { $('pin-input').value = ''; $('pin-error-msg').classList.add('hidden'); showModal('modal-pin'); setTimeout(() => $('pin-input').focus(), 50); };
+  const openPin = () => { $('pin-input').value = ''; $('pin-error-msg').textContent = 'Incorrect PIN code'; $('pin-error-msg').classList.add('hidden'); showModal('modal-pin'); setTimeout(() => $('pin-input').focus(), 50); };
   let clicks = 0, timer;
   const logoAdminTrigger = () => { clicks++; clearTimeout(timer); timer = setTimeout(() => clicks = 0, 650); if (clicks >= 3) { clicks = 0; openPin(); } };
   on('brand-logo-trigger', 'click', logoAdminTrigger);
@@ -1713,7 +1728,7 @@ function init() {
     const b = $('btn-submit-pin'); b.disabled = true;
     try {
       if (await verifyAdminPin($('pin-input').value.trim())) { state.isAdmin = true; hideModal('modal-pin'); if (!state.joined) hideModal('modal-join'); switchStaffView('admin'); }
-      else $('pin-error-msg').classList.remove('hidden');
+      else { $('pin-error-msg').textContent = 'Incorrect PIN code'; $('pin-error-msg').classList.remove('hidden'); }
     } catch (e) { $('pin-error-msg').textContent = errMsg(e); $('pin-error-msg').classList.remove('hidden'); }
     finally { b.disabled = false; }
   };
@@ -1752,7 +1767,7 @@ function init() {
   on('btn-admin-change-pin', 'click', () => { ['change-pin-current','change-pin-new','change-pin-confirm'].forEach(id => $(id).value = ''); $('change-pin-error').classList.add('hidden'); showModal('modal-change-pin'); setTimeout(() => $('change-pin-current').focus(), 50); });
   on('btn-cancel-change-pin', 'click', () => hideModal('modal-change-pin'));
   on('btn-save-change-pin', 'click', async () => {
-    const current = $('change-pin-current').value, next = $('change-pin-new').value, confirm = $('change-pin-confirm').value, err = $('change-pin-error'), b = $('btn-save-change-pin');
+    const current = $('change-pin-current').value.trim(), next = $('change-pin-new').value.trim(), confirm = $('change-pin-confirm').value.trim(), err = $('change-pin-error'), b = $('btn-save-change-pin');
     err.classList.add('hidden');
     if (next !== confirm) { err.textContent = 'The new passcodes do not match.'; err.classList.remove('hidden'); return; }
     b.disabled = true; b.textContent = 'SAVING...';
@@ -1765,12 +1780,21 @@ function init() {
   on('btn-draw-ball', 'click', drawNextBall);
   on('big-bingo-ball', 'click', revealPendingBall);
   on('big-bingo-ball', 'keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && state.currentView === 'gm') { e.preventDefault(); revealPendingBall(); } });
+  // Auto-roll rolls a letter, then reveals its number a few seconds later, so the
+  // game keeps moving without the Game Master tapping the ball every time.
+  const hasPendingBall = () => !!(state.pendingBall || Number(state.roomState.pendingBall));
   const setAuto = () => {
-    clearInterval(state.autoRollTimer); state.autoRollTimer = null;
-    if ($('gm-auto-roll-toggle').checked) state.autoRollTimer = setInterval(() => {
-      if ((state.roomState.drawnNumbers || []).length >= 75) stopAutoRoll();
-      else if (!state.pendingBall && !Number(state.roomState.pendingBall)) drawNextBall();
-    }, parseInt($('gm-auto-roll-speed').value, 10));
+    clearInterval(state.autoRollTimer); clearTimeout(state.autoRevealTimer); state.autoRollTimer = null; state.autoRevealTimer = null;
+    if (!$('gm-auto-roll-toggle').checked) return;
+    const every = parseInt($('gm-auto-roll-speed').value, 10) || 8000;
+    state.autoRollTimer = setInterval(() => {
+      if ((state.roomState.drawnNumbers || []).length >= 75) { stopAutoRoll(); return; }
+      if (state.isRolling || state.isResetting) return;
+      if (hasPendingBall()) { revealPendingBall(); return; }
+      drawNextBall();
+      clearTimeout(state.autoRevealTimer);
+      state.autoRevealTimer = setTimeout(() => { if (state.autoRollTimer && !state.isRolling && hasPendingBall()) revealPendingBall(); }, Math.min(3000, every / 2));
+    }, every);
   };
   on('gm-auto-roll-toggle', 'change', setAuto); on('gm-auto-roll-speed', 'change', setAuto);
 
@@ -1805,7 +1829,7 @@ function init() {
   on('btn-round-add-confirm', 'click', () => stayForNewRound(state.roundAddCount));
   on('btn-round-leave', 'click', leaveGame);
   on('btn-admin-copy-link', 'click', () => copyText(shareLink(), () => showToast('Link copied!')));
-  on('btn-admin-copy-invite', 'click', () => copyText(`🎉 Join our BINGO by CES Fun Club!\n👉 ${shareLink()}\n🎟️ Cards are ₱${state.pricePerCard}.00 each. Join before the first ball is rolled, because the room locks once the game starts!`, () => showToast('Invitation copied!')));
+  on('btn-admin-copy-invite', 'click', () => copyText(`🎉 Join our BINGO by CES Fun Club!\n👉 ${shareLink()}\n🎟️ Cards are ₱${formatMoney(state.pricePerCard)} each. Join before the first ball is rolled, because the room locks once the game starts!`, () => showToast('Invitation copied!')));
   ['modal-qr', 'modal-confirm-clear', 'modal-pin', 'modal-change-pin', 'modal-reset-game', 'modal-gm-help'].forEach(id => on(id, 'click', e => { if (e.target.id === id) hideModal(id); }));
 
   on('btn-save-price', 'click', async () => {
@@ -1815,11 +1839,13 @@ function init() {
     catch (e) { showToast('Could not update price: ' + errMsg(e), true); }
   });
   on('btn-export-csv', 'click', () => {
+    // Quote every text cell and neutralise leading = + - @ so spreadsheet apps never run a name as a formula.
+    const cell = v => { let t = String(v ?? ''); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
     let csv = 'Index,Player Name,Cards,Price Per Card,Total Due (PHP),Status\n';
     const winnerIds = new Set((state.roomState.winners || []).map(w => w.uid));
-    state.players.forEach((p, i) => {
-      const n = Number(p.cardCount) || 0, status = winnerIds.has(p.id) ? 'BINGO' : 'Playing';
-      csv += `${i + 1},"${String(p.name || 'Player').replace(/"/g, '""')}",${n},${state.pricePerCard},${n * state.pricePerCard},"${status.replace(/"/g, '""')}"\n`;
+    rosterList().forEach((p, i) => {
+      const n = Number(p.cardCount) || 0;
+      csv += `${i + 1},${cell(p.name || 'Player')},${n},${state.pricePerCard},${n * state.pricePerCard},${cell(playerStatus(p, winnerIds))}\n`;
     });
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `ces_bingo_roster_${Date.now()}.csv`;
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
