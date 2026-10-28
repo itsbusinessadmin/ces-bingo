@@ -233,6 +233,7 @@
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <button id="btn-admin-copy-link" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-link"/></svg>Copy Link</button>
+        <button id="btn-admin-toggle-join" type="button" aria-pressed="false" class="px-3 rounded-xl bg-rose-600/15 hover:bg-rose-600/30 text-rose-200 border border-rose-500/40 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-lock"/></svg><span id="admin-toggle-join-label">Stop Accepting Players</span></button>
         <button id="btn-admin-send-msg" type="button" class="px-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-200 border border-indigo-500/40 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-info"/></svg>Send Message</button>
         <button id="btn-admin-pay-settings" type="button" class="px-3 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-200 border border-emerald-500/40 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-qr"/></svg>Payment Settings</button>
         <button id="btn-admin-wheel" type="button" class="px-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-200 border border-amber-500/40 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-wheel"/></svg>Spin Wheel</button>
@@ -584,7 +585,7 @@ const $ = id => document.getElementById(id);
 const ROLL_DELAY = 2000; // shake animation only; the server write runs in parallel
 const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
-const APP_BUILD = 20261028131035;
+const APP_BUILD = 20261028131212;
 let BGM_VOLUME = 0.20;
 try { const v = Number(localStorage.getItem('ces-bingo:music-volume')); if (localStorage.getItem('ces-bingo:music-volume') !== null && v >= 0 && v <= 1) BGM_VOLUME = v; } catch (e) {}
 const SFX_VOLUME = 0.80;
@@ -744,6 +745,7 @@ function joinGateMessage() {
   if (!state.connected) return state.statusMsg || 'Connecting to the game server...';
   if (!state.gameId) return 'Preparing the game session...';
   const roomMatchesCurrentGame = !state.roomState?.gameId || state.roomState.gameId === state.gameId;
+  if (state.roomState?.joinClosed && !state.joined) return '🔒 The host has stopped accepting new players. Already playing on another phone? Use your Player Code below.';
   if (state.started && roomMatchesCurrentGame && !state.joined) return '🔒 This game has already started. New players cannot enter until the host starts a new round.';
   return '';
 }
@@ -1820,6 +1822,9 @@ function updateRoom(data) {
     if (w.timestamp !== state.seenWinTs) announce($('player-win-text').textContent);
     if (w.timestamp !== state.seenWinTs) { state.seenWinTs = w.timestamp; if (w.uid !== state.userId && typeof confetti === 'function') confetti({ particleCount: 60, spread: 60, disableForReducedMotion: true }); }
   } else if (!w && !state.hasClaimedBingo) $('player-win-banner').classList.add('hidden');
+  { const closed = !!data.joinClosed, tb = $('btn-admin-toggle-join');
+    if (tb) { $('admin-toggle-join-label').textContent = closed ? 'Resume Accepting Players' : 'Stop Accepting Players'; tb.setAttribute('aria-pressed', String(closed));
+      tb.className = 'px-3 rounded-xl text-sm font-semibold flex items-center gap-2 active:scale-95 border ' + (closed ? 'bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-200 border-emerald-500/40' : 'bg-rose-600/15 hover:bg-rose-600/30 text-rose-200 border-rose-500/40'); } }
   syncPaymentSettings(data); refreshPaymentStatus(); checkAppBuild(data); checkKicked(); checkTransferredAway(data); checkHostMessage(data);
   refreshJoinGate();
 }
@@ -2112,6 +2117,7 @@ function init() {
       const playerCode = makePlayerCode();
       const joinedRound = await fb.runTransaction(db, async tx => {
         const rs = await tx.get(roomRef()), rd = rs.exists() ? rs.data() : {};
+        if (rd.joinClosed) throw Object.assign(new Error('closed'), { code: 'closed' });
         if (rd.started || (rd.drawnNumbers || []).length) throw Object.assign(new Error('started'), { code: 'started' });
         const round = Number(rd.round || 0), gameId = rd.gameId, now = Date.now();
         if (!gameId) throw new Error('Game session is still initializing.');
@@ -2123,6 +2129,7 @@ function init() {
       applyJoin(name, state.playerAvatar, grids, false);
       showToast(`Payment sent for confirmation. Your Player Code is ${playerCode}. Tap your name at the top to see it again.`);
     } catch (e) {
+      if (e.code === 'closed') { showToast('The host has stopped accepting new players.', true); b.textContent = 'PAY & GET CARDS'; refreshJoinGate(); return; }
       const locked = e.code === 'started' || e.code === 'permission-denied';
       if (locked) state.started = true;
       showToast(locked ? 'The game has already started. You cannot join.' : 'Could not join: ' + errMsg(e), true);
@@ -2591,6 +2598,16 @@ function init() {
       showToast(`Welcome back, ${copy.name}! Your cards moved to this device.`);
     } catch (e2) { showErr('Could not continue: ' + errMsg(e2)); }
     finally { b.disabled = false; b.textContent = 'CONTINUE'; }
+  });
+  /* ---------- Admin: stop / resume accepting new players ---------- */
+  on('btn-admin-toggle-join', 'click', async () => {
+    if (!fb || !state.connected) { showToast('Not connected to the server.', true); return; }
+    const closing = !state.roomState.joinClosed, b = $('btn-admin-toggle-join'); b.disabled = true;
+    try {
+      await roomWrite({ joinClosed: closing, joinClosedAt: Date.now() });
+      showToast(closing ? 'Registration closed. New players can no longer join.' : 'Registration open. New players can join again.');
+    } catch (err) { showToast('Could not update registration: ' + errMsg(err), true); }
+    finally { b.disabled = false; }
   });
   on('btn-export-csv', 'click', () => {
     // Quote every text cell and neutralise leading = + - @ so spreadsheet apps never run a name as a formula.
