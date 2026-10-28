@@ -15,7 +15,7 @@
   [hidden]{display:none!important}
   html,body{min-height:100%}
   .-top-1{top:-.25rem}.w-0{width:0}.h-0{height:0}.max-w-lg{max-width:32rem}.max-w-\[22rem\]{max-width:22rem}.min-h-\[2rem\]{min-height:2rem}
-  .bg-amber-500\/15{background-color:rgb(245 158 11/.15)}.hover\:bg-amber-500\/25:hover{background-color:rgb(245 158 11/.25)}.border-amber-500\/30{border-color:rgb(245 158 11/.3)}.max-w-\[85\%\]{max-width:85%}.break-words{overflow-wrap:break-word}.bg-slate-950\/90{background-color:rgb(2 6 23/.9)}.bg-amber-500\/10{background-color:rgb(245 158 11/.1)}.h-60{height:15rem}.w-60{width:15rem}.max-w-full{max-width:100%}.text-slate-500{color:#64748b}.bg-rose-500\/15{background-color:rgb(244 63 94/.15)}.w-48{width:12rem}.h-48{height:12rem}.bg-indigo-600\/30{background-color:rgb(79 70 229/.3)}.bg-slate-900\/70{background-color:rgb(15 23 42/.7)}.border-dashed{border-style:dashed}.bg-rose-600\/15{background-color:rgb(225 29 72/.15)}.ml-auto{margin-left:auto}.hover\:text-sky-200:hover{color:#bae6fd}.text-sky-300{color:#7dd3fc}.resize-y{resize:vertical}.whitespace-pre-wrap{white-space:pre-wrap}.z-\[66\]{z-index:66}@media (min-width:640px){.sm\:flex-row{flex-direction:row}.sm\:items-center{align-items:center}}
+  .bg-amber-500\/15{background-color:rgb(245 158 11/.15)}.hover\:bg-amber-500\/25:hover{background-color:rgb(245 158 11/.25)}.border-amber-500\/30{border-color:rgb(245 158 11/.3)}.max-w-\[85\%\]{max-width:85%}.break-words{overflow-wrap:break-word}.bg-slate-950\/90{background-color:rgb(2 6 23/.9)}.bg-amber-500\/10{background-color:rgb(245 158 11/.1)}.h-60{height:15rem}.w-60{width:15rem}.max-w-full{max-width:100%}.text-slate-500{color:#64748b}.bg-rose-500\/15{background-color:rgb(244 63 94/.15)}.w-48{width:12rem}.h-48{height:12rem}.bg-indigo-600\/30{background-color:rgb(79 70 229/.3)}.bg-slate-900\/70{background-color:rgb(15 23 42/.7)}.border-dashed{border-style:dashed}.bg-rose-600\/15{background-color:rgb(225 29 72/.15)}.ml-auto{margin-left:auto}.hover\:text-sky-200:hover{color:#bae6fd}.text-sky-300{color:#7dd3fc}.resize-y{resize:vertical}.whitespace-pre-wrap{white-space:pre-wrap}.z-\[66\]{z-index:66}.bg-slate-900\/80{background-color:rgb(15 23 42/.8)}.hover\:text-indigo-200:hover{color:#c7d2fe}.ml-2{margin-left:.5rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.tracking-\[\.25em\]{letter-spacing:.25em}.tracking-\[\.3em\]{letter-spacing:.3em}@media (min-width:640px){.sm\:flex-row{flex-direction:row}.sm\:items-center{align-items:center}}
   body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;touch-action:manipulation;-webkit-tap-highlight-color:transparent;overflow-x:hidden;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
   .font-display{font-family:'Fredoka',system-ui,sans-serif}
   .hidden{display:none!important}
@@ -74,6 +74,7 @@
       <div id="player-profile-badge" class="hidden items-center gap-2 min-h-[2.75rem] bg-slate-800/90 px-2.5 rounded-xl border border-slate-700 text-xs">
         <span id="player-avatar-icon">🎯</span>
         <span id="player-name-display" class="font-bold truncate max-w-[80px] sm:max-w-[130px]">Player</span>
+        <span id="player-code-badge" hidden class="font-mono font-black text-amber-300 bg-slate-900/80 border border-slate-700 px-1.5 py-0.5 rounded"></span>
         <span id="player-cards-badge" class="hidden sm:inline bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded font-mono font-bold text-xs">1 Card</span>
       </div>
     </div>
@@ -280,6 +281,18 @@
       <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-3 flex items-center justify-between"><span class="text-xs text-slate-400">Total Payment Due:</span><span id="join-total-due-text" class="font-mono font-black text-lg text-emerald-400">₱10.00</span></div>
       <p id="join-gate-msg" class="hidden text-xs font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-xl p-3"></p>
       <button id="btn-confirm-join" type="button" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-brand-pinkdeep to-brand-blue text-white font-display font-bold text-lg hover:brightness-110 shadow-lg active:scale-95">PAY &amp; GET CARDS</button>
+      <div class="border-t border-slate-800 pt-3 text-center">
+        <button id="btn-show-transfer" type="button" aria-expanded="false" aria-controls="transfer-box" class="text-sm font-semibold text-indigo-300 hover:text-indigo-200 underline underline-offset-2">Already playing? Use your Player Code</button>
+        <div id="transfer-box" hidden class="mt-2">
+          <p class="text-xs text-slate-400 mb-2">Type the 6-character code from your other device to continue with the same cards.</p>
+          <div class="flex gap-2">
+            <label for="transfer-code-input" class="sr-only">Player Code</label>
+            <input type="text" id="transfer-code-input" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. K7Q2MX" class="flex-1 min-w-0 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-center font-mono font-black tracking-[.25em] uppercase focus:outline-none focus:border-indigo-400">
+            <button id="btn-transfer-in" type="button" class="px-4 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-slate-950 text-xs font-black">CONTINUE</button>
+          </div>
+          <p id="transfer-error" hidden class="mt-2 text-xs font-bold text-rose-300"></p>
+        </div>
+      </div>
       <button id="btn-close-join" type="button" class="hidden w-full text-sm text-slate-300 hover:text-white">Cancel</button>
     </div>
   </div>
@@ -433,6 +446,18 @@
   </div>
 </div>
 
+<!-- PLAYER CODE MODAL -->
+<div id="modal-player-code" class="fixed inset-0 z-[60] hidden items-center justify-center p-3 bg-slate-950/90 backdrop-blur-sm">
+  <div role="dialog" aria-modal="true" aria-labelledby="modal-player-code-title" class="modal-box bg-slate-900 border border-amber-500/30 w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center">
+    <p class="text-xs uppercase tracking-[.18em] font-black text-amber-400">Your Player Code</p>
+    <h3 id="modal-player-code-title" class="sr-only">Your Player Code</h3>
+    <p id="player-code-big" class="font-mono font-black text-4xl tracking-[.3em] text-white mt-3 select-all">—</p>
+    <p class="text-sm text-slate-300 mt-3">Switching phones? Open the game link on the new device, tap <b>"Already playing? Use your Player Code"</b> and type this code. Your cards, payment and progress move with you.</p>
+    <p class="text-xs text-slate-400 mt-2">Keep it private. Anyone with this code can take over your cards.</p>
+    <div class="grid grid-cols-2 gap-2 mt-5"><button id="btn-close-player-code" type="button" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold">Close</button><button id="btn-copy-player-code" type="button" class="py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black">Copy Code</button></div>
+  </div>
+</div>
+
 <!-- PIN MODAL -->
 <div id="modal-pin" class="fixed inset-0 z-[55] hidden items-center justify-center p-3 bg-slate-950/85 backdrop-blur-sm">
   <div role="dialog" aria-modal="true" aria-labelledby="modal-pin-title" class="modal-box bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-6 shadow-2xl text-center">
@@ -559,7 +584,7 @@ const $ = id => document.getElementById(id);
 const ROLL_DELAY = 2000; // shake animation only; the server write runs in parallel
 const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
-const APP_BUILD = 20261028125107;
+const APP_BUILD = 20261028125857;
 let BGM_VOLUME = 0.20;
 try { const v = Number(localStorage.getItem('ces-bingo:music-volume')); if (localStorage.getItem('ces-bingo:music-volume') !== null && v >= 0 && v <= 1) BGM_VOLUME = v; } catch (e) {}
 const SFX_VOLUME = 0.80;
@@ -835,8 +860,9 @@ function ensureRosterListener() {
   const activePlayers = fb.query(playersCol(), fb.where('gameId', '==', state.gameId));
   state.rosterUnsub = fb.onSnapshot(activePlayers, snap => {
     state.players = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    const paidCards = p => isKickedPlayer(p) ? 0 : Math.min(Number(p.cardCount) || 0, confirmedCardsFor(p.id));
-    state.stats = { players: state.players.filter(p => paidCards(p) > 0).length, cards: state.players.reduce((s, p) => s + paidCards(p), 0) };
+    const paidCards = p => isKickedPlayer(p) ? 0 : Math.min(Number(p.cardCount) || 0, confirmedCardsFor(payKey(p)));
+    const vis = visiblePlayers();
+    state.stats = { players: vis.filter(p => paidCards(p) > 0).length, cards: vis.reduce((s, p) => s + paidCards(p), 0) };
     renderPlayers();
   }, e => {
     console.error(e); showToast('Roster sync error: ' + errMsg(e) + ' — retrying', true);
@@ -901,12 +927,12 @@ function paymentStatusFor(uid, cards, requestAt) {
   if (e && e.rejectedFor != null && Number(e.rejectedFor) === Number(requestAt || 0)) return ok > 0 ? 'trim' : 'rejected';
   return 'pending';
 }
-const isPaid = () => !!state.joined && confirmedCardsFor(state.userId) > 0;
-const cardUnlocked = ci => ci < confirmedCardsFor(state.userId);
+const isPaid = () => !!state.joined && confirmedCardsFor(myPayKey()) > 0;
+const cardUnlocked = ci => ci < confirmedCardsFor(myPayKey());
 function refreshPaymentStatus() {
   if (!state.joined) { state.paymentStatus = null; state.amountDue = 0; state.lastOkCards = null; const ab = $('btn-player-add-cards'); if (ab) ab.hidden = true; window.__renderPaymentGate && window.__renderPaymentGate(); return; }
-  let s = paymentStatusFor(state.userId, state.playerCards.length, state.payRequestAt);
-  const ok = confirmedCardsFor(state.userId);
+  let s = paymentStatusFor(myPayKey(), state.playerCards.length, state.payRequestAt);
+  const ok = confirmedCardsFor(myPayKey());
   if (s === 'trim') {
     // The host rejected the extra cards: keep only the cards that were paid for.
     state.playerCards = state.playerCards.slice(0, ok); state.cardCount = ok;
@@ -937,15 +963,15 @@ function syncPaymentSettings(data) {
    room.kicked[playerId] = { joinedAt, at }. It matches only that player's current
    session (same joinedAt), so a removed player can still join again later. */
 const kickEntryFor = uid => ((state.roomState && state.roomState.kicked) || {})[uid] || null;
-const isKickedPlayer = p => { const k = kickEntryFor(p.id); return !!k && Number(k.joinedAt) === Number(p.joinedAt || 0); };
+const isKickedPlayer = p => { const k = kickEntryFor(payKey(p)); return !!k && Number(k.joinedAt) === Number(p.joinedAt || 0); };
 let kickInFlight = false;
 async function checkKicked() {
   if (!state.joined || !state.userId || kickInFlight) return;
-  const k = kickEntryFor(state.userId);
+  const k = kickEntryFor(myPayKey());
   if (!k || !state.joinedAt || Number(k.joinedAt) !== Number(state.joinedAt)) return;
   kickInFlight = true;
   try { if (fb) await fb.deleteDoc(playerRef()).catch(() => {}); } finally { kickInFlight = false; }
-  clearDaubTimers(false); state.joined = false; state.joinedAt = 0; state.payRequestAt = 0; state.playerName = ''; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false;
+  clearDaubTimers(false); state.joined = false; state.joinedAt = 0; state.payRequestAt = 0; state.playerCode = ''; state.playerName = ''; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false;
   try { localStorage.removeItem(storeKey()); } catch (e) {}
   $('player-profile-badge').classList.add('hidden'); $('player-profile-badge').classList.remove('flex');
   ['modal-round-options', 'modal-pay', 'modal-add-cards'].forEach(hideModal);
@@ -978,6 +1004,63 @@ function closeHostMessage() {
   if (shownMsgId) { try { localStorage.setItem(msgSeenKey(), String(shownMsgId)); } catch (e) {} }
   hideModal('modal-host-msg');
 }
+
+/* ---------- Player Code: a short ID that lets a player continue on another device ----------
+   Payments and kicks are keyed by the code (falling back to the device id for older
+   players), so moving to a new phone keeps paid cards, marks and status. */
+const PLAYER_CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+function makePlayerCode() {
+  const r = new Uint32Array(6); (globalThis.crypto || {}).getRandomValues ? crypto.getRandomValues(r) : r.forEach((_, i) => { r[i] = Math.floor(Math.random() * 1e9); });
+  return [...r].map(n => PLAYER_CODE_CHARS[n % PLAYER_CODE_CHARS.length]).join('');
+}
+const normalizeCode = v => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+const payKey = p => (p && p.playerCode) || (p && p.id);
+const myPayKey = () => state.playerCode || state.userId;
+const transferFor = key => ((state.roomState && state.roomState.transfers) || {})[key] || null;
+// A record left behind on the old device after the player moved to a new one.
+const isStaleCopy = p => { const t = transferFor(payKey(p)); return !!(p.playerCode && t && t.uid && t.uid !== p.id); };
+function visiblePlayers() {
+  const best = new Map();
+  state.players.forEach(p => {
+    if (isKickedPlayer(p) || isStaleCopy(p)) return;
+    const k = payKey(p), cur = best.get(k);
+    if (!cur || (Number(p.updatedAt) || 0) > (Number(cur.updatedAt) || 0)) best.set(k, p);
+  });
+  return [...best.values()];
+}
+function paintPlayerCode() {
+  const el = $('player-code-badge'); if (el) { el.textContent = state.playerCode ? `ID ${state.playerCode}` : ''; el.hidden = !state.playerCode; }
+  const big = $('player-code-big'); if (big) big.textContent = state.playerCode || '—';
+}
+let movingAway = false;
+async function checkTransferredAway(data) {
+  if (!state.joined || !state.playerCode || movingAway) return;
+  const t = ((data && data.transfers) || {})[state.playerCode];
+  if (!t || !t.uid || t.uid === state.userId || Number(t.at) <= (state.transferInAt || 0)) return;
+  movingAway = true;
+  try { if (fb) await fb.deleteDoc(playerRef()).catch(() => {}); } finally { movingAway = false; }
+  clearDaubTimers(false); state.joined = false; state.joinedAt = 0; state.payRequestAt = 0; state.playerCode = ''; state.playerName = ''; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false;
+  try { localStorage.removeItem(storeKey()); } catch (e) {}
+  $('player-profile-badge').classList.add('hidden'); $('player-profile-badge').classList.remove('flex');
+  ['modal-round-options', 'modal-pay', 'modal-add-cards', 'modal-player-code'].forEach(hideModal);
+  renderAllPlayerCards(); refreshPaymentStatus(); paintPlayerCode(); refreshJoinPrice(); openJoin();
+  showToast('Your game continued on another device.', true);
+}
+// Same account on a new device (or cleared browser data): pick the cards back up from the server.
+async function restoreFromServer() {
+  if (state.joined || !fb || !state.userId || !state.gameId) return;
+  try {
+    const snap = await fb.getDoc(playerRef()); if (!snap.exists() || state.joined) return;
+    const d = snap.data(); if (d.gameId !== state.gameId) return;
+    const grids = (Array.isArray(d.grids) ? d.grids : []).map(decodeGrid).filter(Boolean); if (!grids.length) return;
+    state.playerCode = d.playerCode || ''; state.payRequestAt = Number(d.payRequestAt) || 0; state.joinedAt = Number(d.joinedAt) || 0;
+    const needsChoice = Number(d.roundAck || 0) !== Number(state.round || 0);
+    state.roundChoicePending = needsChoice;
+    applyJoin(d.name || 'Player', d.avatar || '🎯', grids, !needsChoice && !!d.hasBingo && Number(d.bingoRound) === Number(state.round));
+    if (needsChoice) { resetLocalRound(); persist(); showRoundOptions(); }
+    showToast('Welcome back! Your cards were restored.');
+  } catch (e) { console.warn('Server restore skipped', errMsg(e)); }
+}
 function checkAppBuild(d) {
   const live = Number(d && d.appBuild) || 0;
   if (live > APP_BUILD) {
@@ -989,19 +1072,19 @@ function checkAppBuild(d) {
 const storeKey = () => `ces-bingo:${state.appId}:${state.roomId}`;
 function persist() {
   if (!state.joined) return;
-  try { localStorage.setItem(storeKey(), JSON.stringify({ uid: state.userId, gameId: state.gameId, round: state.round, pending: state.roundChoicePending, name: state.playerName, avatar: state.playerAvatar, won: state.hasClaimedBingo, payReq: state.payRequestAt || 0, joinedAt: state.joinedAt || 0, grids: state.playerCards.map(c => c.grid) })); } catch (e) {}
+  try { localStorage.setItem(storeKey(), JSON.stringify({ uid: state.userId, gameId: state.gameId, round: state.round, pending: state.roundChoicePending, name: state.playerName, avatar: state.playerAvatar, won: state.hasClaimedBingo, payReq: state.payRequestAt || 0, joinedAt: state.joinedAt || 0, code: state.playerCode || '', grids: state.playerCards.map(c => c.grid) })); } catch (e) {}
 }
 function tryRestore() {
   if (state.joined) return;
   try {
     const saved = JSON.parse(localStorage.getItem(storeKey()) || 'null');
-    if (!saved || saved.uid !== state.userId || saved.gameId !== state.gameId || !Array.isArray(saved.grids) || !saved.grids.length) return;
+    if (!saved || saved.uid !== state.userId || saved.gameId !== state.gameId || !Array.isArray(saved.grids) || !saved.grids.length) { restoreFromServer(); return; }
     const grids = saved.grids.map(decodeGrid).filter(Boolean);
     if (!grids.length) return;
     const savedRound = Number(saved.round || 0);
     const needsChoice = !!saved.pending || savedRound !== Number(state.round || 0);
     state.roundChoicePending = needsChoice;
-    state.payRequestAt = Number(saved.payReq) || 0; state.joinedAt = Number(saved.joinedAt) || 0;
+    state.payRequestAt = Number(saved.payReq) || 0; state.joinedAt = Number(saved.joinedAt) || 0; state.playerCode = normalizeCode(saved.code);
     applyJoin(saved.name || 'Player', saved.avatar || '🎯', grids, needsChoice ? false : !!saved.won);
     if (needsChoice) { resetLocalRound(); persist(); showRoundOptions(); }
     else syncPlayer({ roundAck: state.round });
@@ -1071,7 +1154,7 @@ const hideModal = id => {
   if (i >= 0) { const [m] = modalStack.splice(i, 1); if (wasOpen && m.opener && document.contains(m.opener) && (!modalStack.length || modalStack.some(o => isOpen($(o.id)) && $(o.id).contains(m.opener)))) try { m.opener.focus({ preventScroll: true }); } catch (e) {} }
 };
 // Escape closes dialogs that are safe to dismiss (not the join gate or round choice for players).
-const ESC_CLOSE = { 'modal-send-msg': 1, 'modal-kick': 1, 'modal-add-cards': 1, 'modal-pay-settings': 1, 'modal-pay': 1, 'modal-wheel': 1, 'modal-pin': 1, 'modal-change-pin': 1, 'modal-reset-game': 1, 'modal-confirm-clear': 1, 'modal-qr': 1, 'modal-gm-help': 1 };
+const ESC_CLOSE = { 'modal-player-code': 1, 'modal-send-msg': 1, 'modal-kick': 1, 'modal-add-cards': 1, 'modal-pay-settings': 1, 'modal-pay': 1, 'modal-wheel': 1, 'modal-pin': 1, 'modal-change-pin': 1, 'modal-reset-game': 1, 'modal-confirm-clear': 1, 'modal-qr': 1, 'modal-gm-help': 1 };
 document.addEventListener('keydown', e => {
   const top = [...modalStack].reverse().find(m => isOpen($(m.id)));
   if (e.key === 'Escape') {
@@ -1437,7 +1520,7 @@ function checkWin(card) {
 // completes the claimed pattern with numbers that have been called.
 function verifiedClaims() {
   const drawn = new Set(state.roomState.drawnNumbers || []);
-  return state.bingoClaims.filter(c => !isKickedPlayer(c) && (Number(c.winningCard) || 1) <= confirmedCardsFor(c.id) && c.bingoRound != null && Number(c.bingoRound) === Number(state.round)).map(c => {
+  return state.bingoClaims.filter(c => !isKickedPlayer(c) && !isStaleCopy(c) && (Number(c.winningCard) || 1) <= confirmedCardsFor(payKey(c)) && c.bingoRound != null && Number(c.bingoRound) === Number(state.round)).map(c => {
     const grid = decodeGrid((Array.isArray(c.grids) ? c.grids : [])[(Number(c.winningCard) || 0) - 1]);
     const pattern = PATTERNS.find(p => p.name === c.winningPattern);
     if (!grid || !pattern || !pattern.cells.every(i => i === 12 || drawn.has(grid[i]))) return null;
@@ -1512,7 +1595,7 @@ function applyJoin(name, avatar, grids, won) {
   $('player-name-display').textContent = name; setAvatarElement($('player-avatar-icon'), avatar);
   $('player-cards-badge').textContent = `${grids.length} ${grids.length > 1 ? 'Cards' : 'Card'}`;
   const badge = $('player-profile-badge'); badge.classList.remove('hidden'); badge.classList.add('flex');
-  hideModal('modal-join'); renderAllPlayerCards(); state.paymentStatus = null; refreshPaymentStatus();
+  hideModal('modal-join'); renderAllPlayerCards(); state.paymentStatus = null; refreshPaymentStatus(); paintPlayerCode();
   applyAutoDaub(state.roomState.drawnNumbers || []); persist();
 }
 
@@ -1577,8 +1660,8 @@ async function leaveGame() {
   if (!state.joined) return;
   if (!fb) { showToast('Not connected to the server. Try again in a moment.', true); return; }
   try { await fb.deleteDoc(playerRef()); } catch (e) { showToast('Could not leave: ' + errMsg(e), true); return; }
-  if (confirmedCardsFor(state.userId) > 0) fb.setDoc(roomRef(), { payments: { [state.userId]: { confirmedCards: 0, rejectedFor: null, left: true, at: Date.now() } } }, { merge: true }).catch(() => {});
-  state.payRequestAt = 0; clearDaubTimers(false); state.joined = false; state.playerName = ''; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false;
+  if (confirmedCardsFor(myPayKey()) > 0) fb.setDoc(roomRef(), { payments: { [myPayKey()]: { confirmedCards: 0, rejectedFor: null, left: true, at: Date.now() } } }, { merge: true }).catch(() => {});
+  state.payRequestAt = 0; state.playerCode = ''; clearDaubTimers(false); state.joined = false; state.playerName = ''; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false;
   try { localStorage.removeItem(storeKey()); } catch (e) {}
   $('player-profile-badge').classList.add('hidden'); $('player-profile-badge').classList.remove('flex');
   hideModal('modal-round-options'); renderAllPlayerCards(); refreshJoinPrice(); openJoin(); showToast('You left the game. You may rejoin before the next first ball.');
@@ -1610,7 +1693,7 @@ function handleFullGameReset(nextGameId, freshRoomData = null) {
   state.pendingBall = null;
   state.started = false;
   state.pricePerCard = Number(freshRoom.pricePerCard) > 0 ? Number(freshRoom.pricePerCard) : 10;
-  state.paymentStatus = null; state.amountDue = 0; state.payRequestAt = 0;
+  state.paymentStatus = null; state.amountDue = 0; state.payRequestAt = 0; state.playerCode = '';
   state.players = []; state.joined = false; state.isAdmin = !!keepStaffView; state.playerName = ''; state.playerAvatar = '🎯'; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false; state.roundAddCount = 1; state.round = Number(freshRoom.round || 0); state.roundInitialized = true; state.lastSpokenNum = null; state.seenWinTs = null; state.dismissedWinTs = null; state.announcingWinnerIds.clear();
   try { localStorage.removeItem(storeKey()); } catch (e) {}
   ['modal-pin','modal-change-pin','modal-reset-game','modal-confirm-clear','modal-qr','modal-gm-help','modal-round-options','modal-avatar-camera'].forEach(hideModal);
@@ -1701,7 +1784,7 @@ function updateRoom(data) {
     if (w.timestamp !== state.seenWinTs) announce($('player-win-text').textContent);
     if (w.timestamp !== state.seenWinTs) { state.seenWinTs = w.timestamp; if (w.uid !== state.userId && typeof confetti === 'function') confetti({ particleCount: 60, spread: 60, disableForReducedMotion: true }); }
   } else if (!w && !state.hasClaimedBingo) $('player-win-banner').classList.add('hidden');
-  syncPaymentSettings(data); refreshPaymentStatus(); checkAppBuild(data); checkKicked(); checkHostMessage(data);
+  syncPaymentSettings(data); refreshPaymentStatus(); checkAppBuild(data); checkKicked(); checkTransferredAway(data); checkHostMessage(data);
   refreshJoinGate();
 }
 
@@ -1730,9 +1813,9 @@ function syncRows(container, cache, rows, tagName, emptyHtml) {
   });
   cache.forEach((entry, id) => { if (!keep.has(id)) { entry.el.remove(); cache.delete(id); } });
 }
-const rosterList = () => state.players.filter(p => !isKickedPlayer(p)).sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0));
-const payStateOf = p => paymentStatusFor(p.id, Number(p.cardCount) || 0, p.payRequestAt);
-const amountDueOf = p => Math.max(0, (Number(p.cardCount) || 0) - confirmedCardsFor(p.id)) * state.pricePerCard;
+const rosterList = () => visiblePlayers().sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0));
+const payStateOf = p => paymentStatusFor(payKey(p), Number(p.cardCount) || 0, p.payRequestAt);
+const amountDueOf = p => Math.max(0, (Number(p.cardCount) || 0) - confirmedCardsFor(payKey(p))) * state.pricePerCard;
 const playerStatus = (p, winnerIds) => payStateOf(p) === 'pending' ? 'AWAITING PAYMENT' : payStateOf(p) === 'rejected' ? 'PAYMENT REJECTED' : winnerIds.has(p.id) ? 'BINGO' : (Number(p.roundAck) !== Number(state.round) && !state.started) ? 'CHOOSING NEXT ROUND' : 'PLAYING';
 function renderPlayersNow() {
   announceDerivedWinners(verifiedClaims());
@@ -1759,7 +1842,7 @@ function renderPlayersNow() {
     const winnerIds = new Set(winners.map(w => w.uid));
     const rows = rosterList().map((p, i) => {
       const n = Number(p.cardCount) || 0, status = playerStatus(p, winnerIds), won = status === 'BINGO', pending = status === 'CHOOSING NEXT ROUND';
-      const html = `<td class="py-2.5 px-3 font-mono text-slate-400">${i + 1}</td><td class="py-2.5 px-3">${avatarMarkup(p.avatar || '👤', 'w-7 h-7 mr-2 inline-flex align-middle')}<span class="font-bold text-slate-200">${esc(p.name || 'Anon')}</span></td>
+      const html = `<td class="py-2.5 px-3 font-mono text-slate-400">${i + 1}</td><td class="py-2.5 px-3">${avatarMarkup(p.avatar || '👤', 'w-7 h-7 mr-2 inline-flex align-middle')}<span class="font-bold text-slate-200">${esc(p.name || 'Anon')}</span>${p.playerCode ? `<span class="ml-2 font-mono text-xs text-amber-300">${esc(p.playerCode)}</span>` : ''}</td>
         <td class="py-2.5 px-3 text-cyan-400 font-mono font-bold">${n}</td><td class="py-2.5 px-3 text-slate-400">₱${formatMoney(state.pricePerCard)}</td><td class="py-2.5 px-3 text-emerald-400 font-mono font-bold">₱${formatMoney(n * state.pricePerCard)}</td>
         <td class="py-2.5 px-3"><div class="flex items-center gap-2"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${won ? 'bg-amber-500 text-slate-950' : pending ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : status === 'AWAITING PAYMENT' ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40' : status === 'PAYMENT REJECTED' ? 'bg-rose-500/15 text-rose-300 border border-rose-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">${status}${status === 'AWAITING PAYMENT' && amountDueOf(p) ? ' · ₱' + formatMoney(amountDueOf(p)) : ''}</span>${status === 'AWAITING PAYMENT' ? `<button type="button" data-pay-action="confirm" data-id="${esc(p.id)}" class="px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black">Confirm</button><button type="button" data-pay-action="reject" data-id="${esc(p.id)}" class="px-3 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-rose-300 text-xs font-bold">Reject</button>` : ''}<button type="button" data-kick="${esc(p.id)}" aria-label="Kick ${esc(p.name || 'player')}" class="ml-auto px-3 rounded-lg bg-rose-600/15 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 text-xs font-bold">Kick</button></div></td>`;
       return { id: p.id, cls: '', html };
@@ -1916,7 +1999,7 @@ function init() {
   trackHeaderHeight();
   // The join dialog is open in the initial HTML; register it so Tab stays inside it.
   if (isOpen($('modal-join'))) modalStack.push({ id: 'modal-join', opener: null });
-  ['modal-send-msg', 'modal-host-msg', 'modal-kick', 'modal-add-cards', 'modal-pay-settings', 'modal-pay', 'modal-wheel', 'modal-pin', 'modal-change-pin', 'modal-reset-game', 'modal-confirm-clear', 'modal-qr', 'modal-gm-help', 'modal-round-options', 'modal-avatar-camera'].forEach(hideModal);
+  ['modal-player-code', 'modal-send-msg', 'modal-host-msg', 'modal-kick', 'modal-add-cards', 'modal-pay-settings', 'modal-pay', 'modal-wheel', 'modal-pin', 'modal-change-pin', 'modal-reset-game', 'modal-confirm-clear', 'modal-qr', 'modal-gm-help', 'modal-round-options', 'modal-avatar-camera'].forEach(hideModal);
   switchView('player'); renderAllPlayerCards();
   authReady = initFirebase();
   refreshJoinGate();
@@ -1982,18 +2065,19 @@ function init() {
     try {
       if (!(await authReady) || !fb) throw new Error('Firebase connection unavailable');
       const name = $('join-name-input').value.trim(), grids = Array.from({ length: state.cardCount }, generateCard);
+      const playerCode = makePlayerCode();
       const joinedRound = await fb.runTransaction(db, async tx => {
         const rs = await tx.get(roomRef()), rd = rs.exists() ? rs.data() : {};
         if (rd.started || (rd.drawnNumbers || []).length) throw Object.assign(new Error('started'), { code: 'started' });
         const round = Number(rd.round || 0), gameId = rd.gameId, now = Date.now();
         if (!gameId) throw new Error('Game session is still initializing.');
-        tx.set(playerRef(), { name, avatar: state.playerAvatar, cardCount: grids.length, grids: grids.map(g => g.join(',')), gameId, hasBingo: false, bingoRound: null, roundAck: round, joinedAt: now, updatedAt: now, payRequestAt: now });
+        tx.set(playerRef(), { name, avatar: state.playerAvatar, cardCount: grids.length, grids: grids.map(g => g.join(',')), gameId, hasBingo: false, bingoRound: null, roundAck: round, joinedAt: now, updatedAt: now, payRequestAt: now, playerCode });
         return { round, gameId, payReq: now, joinedAt: now };
       });
       state.round = joinedRound.round; state.gameId = joinedRound.gameId; state.roundInitialized = true; state.roundChoicePending = false;
-      state.payRequestAt = joinedRound.payReq; state.joinedAt = joinedRound.joinedAt;
+      state.payRequestAt = joinedRound.payReq; state.joinedAt = joinedRound.joinedAt; state.playerCode = playerCode;
       applyJoin(name, state.playerAvatar, grids, false);
-      showToast('Payment sent for confirmation. Your cards unlock once the host confirms.');
+      showToast(`Payment sent for confirmation. Your Player Code is ${playerCode}. Tap your name at the top to see it again.`);
     } catch (e) {
       const locked = e.code === 'started' || e.code === 'permission-denied';
       if (locked) state.started = true;
@@ -2319,12 +2403,12 @@ function init() {
     const p = state.players.find(x => x.id === btn.dataset.id); if (!p) return;
     btn.disabled = true;
     try {
-      const cards = Number(p.cardCount) || 0, keep = confirmedCardsFor(p.id), at = Date.now();
+      const cards = Number(p.cardCount) || 0, keep = confirmedCardsFor(payKey(p)), at = Date.now();
       if (btn.dataset.payAction === 'confirm') {
-        await fb.setDoc(roomRef(), { payments: { [p.id]: { confirmedCards: cards, rejectedFor: null, at } } }, { merge: true });
+        await fb.setDoc(roomRef(), { payments: { [payKey(p)]: { confirmedCards: cards, rejectedFor: null, at } } }, { merge: true });
         showToast(`Payment confirmed for ${p.name || 'player'}.`);
       } else {
-        await fb.setDoc(roomRef(), { payments: { [p.id]: { confirmedCards: keep, rejectedFor: Number(p.payRequestAt) || 0, at } } }, { merge: true });
+        await fb.setDoc(roomRef(), { payments: { [payKey(p)]: { confirmedCards: keep, rejectedFor: Number(p.payRequestAt) || 0, at } } }, { merge: true });
         showToast(keep > 0 ? `Extra cards rejected. ${p.name || 'Player'} keeps ${keep} paid card${keep > 1 ? 's' : ''}.` : `Payment rejected for ${p.name || 'player'}.`);
       }
     } catch (err) { showToast('Could not update payment: ' + errMsg(err), true); btn.disabled = false; }
@@ -2343,7 +2427,7 @@ function init() {
   }
   function openAddCards() {
     if (!state.joined) return;
-    if (state.playerCards.length > confirmedCardsFor(state.userId)) { showToast('Wait for the host to confirm your last payment first.', true); return; }
+    if (state.playerCards.length > confirmedCardsFor(myPayKey())) { showToast('Wait for the host to confirm your last payment first.', true); return; }
     addCardsCount = 1; refreshAddCardsModal(); showModal('modal-add-cards');
   }
   async function requestMoreCards(n) {
@@ -2369,7 +2453,7 @@ function init() {
     const n = addCardsCount; hideModal('modal-add-cards');
     window.__openPayModal(n, () => requestMoreCards(n), null, () => { refreshAddCardsModal(); showModal('modal-add-cards'); });
   });
-  on('cards-container', 'click', e => { if (e.target.closest('[data-show-pay]')) window.__openPayModal(Math.max(1, state.playerCards.length - confirmedCardsFor(state.userId)), null, state.amountDue || null); });
+  on('cards-container', 'click', e => { if (e.target.closest('[data-show-pay]')) window.__openPayModal(Math.max(1, state.playerCards.length - confirmedCardsFor(myPayKey())), null, state.amountDue || null); });
   /* ---------- Admin: kick a player ---------- */
   let kickTargetId = null;
   on('admin-roster-tbody', 'click', e => {
@@ -2384,7 +2468,7 @@ function init() {
     const b = $('btn-confirm-kick'); b.disabled = true; b.textContent = 'KICKING…';
     try {
       const at = Date.now();
-      await fb.setDoc(roomRef(), { kicked: { [p.id]: { joinedAt: Number(p.joinedAt) || 0, at } }, payments: { [p.id]: { confirmedCards: 0, rejectedFor: null, kicked: true, at } } }, { merge: true });
+      await fb.setDoc(roomRef(), { kicked: { [payKey(p)]: { joinedAt: Number(p.joinedAt) || 0, at } }, payments: { [payKey(p)]: { confirmedCards: 0, rejectedFor: null, kicked: true, at } } }, { merge: true });
       // Also try to remove their record directly; the player's own screen removes it if this is not allowed.
       fb.deleteDoc(fb.doc(db, ...basePath(), state.roomId, 'players', p.id)).catch(() => {});
       hideModal('modal-kick'); showToast(`${p.name || 'Player'} was kicked from the game.`);
@@ -2417,6 +2501,53 @@ function init() {
   on('btn-close-host-msg', 'click', closeHostMessage);
   on('btn-ok-host-msg', 'click', closeHostMessage);
   on('modal-host-msg', 'click', e => { if (e.target.id === 'modal-host-msg') closeHostMessage(); });
+  /* ---------- Player Code: show it, and continue on this device with a code ---------- */
+  const badge = $('player-profile-badge');
+  if (badge) { badge.setAttribute('role', 'button'); badge.setAttribute('tabindex', '0'); badge.setAttribute('aria-label', 'Show my Player Code'); badge.classList.add('cursor-pointer'); }
+  const openPlayerCode = () => { if (!state.joined) return; if (!state.playerCode) { showToast('Rejoin to get a Player Code. Players who joined before this update do not have one.', true); return; } paintPlayerCode(); showModal('modal-player-code'); };
+  on('player-profile-badge', 'click', openPlayerCode);
+  on('player-profile-badge', 'keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPlayerCode(); } });
+  on('btn-close-player-code', 'click', () => hideModal('modal-player-code'));
+  on('modal-player-code', 'click', e => { if (e.target.id === 'modal-player-code') hideModal('modal-player-code'); });
+  on('btn-copy-player-code', 'click', () => copyText(state.playerCode, () => showToast('Player Code copied.')));
+  on('btn-show-transfer', 'click', () => { const box = $('transfer-box'), open = box.hidden; box.hidden = !open; $('btn-show-transfer').setAttribute('aria-expanded', String(open)); if (open) $('transfer-code-input').focus(); });
+  on('transfer-code-input', 'input', e => { e.target.value = normalizeCode(e.target.value); $('transfer-error').hidden = true; });
+  on('transfer-code-input', 'keydown', e => { if (e.key === 'Enter') $('btn-transfer-in').click(); });
+  on('btn-transfer-in', 'click', async () => {
+    const err = $('transfer-error'), showErr = m => { err.textContent = m; err.hidden = false; };
+    const code = normalizeCode($('transfer-code-input').value);
+    if (code.length !== 6) { showErr('Player Codes have 6 characters.'); return; }
+    if (!fb || !state.connected || !state.gameId) { showErr('Still connecting to the game. Try again in a moment.'); return; }
+    if (state.joined) { showErr('This device is already playing. Leave the game first.'); return; }
+    const b = $('btn-transfer-in'); b.disabled = true; b.textContent = '…';
+    try {
+      const snap = await fb.getDocs(fb.query(playersCol(), fb.where('gameId', '==', state.gameId), fb.where('playerCode', '==', code)));
+      const t = transferFor(code);
+      let docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (t && t.uid) docs = docs.filter(d => d.id === t.uid).concat(docs.filter(d => d.id !== t.uid));
+      const src = docs.sort((a, b) => (t && a.id === t.uid ? -1 : 0) || (Number(b.updatedAt) || 0) - (Number(a.updatedAt) || 0))[0];
+      if (!src) { showErr('No player with that code in this game.'); return; }
+      if (isKickedPlayer(src)) { showErr('That player was removed by the host.'); return; }
+      const grids = (Array.isArray(src.grids) ? src.grids : []).map(decodeGrid).filter(Boolean);
+      if (!grids.length) { showErr('That player has no cards yet.'); return; }
+      const now = Date.now();
+      const copy = { name: src.name || 'Player', avatar: src.avatar || '🎯', cardCount: grids.length, grids: src.grids, gameId: state.gameId, hasBingo: !!src.hasBingo, bingoRound: src.bingoRound ?? null,
+        winningPattern: src.winningPattern ?? null, winningCard: src.winningCard ?? null, roundAck: src.roundAck ?? state.round, joinedAt: Number(src.joinedAt) || now,
+        payRequestAt: Number(src.payRequestAt) || 0, playerCode: code, transferredFrom: src.id, updatedAt: now };
+      if (src.id !== state.userId) await fb.setDoc(playerRef(), copy);
+      state.transferInAt = now;
+      // Tell the old device it should let go of the cards (it removes its own record).
+      if (src.id !== state.userId) fb.setDoc(roomRef(), { transfers: { [code]: { uid: state.userId, at: now } } }, { merge: true }).catch(e => console.warn('Transfer notice failed', errMsg(e)));
+      state.playerCode = code; state.payRequestAt = copy.payRequestAt; state.joinedAt = copy.joinedAt;
+      const needsChoice = Number(copy.roundAck || 0) !== Number(state.round || 0);
+      state.roundChoicePending = needsChoice;
+      $('transfer-code-input').value = ''; $('transfer-box').hidden = true;
+      applyJoin(copy.name, copy.avatar, grids, !needsChoice && copy.hasBingo && Number(copy.bingoRound) === Number(state.round));
+      if (needsChoice) { resetLocalRound(); persist(); showRoundOptions(); }
+      showToast(`Welcome back, ${copy.name}! Your cards moved to this device.`);
+    } catch (e2) { showErr('Could not continue: ' + errMsg(e2)); }
+    finally { b.disabled = false; b.textContent = 'CONTINUE'; }
+  });
   on('btn-export-csv', 'click', () => {
     // Quote every text cell and neutralise leading = + - @ so spreadsheet apps never run a name as a formula.
     const cell = v => { let t = String(v ?? ''); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
