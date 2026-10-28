@@ -15,7 +15,7 @@
   [hidden]{display:none!important}
   html,body{min-height:100%}
   .-top-1{top:-.25rem}.w-0{width:0}.h-0{height:0}.max-w-lg{max-width:32rem}.max-w-\[22rem\]{max-width:22rem}.min-h-\[2rem\]{min-height:2rem}
-  .bg-amber-500\/15{background-color:rgb(245 158 11/.15)}.hover\:bg-amber-500\/25:hover{background-color:rgb(245 158 11/.25)}.border-amber-500\/30{border-color:rgb(245 158 11/.3)}.max-w-\[85\%\]{max-width:85%}.break-words{overflow-wrap:break-word}.bg-slate-950\/90{background-color:rgb(2 6 23/.9)}.bg-amber-500\/10{background-color:rgb(245 158 11/.1)}.h-60{height:15rem}.w-60{width:15rem}.max-w-full{max-width:100%}.text-slate-500{color:#64748b}.bg-rose-500\/15{background-color:rgb(244 63 94/.15)}.w-48{width:12rem}.h-48{height:12rem}.bg-indigo-600\/30{background-color:rgb(79 70 229/.3)}.bg-slate-900\/70{background-color:rgb(15 23 42/.7)}.border-dashed{border-style:dashed}.bg-rose-600\/15{background-color:rgb(225 29 72/.15)}.ml-auto{margin-left:auto}.hover\:text-sky-200:hover{color:#bae6fd}.text-sky-300{color:#7dd3fc}.resize-y{resize:vertical}.whitespace-pre-wrap{white-space:pre-wrap}.z-\[66\]{z-index:66}.bg-slate-900\/80{background-color:rgb(15 23 42/.8)}.hover\:text-indigo-200:hover{color:#c7d2fe}.ml-2{margin-left:.5rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.tracking-\[\.25em\]{letter-spacing:.25em}.tracking-\[\.3em\]{letter-spacing:.3em}.-mx-1{margin-left:-.25rem;margin-right:-.25rem}.hover\:bg-slate-800\/60:hover{background-color:rgb(30 41 59/.6)}.ml-1{margin-left:.25rem}.w-9{width:2.25rem}.h-9{height:2.25rem}.hover\:text-slate-200:hover{color:#e2e8f0}.w-16{width:4rem}.rounded-\[2px\]{border-radius:2px}.bg-indigo-400\/60{background-color:rgb(129 140 248/.6)}@media (min-width:640px){.sm\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}}@media (min-width:640px){.sm\:flex-row{flex-direction:row}.sm\:items-center{align-items:center}}
+  .bg-amber-500\/15{background-color:rgb(245 158 11/.15)}.hover\:bg-amber-500\/25:hover{background-color:rgb(245 158 11/.25)}.border-amber-500\/30{border-color:rgb(245 158 11/.3)}.max-w-\[85\%\]{max-width:85%}.break-words{overflow-wrap:break-word}.bg-slate-950\/90{background-color:rgb(2 6 23/.9)}.bg-amber-500\/10{background-color:rgb(245 158 11/.1)}.h-60{height:15rem}.w-60{width:15rem}.max-w-full{max-width:100%}.text-slate-500{color:#64748b}.bg-rose-500\/15{background-color:rgb(244 63 94/.15)}.w-48{width:12rem}.h-48{height:12rem}.bg-indigo-600\/30{background-color:rgb(79 70 229/.3)}.bg-slate-900\/70{background-color:rgb(15 23 42/.7)}.border-dashed{border-style:dashed}.bg-rose-600\/15{background-color:rgb(225 29 72/.15)}.ml-auto{margin-left:auto}.hover\:text-sky-200:hover{color:#bae6fd}.text-sky-300{color:#7dd3fc}.resize-y{resize:vertical}.whitespace-pre-wrap{white-space:pre-wrap}.z-\[66\]{z-index:66}.bg-slate-900\/80{background-color:rgb(15 23 42/.8)}.hover\:text-indigo-200:hover{color:#c7d2fe}.ml-2{margin-left:.5rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.tracking-\[\.25em\]{letter-spacing:.25em}.tracking-\[\.3em\]{letter-spacing:.3em}.-mx-1{margin-left:-.25rem;margin-right:-.25rem}.hover\:bg-slate-800\/60:hover{background-color:rgb(30 41 59/.6)}.ml-1{margin-left:.25rem}.w-9{width:2.25rem}.h-9{height:2.25rem}.hover\:text-slate-200:hover{color:#e2e8f0}.w-16{width:4rem}.rounded-\[2px\]{border-radius:2px}.bg-indigo-400\/60{background-color:rgb(129 140 248/.6)}.items-end{align-items:flex-end}.bg-transparent{background-color:transparent}.hover\:bg-rose-600\/15:hover{background-color:rgb(225 29 72/.15)}.bg-rose-400{background-color:#fb7185}@media (min-width:1024px){.lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (min-width:640px){.sm\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}}@media (min-width:640px){.sm\:flex-row{flex-direction:row}.sm\:items-center{align-items:center}}
   body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;touch-action:manipulation;-webkit-tap-highlight-color:transparent;overflow-x:hidden;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
   .font-display{font-family:'Fredoka',system-ui,sans-serif}
   .hidden{display:none!important}
@@ -208,15 +208,11 @@
 
   <!-- ADMIN VIEW -->
   <div id="view-admin" class="hidden flex-col gap-4 w-full flex-1">
-    <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 border border-slate-800 rounded-2xl px-4 py-3">
-      <div><h2 class="font-display font-bold text-xl text-amber-400">Admin Dashboard</h2><p class="text-xs text-slate-400">Card prices, roster and invites</p></div>
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div><h2 class="font-display font-bold text-2xl">Admin Dashboard</h2><p class="text-xs text-slate-400 mt-0.5 flex items-center gap-1.5"><span id="admin-reg-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span><span id="admin-reg-status">Registration open</span></p></div>
       <div class="flex flex-wrap gap-2">
-        <button id="btn-admin-music" type="button" class="px-3 rounded-xl font-bold text-sm flex items-center gap-2 active:scale-95 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-200" title="Admin background music"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-music"/></svg>Music On</button>
-        <label for="admin-music-volume" class="min-h-[2.75rem] px-3 rounded-xl bg-slate-800 border border-slate-700 flex items-center gap-2 text-xs font-semibold text-slate-300" title="Music volume"><span>Vol</span><input type="range" id="admin-music-volume" min="0" max="100" step="5" value="20" aria-label="Music volume" class="w-24 accent-emerald-400 cursor-pointer" style="min-height:auto"><span data-vol-label class="font-mono w-8 text-right text-emerald-300">20%</span></label>
-        <button id="btn-admin-change-pin" type="button" class="px-3 rounded-xl font-bold text-sm flex items-center gap-2 active:scale-95 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-200"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-key"/></svg>Change Passcode</button>
-        <button id="btn-admin-reset-game" type="button" class="px-3 rounded-xl font-bold text-sm flex items-center gap-2 active:scale-95 bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-200"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-alert"/></svg>Reset Game</button>
+        <button id="btn-exit-admin" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-logout"/></svg>Exit Admin</button>
         <button id="btn-launch-gm-from-admin" type="button" class="px-4 rounded-xl bg-gradient-to-r from-brand-pinkdeep to-brand-blue text-white font-display font-bold text-sm flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-play"/></svg>Launch Game Master</button>
-        <button id="btn-exit-admin" type="button" class="px-3 rounded-xl font-bold text-sm flex items-center gap-2 active:scale-95 bg-slate-800 hover:bg-slate-700 border border-slate-700"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-logout"/></svg>Exit Admin</button>
       </div>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
@@ -224,21 +220,31 @@
       <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4"><div class="flex items-center justify-between gap-2"><span class="text-xs text-slate-400 uppercase font-semibold">Total Cards</span><button type="button" data-eye="admin-total-cards" aria-pressed="false" aria-label="Hide Total Cards" title="Hide Total Cards" class="w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 flex items-center justify-center shrink-0" style="min-height:2.25rem"><svg class="w-5 h-5 shrink-0" aria-hidden="true"><use href="#i-eye"/></svg></button></div><div id="admin-total-cards" class="font-display font-bold text-3xl text-amber-400 mt-1">0</div><div data-eye-mask="admin-total-cards" hidden class="font-display font-bold text-3xl text-amber-400 mt-1 tracking-widest" aria-label="Total Cards hidden">****</div></div>
       <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4"><div class="flex items-center justify-between gap-2"><span class="text-xs text-slate-400 uppercase font-semibold">Gross Income</span><button type="button" data-eye="admin-total-income" aria-pressed="false" aria-label="Hide Gross Income" title="Hide Gross Income" class="w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 flex items-center justify-center shrink-0" style="min-height:2.25rem"><svg class="w-5 h-5 shrink-0" aria-hidden="true"><use href="#i-eye"/></svg></button></div><div id="admin-total-income" class="font-display font-bold text-3xl text-emerald-400 mt-1">₱0.00</div><div data-eye-mask="admin-total-income" hidden class="font-display font-bold text-3xl text-emerald-400 mt-1 tracking-widest" aria-label="Gross Income hidden">****</div></div>
     </div>
-    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-      <div class="flex flex-wrap items-center gap-3">
-        <label for="admin-card-price-input" class="text-sm font-bold text-slate-300">Price per card</label>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3" aria-labelledby="admin-sec-reg">
+        <h3 id="admin-sec-reg" class="text-xs uppercase tracking-[.18em] font-black text-slate-400">Registration &amp; Payments</h3>
+        <div class="flex flex-wrap items-center gap-2">
+          <label for="admin-card-price-input" class="text-sm font-bold text-slate-300">Price per card</label>
         <div class="relative w-28"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold" aria-hidden="true">₱</span><input type="number" id="admin-card-price-input" min="1" step="1" value="10" class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-7 pr-3 py-1.5 font-bold text-sm focus:outline-none focus:border-amber-400"></div>
-        <button id="btn-save-price" type="button" class="px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-sm active:scale-95">Update Price</button>
-      </div>
-      <div class="flex flex-wrap items-center gap-2">
-        <button id="btn-admin-copy-link" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-link"/></svg>Copy Link</button>
-        <button id="btn-admin-toggle-join" type="button" aria-pressed="false" class="px-3 rounded-xl bg-rose-600/15 hover:bg-rose-600/30 text-rose-200 border border-rose-500/40 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-lock"/></svg><span id="admin-toggle-join-label">Stop Accepting Players</span></button>
-        <button id="btn-admin-send-msg" type="button" class="px-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-200 border border-indigo-500/40 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-info"/></svg>Send Message</button>
-        <button id="btn-admin-pay-settings" type="button" class="px-3 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-200 border border-emerald-500/40 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-qr"/></svg>Payment Settings</button>
-        <button id="btn-admin-wheel" type="button" class="px-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-200 border border-amber-500/40 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-wheel"/></svg>Spin Wheel</button>
-        <button id="btn-admin-show-qr" type="button" class="px-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-200 border border-indigo-500/30 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-qr"/></svg>Show QR</button>
-        <button id="btn-export-csv" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-download"/></svg>Export CSV</button>
-      </div>
+          <button id="btn-save-price" type="button" class="px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-sm active:scale-95">Update Price</button>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btn-admin-toggle-join" type="button" aria-pressed="false" class="px-3 rounded-xl bg-rose-600/15 hover:bg-rose-600/30 text-rose-200 border border-rose-500/40 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-lock"/></svg><span id="admin-toggle-join-label">Stop Accepting Players</span></button>
+          <button id="btn-admin-pay-settings" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-qr"/></svg>Payment Settings</button>
+        </div>
+      </section>
+      <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3" aria-labelledby="admin-sec-share">
+        <h3 id="admin-sec-share" class="text-xs uppercase tracking-[.18em] font-black text-slate-400">Players &amp; Sharing</h3>
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btn-admin-copy-link" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-link"/></svg>Copy Link</button>
+          <button id="btn-admin-show-qr" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-qr"/></svg>Show QR</button>
+          <button id="btn-admin-send-msg" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-info"/></svg>Send Message</button>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btn-admin-wheel" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-wheel"/></svg>Spin Wheel</button>
+          <button id="btn-export-csv" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-download"/></svg>Export CSV</button>
+        </div>
+      </section>
     </div>
     <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col flex-1 overflow-hidden">
       <button id="btn-toggle-roster" type="button" aria-expanded="true" aria-controls="admin-roster-wrap" class="w-full flex items-center justify-between gap-3 text-left rounded-xl hover:bg-slate-800/60 -mx-1 px-1"><h3 class="font-display font-bold text-base">Participant Roster <span id="roster-count" class="ml-1 font-mono text-sm text-amber-300 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-full">0</span></h3><span class="flex items-center gap-1.5 text-xs font-semibold text-slate-400 shrink-0"><span id="roster-toggle-label">Hide players</span><svg id="roster-toggle-icon" class="w-4 h-4 shrink-0 transition-transform" style="transform:rotate(180deg)" aria-hidden="true"><use href="#i-chevron"/></svg></span></button>
@@ -249,6 +255,16 @@
         </table>
       </div>
     </div>
+    <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3" aria-labelledby="admin-sec-settings">
+      <h3 id="admin-sec-settings" class="text-xs uppercase tracking-[.18em] font-black text-slate-400">Settings</h3>
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="btn-admin-music" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 flex items-center gap-2 active:scale-95" title="Admin background music"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-music"/></svg>Music On</button>
+        <label for="admin-music-volume" class="min-h-[2.75rem] px-3 rounded-xl bg-slate-800 border border-slate-700 flex items-center gap-2 text-xs font-semibold text-slate-300" title="Music volume"><span>Vol</span><input type="range" id="admin-music-volume" min="0" max="100" step="5" value="20" aria-label="Music volume" class="w-24 accent-emerald-400 cursor-pointer" style="min-height:auto"><span data-vol-label class="font-mono w-8 text-right text-emerald-300">20%</span></label>
+        <button id="btn-admin-change-pin" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-key"/></svg>Change Passcode</button>
+        <span class="flex-1"></span>
+        <button id="btn-admin-reset-game" type="button" class="px-3 rounded-xl bg-transparent hover:bg-rose-600/15 border border-rose-500/40 text-sm font-semibold text-rose-300 flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-alert"/></svg>Reset Game</button>
+      </div>
+    </section>
   </div>
 </main>
 
@@ -595,7 +611,7 @@ const $ = id => document.getElementById(id);
 const ROLL_DELAY = 1500; // shake animation only; the server write runs in parallel
 const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
-const APP_BUILD = 20261028151428;
+const APP_BUILD = 20261028164035;
 let BGM_VOLUME = 0.20;
 try { const v = Number(localStorage.getItem('ces-bingo:music-volume')); if (localStorage.getItem('ces-bingo:music-volume') !== null && v >= 0 && v <= 1) BGM_VOLUME = v; } catch (e) {}
 const SFX_VOLUME = 0.80;
@@ -1856,6 +1872,7 @@ function updateRoom(data) {
     if (w.timestamp !== state.seenWinTs) { state.seenWinTs = w.timestamp; if (w.uid !== state.userId && typeof confetti === 'function') confetti({ particleCount: 60, spread: 60, disableForReducedMotion: true }); }
   } else if (!w && !state.hasClaimedBingo) $('player-win-banner').classList.add('hidden');
   { const closed = !!data.joinClosed, tb = $('btn-admin-toggle-join');
+    { const rs = $('admin-reg-status'), rd = $('admin-reg-dot'); if (rs) rs.textContent = closed ? 'Registration closed' : 'Registration open'; if (rd) rd.className = 'w-2 h-2 rounded-full ' + (closed ? 'bg-rose-400' : 'bg-emerald-400'); }
     if (tb) { $('admin-toggle-join-label').textContent = closed ? 'Resume Accepting Players' : 'Stop Accepting Players'; tb.setAttribute('aria-pressed', String(closed));
       tb.className = 'px-3 rounded-xl text-sm font-semibold flex items-center gap-2 active:scale-95 border ' + (closed ? 'bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-200 border-emerald-500/40' : 'bg-rose-600/15 hover:bg-rose-600/30 text-rose-200 border-rose-500/40'); } }
   syncActivePattern();
