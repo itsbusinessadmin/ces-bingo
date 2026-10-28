@@ -188,7 +188,7 @@
         <section aria-labelledby="gm-board-title">
           <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
             <h2 id="gm-board-title" class="font-display font-bold text-lg">Called Numbers</h2>
-            <div class="flex flex-wrap items-center gap-2 text-sm font-mono">
+            <div hidden class="flex flex-wrap items-center gap-2 text-sm font-mono">
               <span class="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">Players <b id="gm-stat-players" class="text-amber-300">0</b></span>
               <span class="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">Cards <b id="gm-stat-cards" class="text-cyan-300">0</b></span>
               <span class="px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-slate-300">Pot <b id="gm-total-pot-pill" class="text-emerald-300">₱0.00</b></span>
@@ -583,7 +583,7 @@ const $ = id => document.getElementById(id);
 const ROLL_DELAY = 1500; // shake animation only; the server write runs in parallel
 const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
-const APP_BUILD = 20261028141109;
+const APP_BUILD = 20261028143950;
 let BGM_VOLUME = 0.20;
 try { const v = Number(localStorage.getItem('ces-bingo:music-volume')); if (localStorage.getItem('ces-bingo:music-volume') !== null && v >= 0 && v <= 1) BGM_VOLUME = v; } catch (e) {}
 const SFX_VOLUME = 0.80;
