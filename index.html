@@ -143,8 +143,6 @@
           <div id="gm-staff-menu" role="menu" aria-label="Staff actions" class="hidden absolute right-0 top-full mt-2 z-40 w-56 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-1.5 flex-col gap-1">
             <button id="btn-open-admin-from-gm" type="button" role="menuitem" class="w-full text-left text-sm font-semibold px-3 rounded-xl hover:bg-slate-800 text-amber-300 flex items-center gap-2"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-monitor"/></svg>Admin Desk</button>
             <button id="btn-exit-gm-mode" type="button" role="menuitem" class="w-full text-left text-sm font-semibold px-3 rounded-xl hover:bg-slate-800 text-slate-100 flex items-center gap-2"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-logout"/></svg>Exit Game Master</button>
-            <div class="my-1 border-t border-slate-800" role="separator"></div>
-            <button id="btn-gm-reset-game" type="button" role="menuitem" class="w-full text-left text-sm font-bold px-3 rounded-xl hover:bg-rose-600/20 text-rose-300 flex items-center gap-2"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-alert"/></svg>Reset Entire Game</button>
           </div>
         </div>
       </div>
@@ -585,7 +583,7 @@ const $ = id => document.getElementById(id);
 const ROLL_DELAY = 2000; // shake animation only; the server write runs in parallel
 const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
-const APP_BUILD = 20261028131212;
+const APP_BUILD = 20261028135032;
 let BGM_VOLUME = 0.20;
 try { const v = Number(localStorage.getItem('ces-bingo:music-volume')); if (localStorage.getItem('ces-bingo:music-volume') !== null && v >= 0 && v <= 1) BGM_VOLUME = v; } catch (e) {}
 const SFX_VOLUME = 0.80;
@@ -2180,7 +2178,6 @@ function init() {
   }));
   paintVolume();
   const openResetGame = () => { $('reset-game-pin').value = ''; $('reset-game-error').classList.add('hidden'); showModal('modal-reset-game'); setTimeout(() => $('reset-game-pin').focus(), 50); };
-  on('btn-gm-reset-game', 'click', openResetGame);
   on('btn-admin-reset-game', 'click', openResetGame);
   on('btn-cancel-reset-game', 'click', () => hideModal('modal-reset-game'));
   on('btn-confirm-reset-game', 'click', async () => {
