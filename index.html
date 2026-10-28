@@ -580,10 +580,10 @@
 
 <script type="module">
 const $ = id => document.getElementById(id);
-const ROLL_DELAY = 2000; // shake animation only; the server write runs in parallel
+const ROLL_DELAY = 1500; // shake animation only; the server write runs in parallel
 const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
-const APP_BUILD = 20261028135032;
+const APP_BUILD = 20261028135125;
 let BGM_VOLUME = 0.20;
 try { const v = Number(localStorage.getItem('ces-bingo:music-volume')); if (localStorage.getItem('ces-bingo:music-volume') !== null && v >= 0 && v <= 1) BGM_VOLUME = v; } catch (e) {}
 const SFX_VOLUME = 0.80;
