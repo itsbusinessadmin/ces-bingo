@@ -362,6 +362,7 @@
         <button id="btn-admin-pay-remove" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold active:scale-95">Remove QR</button>
       </div>
       <input type="file" id="admin-pay-qr-file" accept="image/*" class="hidden">
+      <p id="admin-pay-status" aria-live="polite" class="text-xs font-semibold text-slate-400 text-center"></p>
       <button id="btn-admin-pay-save" type="button" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-sm active:scale-95">Save</button>
     </div>
   </div>
@@ -768,8 +769,8 @@ function ensureRosterListener() {
   const activePlayers = fb.query(playersCol(), fb.where('gameId', '==', state.gameId));
   state.rosterUnsub = fb.onSnapshot(activePlayers, snap => {
     state.players = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    const paid = state.players.filter(p => (p.paymentStatus || 'confirmed') === 'confirmed');
-    state.stats = { players: paid.length, cards: paid.reduce((s, p) => s + (Number(p.cardCount) || 0), 0) };
+    const paidCards = p => Math.min(Number(p.cardCount) || 0, confirmedCardsFor(p.id));
+    state.stats = { players: state.players.filter(p => paidCards(p) > 0).length, cards: state.players.reduce((s, p) => s + paidCards(p), 0) };
     renderPlayers();
   }, e => {
     console.error(e); showToast('Roster sync error: ' + errMsg(e) + ' — retrying', true);
@@ -797,9 +798,10 @@ async function refreshRoomStats() {
   if (!fb || !state.gameId || state.currentView !== 'gm' || statsBusy) return;
   statsBusy = true;
   try {
-    const q = fb.query(playersCol(), fb.where('gameId', '==', state.gameId), fb.where('paymentStatus', '==', 'confirmed'));
-    const agg = (await fb.getAggregateFromServer(q, { players: fb.count(), cards: fb.sum('cardCount') })).data();
-    state.stats = { players: Number(agg.players) || 0, cards: Number(agg.cards) || 0 };
+    const q = fb.query(playersCol(), fb.where('gameId', '==', state.gameId));
+    void q; // stats come from the confirmed payments in the room record
+    const paid = Object.values(state.roomState.payments || {}).map(e => Number(e && e.confirmedCards) || 0).filter(n => n > 0);
+    state.stats = { players: paid.length, cards: paid.reduce((s, n) => s + n, 0) };
     renderPlayers();
   } catch (e) { console.warn('Stats refresh failed', errMsg(e)); }
   finally { statsBusy = false; }
@@ -822,35 +824,49 @@ async function syncPlayer(extra = {}) {
 }
 
 
-/* Each player watches their own record so a confirmed payment unlocks the cards. */
-let ownDocUnsub = null;
-const isPaid = () => (state.paymentStatus || 'confirmed') === 'confirmed';
-function stopOwnDocListener() { if (ownDocUnsub) { try { ownDocUnsub(); } catch (e) {} ownDocUnsub = null; } }
-function ensureOwnDocListener() {
-  if (ownDocUnsub || !fb || !state.userId) return;
-  ownDocUnsub = fb.onSnapshot(playerRef(), snap => {
-    if (!snap.exists() || !state.joined) return;
-    const d = snap.data(), was = state.paymentStatus;
-    state.paymentStatus = d.paymentStatus || 'confirmed';
-    state.amountDue = Number(d.amountDue) || 0;
-    const grids = (Array.isArray(d.grids) ? d.grids : []).map(decodeGrid).filter(Boolean);
-    if (isPaid() && grids.length && grids.length < state.playerCards.length) {
-      state.playerCards = state.playerCards.slice(0, grids.length); state.cardCount = grids.length;
-      $('player-cards-badge').textContent = `${grids.length} ${grids.length > 1 ? 'Cards' : 'Card'}`;
-      renderAllPlayerCards(); persist();
-    }
-    window.__renderPaymentGate && window.__renderPaymentGate();
-    if (was && was !== 'confirmed' && state.paymentStatus === 'confirmed') {
-      clearDaubTimers(false); renderAllPlayerCards(); applyAutoDaub(state.roomState.drawnNumbers || []);
-      if (was !== 'checking') { playBeep(880, 'triangle', 0.15); showToast('Payment confirmed! Your cards are ready.'); announce('Payment confirmed. Your cards are ready.'); }
-    } else if (was !== 'checking' && was !== 'rejected' && state.paymentStatus === 'rejected') showToast('The host could not confirm your payment.', true);
-  }, e => { console.warn('Own record sync failed', errMsg(e)); ownDocUnsub = null; });
+/* ---------- Payments: kept in the shared room record (room.payments[playerId]) ----------
+   The host only ever writes the room record, so confirming a payment or saving the QR
+   never needs write access to anyone else's player record. */
+const payEntryFor = uid => ((state.roomState && state.roomState.payments) || {})[uid] || null;
+const confirmedCardsFor = uid => Math.max(0, Number(payEntryFor(uid)?.confirmedCards) || 0);
+function paymentStatusFor(uid, cards, requestAt) {
+  const e = payEntryFor(uid), ok = confirmedCardsFor(uid);
+  if (cards > 0 && ok >= cards) return 'confirmed';
+  if (e && e.rejectedFor != null && Number(e.rejectedFor) === Number(requestAt || 0)) return ok > 0 ? 'trim' : 'rejected';
+  return 'pending';
+}
+const isPaid = () => state.paymentStatus === 'confirmed';
+function refreshPaymentStatus() {
+  if (!state.joined) { state.paymentStatus = null; state.amountDue = 0; window.__renderPaymentGate && window.__renderPaymentGate(); return; }
+  let s = paymentStatusFor(state.userId, state.playerCards.length, state.payRequestAt);
+  const ok = confirmedCardsFor(state.userId);
+  if (s === 'trim') {
+    // The host rejected the extra cards: keep only the cards that were paid for.
+    state.playerCards = state.playerCards.slice(0, ok); state.cardCount = ok;
+    $('player-cards-badge').textContent = `${ok} ${ok > 1 ? 'Cards' : 'Card'}`;
+    renderAllPlayerCards(); persist(); syncPlayer();
+    showToast(`The host did not confirm your extra cards. You keep your ${ok} paid card${ok > 1 ? 's' : ''}.`, true);
+    s = 'confirmed';
+  }
+  const was = state.paymentStatus;
+  state.paymentStatus = s;
+  state.amountDue = Math.max(0, state.playerCards.length - ok) * state.pricePerCard;
+  window.__renderPaymentGate && window.__renderPaymentGate();
+  if (s === 'confirmed' && was !== 'confirmed') {
+    clearDaubTimers(false); renderAllPlayerCards(); applyAutoDaub(state.roomState.drawnNumbers || []);
+    if (was === 'pending' || was === 'rejected') { playBeep(880, 'triangle', 0.15); showToast('Payment confirmed! Your cards are ready.'); announce('Payment confirmed. Your cards are ready.'); }
+  } else if (s === 'rejected' && was === 'pending') showToast('The host could not confirm your payment.', true);
+}
+function syncPaymentSettings(data) {
+  const qr = typeof data.paymentQr === 'string' && /^data:image\/(png|jpeg|webp);base64,/.test(data.paymentQr) ? data.paymentQr : null;
+  state.payment = { qr, payTo: String(data.paymentPayTo || '').slice(0, 60), updatedAt: Number(data.paymentUpdatedAt) || 0 };
+  window.__paintAdminPayment && window.__paintAdminPayment();
 }
 /* ---------- Local persistence (survive refresh) ---------- */
 const storeKey = () => `ces-bingo:${state.appId}:${state.roomId}`;
 function persist() {
   if (!state.joined) return;
-  try { localStorage.setItem(storeKey(), JSON.stringify({ uid: state.userId, gameId: state.gameId, round: state.round, pending: state.roundChoicePending, name: state.playerName, avatar: state.playerAvatar, won: state.hasClaimedBingo, grids: state.playerCards.map(c => c.grid) })); } catch (e) {}
+  try { localStorage.setItem(storeKey(), JSON.stringify({ uid: state.userId, gameId: state.gameId, round: state.round, pending: state.roundChoicePending, name: state.playerName, avatar: state.playerAvatar, won: state.hasClaimedBingo, payReq: state.payRequestAt || 0, grids: state.playerCards.map(c => c.grid) })); } catch (e) {}
 }
 function tryRestore() {
   if (state.joined) return;
@@ -862,7 +878,7 @@ function tryRestore() {
     const savedRound = Number(saved.round || 0);
     const needsChoice = !!saved.pending || savedRound !== Number(state.round || 0);
     state.roundChoicePending = needsChoice;
-    state.paymentStatus = 'checking';
+    state.payRequestAt = Number(saved.payReq) || 0;
     applyJoin(saved.name || 'Player', saved.avatar || '🎯', grids, needsChoice ? false : !!saved.won);
     if (needsChoice) { resetLocalRound(); persist(); showRoundOptions(); }
     else syncPlayer({ roundAck: state.round });
@@ -1289,7 +1305,7 @@ function checkWin(card) {
 // completes the claimed pattern with numbers that have been called.
 function verifiedClaims() {
   const drawn = new Set(state.roomState.drawnNumbers || []);
-  return state.bingoClaims.filter(c => (c.paymentStatus || 'confirmed') === 'confirmed' && c.bingoRound != null && Number(c.bingoRound) === Number(state.round)).map(c => {
+  return state.bingoClaims.filter(c => (Number(c.winningCard) || 1) <= confirmedCardsFor(c.id) && c.bingoRound != null && Number(c.bingoRound) === Number(state.round)).map(c => {
     const grid = decodeGrid((Array.isArray(c.grids) ? c.grids : [])[(Number(c.winningCard) || 0) - 1]);
     const pattern = PATTERNS.find(p => p.name === c.winningPattern);
     if (!grid || !pattern || !pattern.cells.every(i => i === 12 || drawn.has(grid[i]))) return null;
@@ -1364,7 +1380,7 @@ function applyJoin(name, avatar, grids, won) {
   $('player-name-display').textContent = name; setAvatarElement($('player-avatar-icon'), avatar);
   $('player-cards-badge').textContent = `${grids.length} ${grids.length > 1 ? 'Cards' : 'Card'}`;
   const badge = $('player-profile-badge'); badge.classList.remove('hidden'); badge.classList.add('flex');
-  hideModal('modal-join'); renderAllPlayerCards(); ensureOwnDocListener(); window.__renderPaymentGate && window.__renderPaymentGate();
+  hideModal('modal-join'); renderAllPlayerCards(); state.paymentStatus = null; refreshPaymentStatus();
   applyAutoDaub(state.roomState.drawnNumbers || []); persist();
 }
 
@@ -1396,6 +1412,7 @@ async function applyRoundChoice(addCount) {
   const adding = Math.max(0, Math.min(Number(addCount) || 0, MAX_CARDS - state.playerCards.length));
   const newCards = Array.from({ length: adding }, () => ({ cardId: '', grid: generateCard(), stamped: new Set([12]), auto: new Set() }));
   const candidateCards = [...state.playerCards, ...newCards].map((c, i) => ({ ...c, cardId: 'card-' + (i + 1) }));
+  const payReq = adding > 0 ? Date.now() : state.payRequestAt;
   try {
     if (adding > 0) {
       await fb.runTransaction(db, async tx => {
@@ -1406,8 +1423,7 @@ async function applyRoundChoice(addCount) {
         tx.set(playerRef(), {
           name: state.playerName, avatar: state.playerAvatar, cardCount: candidateCards.length,
           grids: candidateCards.map(c => c.grid.join(',')), gameId: state.gameId, hasBingo: false, bingoRound: null,
-          winningPattern: null, winningCard: null, roundAck: state.round, updatedAt: Date.now(),
-          paymentStatus: 'pending', amountDue: adding * (Number(room.pricePerCard) || state.pricePerCard)
+          winningPattern: null, winningCard: null, roundAck: state.round, updatedAt: Date.now(), payRequestAt: payReq
         }, { merge: true });
       });
     } else {
@@ -1418,9 +1434,9 @@ async function applyRoundChoice(addCount) {
     showToast(started ? 'The next round has already started. You can keep your current cards, but no new cards can be added.' : 'Could not update your cards: ' + errMsg(e), true);
     state.started = state.started || started; refreshRoundOptions(); return;
   }
-  if (adding > 0) { state.paymentStatus = 'pending'; state.amountDue = adding * state.pricePerCard; }
+  state.payRequestAt = payReq;
   state.playerCards = candidateCards; state.cardCount = candidateCards.length; state.hasClaimedBingo = false; state.roundChoicePending = false;
-  window.__renderPaymentGate && window.__renderPaymentGate();
+  refreshPaymentStatus();
   $('player-cards-badge').textContent = `${state.cardCount} ${state.cardCount === 1 ? 'Card' : 'Cards'}`;
   renderAllPlayerCards(); applyAutoDaub(state.roomState.drawnNumbers || []); persist(); hideModal('modal-round-options');
   showToast(adding ? `${adding} new card${adding > 1 ? 's' : ''} added. You're ready for the next round!` : 'You kept your cards for the next round.');
@@ -1429,7 +1445,8 @@ async function leaveGame() {
   if (!state.joined) return;
   if (!fb) { showToast('Not connected to the server. Try again in a moment.', true); return; }
   try { await fb.deleteDoc(playerRef()); } catch (e) { showToast('Could not leave: ' + errMsg(e), true); return; }
-  stopOwnDocListener(); state.paymentStatus = null; state.amountDue = 0; clearDaubTimers(false); state.joined = false; state.playerName = ''; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false;
+  if (confirmedCardsFor(state.userId) > 0) fb.setDoc(roomRef(), { payments: { [state.userId]: { confirmedCards: 0, rejectedFor: null, left: true, at: Date.now() } } }, { merge: true }).catch(() => {});
+  state.payRequestAt = 0; clearDaubTimers(false); state.joined = false; state.playerName = ''; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false;
   try { localStorage.removeItem(storeKey()); } catch (e) {}
   $('player-profile-badge').classList.add('hidden'); $('player-profile-badge').classList.remove('flex');
   hideModal('modal-round-options'); renderAllPlayerCards(); refreshJoinPrice(); openJoin(); showToast('You left the game. You may rejoin before the next first ball.');
@@ -1461,7 +1478,7 @@ function handleFullGameReset(nextGameId, freshRoomData = null) {
   state.pendingBall = null;
   state.started = false;
   state.pricePerCard = Number(freshRoom.pricePerCard) > 0 ? Number(freshRoom.pricePerCard) : 10;
-  stopOwnDocListener(); state.paymentStatus = null; state.amountDue = 0;
+  state.paymentStatus = null; state.amountDue = 0; state.payRequestAt = 0;
   state.players = []; state.joined = false; state.isAdmin = !!keepStaffView; state.playerName = ''; state.playerAvatar = '🎯'; state.playerCards = []; state.cardCount = 1; state.hasClaimedBingo = false; state.roundChoicePending = false; state.roundAddCount = 1; state.round = Number(freshRoom.round || 0); state.roundInitialized = true; state.lastSpokenNum = null; state.seenWinTs = null; state.dismissedWinTs = null; state.announcingWinnerIds.clear();
   try { localStorage.removeItem(storeKey()); } catch (e) {}
   ['modal-pin','modal-change-pin','modal-reset-game','modal-confirm-clear','modal-qr','modal-gm-help','modal-round-options','modal-avatar-camera'].forEach(hideModal);
@@ -1552,6 +1569,7 @@ function updateRoom(data) {
     if (w.timestamp !== state.seenWinTs) announce($('player-win-text').textContent);
     if (w.timestamp !== state.seenWinTs) { state.seenWinTs = w.timestamp; if (w.uid !== state.userId && typeof confetti === 'function') confetti({ particleCount: 60, spread: 60, disableForReducedMotion: true }); }
   } else if (!w && !state.hasClaimedBingo) $('player-win-banner').classList.add('hidden');
+  syncPaymentSettings(data); refreshPaymentStatus();
   refreshJoinGate();
 }
 
@@ -1581,7 +1599,9 @@ function syncRows(container, cache, rows, tagName, emptyHtml) {
   cache.forEach((entry, id) => { if (!keep.has(id)) { entry.el.remove(); cache.delete(id); } });
 }
 const rosterList = () => [...state.players].sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0));
-const playerStatus = (p, winnerIds) => p.paymentStatus === 'pending' ? 'AWAITING PAYMENT' : p.paymentStatus === 'rejected' ? 'PAYMENT REJECTED' : winnerIds.has(p.id) ? 'BINGO' : (Number(p.roundAck) !== Number(state.round) && !state.started) ? 'CHOOSING NEXT ROUND' : 'PLAYING';
+const payStateOf = p => paymentStatusFor(p.id, Number(p.cardCount) || 0, p.payRequestAt);
+const amountDueOf = p => Math.max(0, (Number(p.cardCount) || 0) - confirmedCardsFor(p.id)) * state.pricePerCard;
+const playerStatus = (p, winnerIds) => payStateOf(p) === 'pending' ? 'AWAITING PAYMENT' : payStateOf(p) === 'rejected' ? 'PAYMENT REJECTED' : winnerIds.has(p.id) ? 'BINGO' : (Number(p.roundAck) !== Number(state.round) && !state.started) ? 'CHOOSING NEXT ROUND' : 'PLAYING';
 function renderPlayersNow() {
   announceDerivedWinners(verifiedClaims());
   const { players, cards } = state.stats, money = cards * state.pricePerCard;
@@ -1609,7 +1629,7 @@ function renderPlayersNow() {
       const n = Number(p.cardCount) || 0, status = playerStatus(p, winnerIds), won = status === 'BINGO', pending = status === 'CHOOSING NEXT ROUND';
       const html = `<td class="py-2.5 px-3 font-mono text-slate-400">${i + 1}</td><td class="py-2.5 px-3">${avatarMarkup(p.avatar || '👤', 'w-7 h-7 mr-2 inline-flex align-middle')}<span class="font-bold text-slate-200">${esc(p.name || 'Anon')}</span></td>
         <td class="py-2.5 px-3 text-cyan-400 font-mono font-bold">${n}</td><td class="py-2.5 px-3 text-slate-400">₱${formatMoney(state.pricePerCard)}</td><td class="py-2.5 px-3 text-emerald-400 font-mono font-bold">₱${formatMoney(n * state.pricePerCard)}</td>
-        <td class="py-2.5 px-3"><div class="flex items-center gap-2"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${won ? 'bg-amber-500 text-slate-950' : pending ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : status === 'AWAITING PAYMENT' ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40' : status === 'PAYMENT REJECTED' ? 'bg-rose-500/15 text-rose-300 border border-rose-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">${status}${status === 'AWAITING PAYMENT' && Number(p.amountDue) ? ' · ₱' + formatMoney(p.amountDue) : ''}</span>${status === 'AWAITING PAYMENT' ? `<button type="button" data-pay-action="confirm" data-id="${esc(p.id)}" class="px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black">Confirm</button><button type="button" data-pay-action="reject" data-id="${esc(p.id)}" class="px-3 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-rose-300 text-xs font-bold">Reject</button>` : ''}</div></td>`;
+        <td class="py-2.5 px-3"><div class="flex items-center gap-2"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${won ? 'bg-amber-500 text-slate-950' : pending ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40' : status === 'AWAITING PAYMENT' ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40' : status === 'PAYMENT REJECTED' ? 'bg-rose-500/15 text-rose-300 border border-rose-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">${status}${status === 'AWAITING PAYMENT' && amountDueOf(p) ? ' · ₱' + formatMoney(amountDueOf(p)) : ''}</span>${status === 'AWAITING PAYMENT' ? `<button type="button" data-pay-action="confirm" data-id="${esc(p.id)}" class="px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black">Confirm</button><button type="button" data-pay-action="reject" data-id="${esc(p.id)}" class="px-3 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-rose-300 text-xs font-bold">Reject</button>` : ''}</div></td>`;
       return { id: p.id, cls: '', html };
     });
     syncRows($('admin-roster-tbody'), rosterRows.admin, rows, 'tr', '<tr><td colspan="6" class="text-center py-8 text-slate-400 italic">No participants registered yet</td></tr>');
@@ -1719,7 +1739,8 @@ async function fullResetGame() {
         round: 0,
         pricePerCard: 10,
         gameResetAt: resetAt,
-        ...(d.adminPinHash ? { adminPinHash: d.adminPinHash } : {})
+        ...(d.adminPinHash ? { adminPinHash: d.adminPinHash } : {}),
+        ...(d.paymentQr ? { paymentQr: d.paymentQr, paymentPayTo: d.paymentPayTo || '', paymentUpdatedAt: d.paymentUpdatedAt || null } : {})
       };
       // Replace the room state instead of merging so no old game lock/state can survive.
       tx.set(roomRef(), resetRoomData);
@@ -1834,11 +1855,11 @@ function init() {
         if (rd.started || (rd.drawnNumbers || []).length) throw Object.assign(new Error('started'), { code: 'started' });
         const round = Number(rd.round || 0), gameId = rd.gameId, now = Date.now();
         if (!gameId) throw new Error('Game session is still initializing.');
-        tx.set(playerRef(), { name, avatar: state.playerAvatar, cardCount: grids.length, grids: grids.map(g => g.join(',')), gameId, hasBingo: false, bingoRound: null, roundAck: round, joinedAt: now, updatedAt: now, paymentStatus: 'pending', amountDue: grids.length * (Number(rd.pricePerCard) || state.pricePerCard), paidTotal: 0, confirmedCards: 0 });
-        return { round, gameId };
+        tx.set(playerRef(), { name, avatar: state.playerAvatar, cardCount: grids.length, grids: grids.map(g => g.join(',')), gameId, hasBingo: false, bingoRound: null, roundAck: round, joinedAt: now, updatedAt: now, payRequestAt: now });
+        return { round, gameId, payReq: now };
       });
       state.round = joinedRound.round; state.gameId = joinedRound.gameId; state.roundInitialized = true; state.roundChoicePending = false;
-      state.paymentStatus = 'pending'; state.amountDue = grids.length * state.pricePerCard;
+      state.payRequestAt = joinedRound.payReq;
       applyJoin(name, state.playerAvatar, grids, false);
       showToast('Payment sent for confirmation. Your cards unlock once the host confirms.');
     } catch (e) {
@@ -2063,23 +2084,22 @@ function init() {
   on('btn-wheel-reset', 'click', () => { wheel.picked.clear(); wheel.history = []; renderWheelHistory(); hideWinnerCard(); buildWheelSlices(); $('wheel-result').textContent = ''; drawWheel(); });
   on('wheel-remove-picked', 'change', () => { if (!wheel.spinning) { buildWheelSlices(); drawWheel(); } });
   /* ---------- Payment QR: shown to players before their cards are issued ---------- */
-  const payRef = () => fb.doc(db, ...basePath(), state.roomId, 'settings', 'payment');
-  state.payment = { qr: null, payTo: '' };
+  state.payment = state.payment || { qr: null, payTo: '', updatedAt: 0 };
   let payDraftQr; // undefined = no change pending; null = remove
   function paintAdminPayment() {
-    const box = $('admin-pay-qr-preview'), qr = payDraftQr !== undefined ? payDraftQr : state.payment.qr;
+    const box = $('admin-pay-qr-preview'); if (!box) return;
+    const qr = payDraftQr !== undefined ? payDraftQr : state.payment.qr;
     box.innerHTML = qr ? `<img src="${esc(qr)}" alt="Payment QR preview" class="w-full h-full object-contain">` : '<span class="text-xs text-slate-500 font-semibold px-2 text-center">No QR yet</span>';
     const input = $('admin-pay-to-input'); if (input && document.activeElement !== input && payDraftQr === undefined) input.value = state.payment.payTo || '';
+    const st = $('admin-pay-status');
+    if (st) {
+      if (payDraftQr !== undefined) { st.textContent = 'Not saved yet. Tap Save to send it to all players.'; st.className = 'text-xs font-semibold text-amber-300 text-center'; }
+      else if (state.payment.qr) { st.textContent = `Saved to the cloud${state.payment.updatedAt ? ' · ' + new Date(state.payment.updatedAt).toLocaleString() : ''}. All players see this QR.`; st.className = 'text-xs font-semibold text-emerald-300 text-center'; }
+      else { st.textContent = 'No QR saved. Players are told to pay the host directly.'; st.className = 'text-xs font-semibold text-slate-400 text-center'; }
+    }
   }
-  async function watchPayment() {
-    if (!(await authReady) || !fb) return;
-    fb.onSnapshot(payRef(), snap => {
-      const d = snap.exists() ? snap.data() : {};
-      state.payment = { qr: typeof d.qr === 'string' && /^data:image\/(png|jpeg|webp);base64,/.test(d.qr) ? d.qr : null, payTo: String(d.payTo || '').slice(0, 60) };
-      paintAdminPayment();
-    }, e => console.warn('Payment settings sync failed', errMsg(e)));
-  }
-  watchPayment();
+  window.__paintAdminPayment = paintAdminPayment;
+  paintAdminPayment();
   async function qrFromFile(file) {
     if (!file || !String(file.type || '').startsWith('image/')) throw new Error('Choose an image of your payment QR.');
     const url = URL.createObjectURL(file);
@@ -2089,9 +2109,8 @@ function init() {
       const cv = document.createElement('canvas'); cv.width = Math.round(img.naturalWidth * scale); cv.height = Math.round(img.naturalHeight * scale);
       const ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.drawImage(img, 0, 0, cv.width, cv.height);
       let out = cv.toDataURL('image/png');
-      if (out.length > 180000) out = cv.toDataURL('image/jpeg', 0.92);
-      if (out.length > 180000) out = cv.toDataURL('image/jpeg', 0.8);
-      if (out.length > 200000) throw new Error('That image is too large. Try a smaller screenshot of the QR.');
+      for (const q of [0.9, 0.82, 0.72, 0.6]) { if (out.length <= 110000) break; out = cv.toDataURL('image/jpeg', q); }
+      if (out.length > 140000) throw new Error('That image is too large. Crop the screenshot closer to the QR and try again.');
       return out;
     } finally { URL.revokeObjectURL(url); }
   }
@@ -2105,14 +2124,19 @@ function init() {
   on('modal-pay-settings', 'click', e => { if (e.target.id === 'modal-pay-settings') hideModal('modal-pay-settings'); });
   on('btn-admin-pay-remove', 'click', () => { payDraftQr = null; paintAdminPayment(); showToast('QR removed. Tap Save to apply.'); });
   on('btn-admin-pay-save', 'click', async () => {
-    if (!fb) { showToast('Not connected to the server.', true); return; }
-    const b = $('btn-admin-pay-save'); b.disabled = true;
+    if (!fb || !state.connected) { showToast('Not connected to the server. Check your internet, then try again.', true); return; }
+    const b = $('btn-admin-pay-save'); b.disabled = true; b.textContent = 'SAVING…';
     try {
       const qr = payDraftQr !== undefined ? payDraftQr : state.payment.qr;
-      await fb.setDoc(payRef(), { qr: qr || null, payTo: $('admin-pay-to-input').value.trim().slice(0, 60), updatedAt: Date.now() });
-      payDraftQr = undefined; showToast('Payment details saved.'); hideModal('modal-pay-settings');
+      const payTo = $('admin-pay-to-input').value.trim().slice(0, 60), at = Date.now();
+      await roomWrite({ paymentQr: qr || null, paymentPayTo: payTo, paymentUpdatedAt: at });
+      // Read the record back from the server so "saved" really means saved in the cloud.
+      const snap = await (fb.getDocFromServer || fb.getDoc)(roomRef()), d = snap.exists() ? snap.data() : {};
+      if ((d.paymentQr || null) !== (qr || null) || (d.paymentPayTo || '') !== payTo) throw new Error('The server did not keep the new QR. Try again.');
+      payDraftQr = undefined; syncPaymentSettings(d);
+      showToast(qr ? 'QR saved to the cloud. All players now see it.' : 'QR removed for all players.'); hideModal('modal-pay-settings');
     } catch (err) { showToast('Could not save payment details: ' + errMsg(err), true); }
-    finally { b.disabled = false; }
+    finally { b.disabled = false; b.textContent = 'Save'; paintAdminPayment(); }
   });
   let payOnDone = null, payOnBack = null;
   function openPayModal(n = state.cardCount, onDone = doJoin, amount = null, onBack = null) {
@@ -2152,22 +2176,18 @@ function init() {
   window.__renderPaymentGate = renderPaymentGate;
   on('btn-pay-wait-qr', 'click', () => openPayModal(Math.max(1, Math.round((state.amountDue || 0) / (state.pricePerCard || 1))), null, state.amountDue || null));
   on('btn-pay-wait-leave', 'click', () => leaveGame());
-  // Admin: confirm or reject a player's payment from the roster.
+  // Admin: confirm or reject a player's payment from the roster (written to the room record).
   on('admin-roster-tbody', 'click', async e => {
     const btn = e.target.closest('[data-pay-action]'); if (!btn || !fb) return;
     const p = state.players.find(x => x.id === btn.dataset.id); if (!p) return;
     btn.disabled = true;
     try {
-      const ref = fb.doc(db, ...basePath(), state.roomId, 'players', p.id);
+      const cards = Number(p.cardCount) || 0, keep = confirmedCardsFor(p.id), at = Date.now();
       if (btn.dataset.payAction === 'confirm') {
-        const cards = Number(p.cardCount) || 0;
-        await fb.updateDoc(ref, { paymentStatus: 'confirmed', paidTotal: (Number(p.paidTotal) || 0) + (Number(p.amountDue) || 0), amountDue: 0, confirmedCards: cards, confirmedAt: Date.now() });
+        await fb.setDoc(roomRef(), { payments: { [p.id]: { confirmedCards: cards, rejectedFor: null, at } } }, { merge: true });
         showToast(`Payment confirmed for ${p.name || 'player'}.`);
       } else {
-        const keep = Number(p.confirmedCards) || 0, grids = Array.isArray(p.grids) ? p.grids : [];
-        // Rejecting extra cards keeps the cards they already paid for.
-        if (keep > 0) await fb.updateDoc(ref, { paymentStatus: 'confirmed', amountDue: 0, grids: grids.slice(0, keep), cardCount: Math.min(keep, grids.length) });
-        else await fb.updateDoc(ref, { paymentStatus: 'rejected' });
+        await fb.setDoc(roomRef(), { payments: { [p.id]: { confirmedCards: keep, rejectedFor: Number(p.payRequestAt) || 0, at } } }, { merge: true });
         showToast(keep > 0 ? `Extra cards rejected. ${p.name || 'Player'} keeps ${keep} paid card${keep > 1 ? 's' : ''}.` : `Payment rejected for ${p.name || 'player'}.`);
       }
     } catch (err) { showToast('Could not update payment: ' + errMsg(err), true); btn.disabled = false; }
