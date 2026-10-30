@@ -796,7 +796,7 @@ input[type=checkbox] { accent-color: var(--accent); }
     <h3 id="modal-qr-title" class="font-display font-bold text-xl mb-1">Join the Game!</h3>
     <p class="text-xs text-slate-400 mb-4">Scan or share the link · Room <span id="qr-modal-room-id" class="font-mono font-bold text-white"></span></p>
     <div class="bg-white p-3 rounded-2xl w-52 h-52 mx-auto flex items-center justify-center mb-3"><canvas id="qr-display-canvas" width="192" height="192" class="w-full h-full"></canvas></div>
-    <p id="qr-link-text" class="text-xs text-slate-400 break-all mb-4 select-all"></p>
+    <p id="qr-link-text" hidden class="text-xs text-slate-400 break-all mb-4 select-all"></p>
     <div class="flex flex-col gap-2"><button id="btn-modal-qr-copy" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs active:scale-95">Copy Link</button><button id="btn-modal-native-share" class="w-full py-2.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-200 font-bold text-xs active:scale-95">Share Link…</button><button id="btn-close-qr-modal" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold active:scale-95">Close</button></div>
   </div>
 </div>
@@ -869,7 +869,7 @@ const $ = id => document.getElementById(id);
 const ROLL_DELAY = 1500; // shake animation only; the server write runs in parallel
 const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
-const APP_BUILD = 20261030150749;
+const APP_BUILD = 20261030151153;
 let BGM_VOLUME = 0.20;
 try { const v = Number(localStorage.getItem('ces-bingo:music-volume')); if (localStorage.getItem('ces-bingo:music-volume') !== null && v >= 0 && v <= 1) BGM_VOLUME = v; } catch (e) {}
 const SFX_VOLUME = 0.80;
