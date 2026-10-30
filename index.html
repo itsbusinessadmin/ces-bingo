@@ -54,6 +54,264 @@
   }
 </style>
 <link rel="stylesheet" href="styles.css">
+<style id="premium-theme">
+/* ==================================================================
+   Premium theme — calm near-black canvas, hairline surfaces, one accent.
+   Layered over the prebuilt Tailwind utilities: colors are remapped to
+   tokens so every screen (player, Game Master, admin, dialogs) shares one
+   quiet system. Layout and behaviour are untouched.
+   ================================================================== */
+:root {
+  --bg: #0a0a0d;
+  --surface: #131317;          /* cards, panels */
+  --surface-2: #1b1b21;        /* raised: dialogs, menus */
+  --fill: rgba(255,255,255,.06);       /* neutral controls */
+  --fill-hover: rgba(255,255,255,.10);
+  --fill-strong: rgba(255,255,255,.14);
+  --hairline: rgba(255,255,255,.08);
+  --hairline-strong: rgba(255,255,255,.14);
+  --label: #f5f5f7;
+  --secondary: rgba(235,235,245,.62);
+  --tertiary: rgba(235,235,245,.38);
+  --accent: #e8507c;           /* CES pink, one accent */
+  --accent-press: #d4416c;
+  --accent-soft: rgba(232,80,124,.14);
+  --green: #3ddc84;
+  --green-soft: rgba(61,220,132,.12);
+  --red: #ff6b6b;
+  --red-soft: rgba(255,107,107,.12);
+  --amber: #ffcc4d;
+  --radius-card: 22px;
+  --radius-ctl: 14px;
+  --font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, sans-serif;
+  --font-display: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+  --font-code: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --ease-out: cubic-bezier(.22,1,.36,1);
+  color-scheme: dark;
+}
+
+/* ---------- Canvas & type ---------- */
+html, body { background: var(--bg) !important; color: var(--label); }
+body {
+  font-family: var(--font-text) !important;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv11", "ss01";
+  letter-spacing: -0.006em;
+}
+body::before { /* very soft vignette for depth */
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1;
+  background: radial-gradient(1200px 600px at 50% -10%, rgba(232,80,124,.07), transparent 60%);
+}
+.font-display { font-family: var(--font-display) !important; letter-spacing: -0.02em; }
+.font-mono { font-family: var(--font-text) !important; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+#player-code-badge, #player-code-big, #transfer-code-input, td span.font-mono.text-amber-300, #qr-link-text { font-family: var(--font-code) !important; }
+h1, h2, h3 { letter-spacing: -0.02em; }
+.text-2xl, .text-3xl, .text-4xl, .sm\:text-3xl { letter-spacing: -0.025em; }
+.uppercase { letter-spacing: .06em; }
+.tracking-\[\.18em\], .tracking-\[\.2em\] { letter-spacing: .1em !important; }
+.font-black { font-weight: 700 !important; }
+::selection { background: var(--accent); color: #fff; }
+
+/* ---------- Color remap ---------- */
+.bg-slate-950, .bg-slate-950\/95 { background-color: var(--bg) !important; }
+.bg-slate-900, .bg-slate-900\/80, .bg-slate-900\/90, .bg-slate-900\/95 { background-color: var(--surface) !important; }
+.bg-gradient-to-b.from-slate-900 { background: var(--surface) !important; }
+.bg-slate-800, .bg-slate-800\/50, .bg-slate-800\/70, .bg-slate-800\/80, .bg-slate-800\/90, .bg-slate-700 { background-color: var(--fill) !important; }
+.hover\:bg-slate-700:hover, .hover\:bg-slate-800:hover, .hover\:bg-slate-600:hover, .hover\:bg-slate-800\/60:hover { background-color: var(--fill-hover) !important; }
+.border-slate-800, .border-slate-700, .border-slate-700\/60 { border-color: var(--hairline) !important; }
+.divide-slate-800 > * + * { border-color: var(--hairline) !important; }
+.text-white, .text-slate-100, .text-slate-200 { color: var(--label) !important; }
+.text-slate-300 { color: rgba(235,235,245,.82) !important; }
+.text-slate-400 { color: var(--secondary) !important; }
+.text-slate-500 { color: var(--tertiary) !important; }
+/* decorative warm/cool tints collapse into the neutral label colour */
+.text-amber-200, .text-amber-300, .text-amber-400, .text-cyan-300, .text-cyan-400,
+.text-indigo-100, .text-indigo-200, .text-indigo-300, .text-brand-bluelight, .text-sky-300 { color: var(--label) !important; }
+.text-emerald-200, .text-emerald-300, .text-emerald-400 { color: var(--green) !important; }
+.text-rose-200, .text-rose-300, .text-rose-400 { color: var(--red) !important; }
+a.text-sky-300 { color: #7cc4ff !important; text-decoration-color: rgba(124,196,255,.5); }
+.text-amber-400.uppercase, .text-amber-300.uppercase, .text-indigo-300.uppercase, .text-emerald-300.uppercase { color: var(--secondary) !important; }
+
+/* ---------- Header: translucent material ---------- */
+#app-header {
+  background: rgba(10,10,13,.72) !important;
+  -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--hairline) !important;
+}
+#app-header h1 { background: none !important; -webkit-text-fill-color: var(--label); color: var(--label) !important; font-weight: 700; letter-spacing: -0.03em; }
+#app-header h1 span { -webkit-text-fill-color: var(--tertiary); }
+#app-header button, #player-profile-badge { border-radius: 999px !important; background: var(--fill) !important; border-color: transparent !important; }
+
+/* ---------- Surfaces ---------- */
+.rounded-3xl { border-radius: 26px !important; }
+.rounded-2xl { border-radius: var(--radius-card) !important; }
+.rounded-xl { border-radius: var(--radius-ctl) !important; }
+.shadow-xl, .shadow-2xl, .shadow-lg { box-shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 20px 40px -24px rgba(0,0,0,.7) !important; }
+main section.border, main div.border.bg-slate-900\/90, main .bg-slate-900\/90.border { border-color: var(--hairline) !important; }
+
+/* ---------- Buttons ---------- */
+button { transition: background-color .18s var(--ease-out), color .18s var(--ease-out), border-color .18s var(--ease-out), transform .1s ease-out, opacity .18s; -webkit-tap-highlight-color: transparent; }
+button:active:not(:disabled) { transform: scale(.97); }
+.active\:scale-95:active, .active\:scale-90:active { transform: scale(.97) !important; }
+/* Tinted secondary buttons become one quiet neutral style */
+button.bg-indigo-600\/20, button.bg-indigo-600\/15, button.bg-indigo-600\/30, button.bg-emerald-600\/20, button.bg-amber-500\/15, button.bg-slate-800, label[for="admin-pay-qr-file"] {
+  background-color: var(--fill) !important; border-color: transparent !important; color: var(--label) !important;
+}
+button.bg-indigo-600\/20:hover, button.bg-indigo-600\/15:hover, button.bg-indigo-600\/30:hover, button.bg-emerald-600\/20:hover, button.bg-amber-500\/15:hover, button.bg-slate-800:hover, label[for="admin-pay-qr-file"]:hover { background-color: var(--fill-hover) !important; }
+button.border, label.border { border-color: transparent; }
+/* Primary: one solid accent, no gradients */
+.bg-gradient-to-r.from-brand-pinkdeep, .bg-gradient-to-r.from-amber-500 {
+  background: var(--accent) !important; color: #fff !important; border: 0 !important;
+  box-shadow: 0 8px 24px -12px rgba(232,80,124,.8) !important;
+}
+button.bg-gradient-to-r.from-brand-pinkdeep:hover, button.bg-gradient-to-r.from-amber-500:hover { background: var(--accent-press) !important; filter: none !important; }
+/* Strong secondary: light pill */
+button.bg-amber-500, button.bg-indigo-500 { background: var(--label) !important; color: #0a0a0d !important; }
+button.bg-amber-500:hover, button.bg-indigo-500:hover { background: #fff !important; }
+/* Positive / destructive keep meaning, quieter */
+button.bg-emerald-500 { background: var(--green) !important; color: #04130a !important; }
+button.bg-emerald-500:hover { background: #5be59a !important; }
+button.bg-rose-600 { background: #e5484d !important; color: #fff !important; }
+button.bg-rose-600:hover { background: #f05257 !important; }
+button.bg-rose-500\/10, button.bg-rose-600\/15, #btn-admin-reset-game { background: var(--red-soft) !important; color: var(--red) !important; border-color: transparent !important; }
+button.bg-rose-500\/10:hover, button.bg-rose-600\/15:hover, #btn-admin-reset-game:hover { background: rgba(255,107,107,.2) !important; }
+#btn-admin-toggle-join.bg-emerald-600\/20 { background: var(--green-soft) !important; color: var(--green) !important; }
+button:disabled { opacity: .4 !important; }
+button[data-kick] { background: transparent !important; color: var(--red) !important; border-color: transparent !important; }
+button[data-kick]:hover { background: var(--red-soft) !important; }
+:focus-visible { outline: 2px solid var(--accent) !important; outline-offset: 2px; }
+
+/* ---------- Inputs ---------- */
+input[type=text], input[type=password], input[type=number], textarea, select {
+  background: var(--fill) !important; border: 1px solid transparent !important; color: var(--label) !important; border-radius: var(--radius-ctl) !important;
+  transition: border-color .18s, background-color .18s;
+}
+input[type=text]:focus, input[type=password]:focus, input[type=number]:focus, textarea:focus, select:focus { border-color: var(--hairline-strong) !important; background: var(--fill-hover) !important; outline: none; }
+input::placeholder, textarea::placeholder { color: var(--tertiary); }
+input[type=range] { accent-color: var(--label); }
+input[type=checkbox] { accent-color: var(--accent); }
+
+/* ---------- Dialogs: dim + materialize ---------- */
+[id^="modal-"].fixed.inset-0 { background: rgba(0,0,0,.62) !important; -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%); }
+[id^="modal-"] > [role=dialog], .modal-box {
+  background: var(--surface-2) !important; border: 1px solid var(--hairline) !important; border-radius: 28px !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 40px 80px -30px rgba(0,0,0,.85) !important;
+}
+[id^="modal-"].flex > [role=dialog] { animation: sheet-in .38s var(--ease-out) both; }
+@keyframes sheet-in { from { opacity: 0; transform: translateY(10px) scale(.97); } to { opacity: 1; transform: none; } }
+/* Icon tiles at the top of dialogs: neutral */
+[role=dialog] .w-14.h-14.rounded-2xl, [role=dialog] .w-12.h-12.rounded-2xl, #player-pay-wait .w-14.h-14 { background: var(--fill) !important; border-color: transparent !important; color: var(--label) !important; }
+#modal-reset-game .w-14.h-14, #modal-confirm-clear .w-14.h-14, #modal-kick .w-14.h-14 { background: var(--red-soft) !important; color: var(--red) !important; }
+/* Info / note callouts */
+.bg-brand-blue\/20 { background: var(--fill) !important; border-color: transparent !important; }
+.bg-rose-500\/10, .bg-amber-500\/10 { background: var(--red-soft) !important; border-color: transparent !important; }
+.bg-amber-500\/10 { background: rgba(255,204,77,.1) !important; }
+.bg-amber-500\/10.text-amber-200, #pay-qr-missing { color: var(--amber) !important; }
+
+/* ---------- Player: call bar ---------- */
+#player-call-bar {
+  background: rgba(19,19,23,.78) !important; -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+  border-color: var(--hairline) !important;
+}
+#player-caller-text { color: var(--label) !important; font-weight: 700; }
+#player-balls-count { color: var(--label) !important; }
+#player-win-banner { background: var(--accent) !important; box-shadow: 0 20px 50px -20px rgba(232,80,124,.7) !important; }
+#player-win-banner .text-amber-200 { color: #fff !important; }
+
+/* ---------- Player: bingo cards ---------- */
+#cards-container > div { background: var(--surface) !important; border: 1px solid var(--hairline) !important; border-radius: 26px !important; padding: 16px !important; }
+#cards-container > div.border-dashed { background: transparent !important; border: 1px dashed var(--hairline-strong) !important; }
+#cards-container > div .text-amber-400 { color: var(--secondary) !important; font-family: var(--font-text) !important; font-weight: 600; letter-spacing: .06em; font-size: 11px; }
+#cards-container [data-counter] { background: transparent !important; border: 0 !important; color: var(--tertiary) !important; }
+/* Column letters: coloured text, no blocks */
+#cards-container .grid-cols-5 > .bg-blue-600, #cards-container .grid-cols-5 > .bg-rose-600, #cards-container .grid-cols-5 > .bg-amber-600,
+#cards-container .grid-cols-5 > .bg-emerald-600, #cards-container .grid-cols-5 > .bg-purple-600 { background: transparent !important; font-size: 15px; font-weight: 700; }
+#cards-container .bg-blue-600 { color: #6ea8ff !important; } #cards-container .bg-rose-600 { color: #ff7a9a !important; }
+#cards-container .bg-amber-600 { color: #ffc861 !important; } #cards-container .bg-emerald-600 { color: #4ee3a0 !important; }
+#cards-container .bg-purple-600 { color: #b597ff !important; }
+.bingo-cell {
+  border: 0 !important; border-radius: 14px !important; background: var(--fill) !important; color: var(--label) !important;
+  font-family: var(--font-display) !important; font-weight: 600 !important; font-variant-numeric: tabular-nums;
+  transition: background-color .2s var(--ease-out), transform .1s ease-out !important;
+}
+.bingo-cell:hover { background: var(--fill-hover) !important; }
+.bingo-cell[aria-pressed="true"], .bingo-cell.from-brand-pinkdeep { background: var(--accent) !important; color: #fff !important; box-shadow: 0 6px 18px -8px rgba(232,80,124,.9); }
+.bingo-cell .stamp-anim, .bingo-cell span.uppercase { opacity: .85; font-size: 9px !important; letter-spacing: .08em; }
+.bingo-cell[data-idx="12"] { background: var(--accent-soft) !important; color: var(--accent) !important; box-shadow: none; }
+.bingo-cell[data-idx="12"] span { color: var(--accent) !important; }
+.shake-invalid { background: var(--red-soft) !important; }
+
+/* ---------- Game Master ---------- */
+#view-gm .bg-rose-500\/20 { background: var(--red-soft) !important; border-color: transparent !important; }
+#gm-announce-msg { color: var(--label) !important; font-weight: 600; }
+.board-cell { border-radius: 10px !important; font-family: var(--font-text) !important; }
+.board-cell.bg-slate-800\/70 { background: var(--fill) !important; color: var(--tertiary) !important; }
+.board-cell.latest { box-shadow: 0 0 0 2px var(--label) !important; }
+#gm-total-drawn-pill, #gm-live-count-badge, #roster-count { background: var(--fill) !important; border-color: transparent !important; color: var(--secondary) !important; }
+#gm-participants-list > div { background: var(--fill) !important; border-color: transparent !important; color: var(--label) !important; }
+#gm-participants-list .bg-amber-500 { background: var(--accent) !important; color: #fff !important; }
+#recent-balls-bar span { box-shadow: none; }
+#gm-staff-menu { background: var(--surface-2) !important; border-color: var(--hairline) !important; }
+
+/* ---------- Admin ---------- */
+#view-admin > .grid > div { background: var(--surface) !important; }
+#admin-total-players, #admin-total-cards, #admin-total-income, [data-eye-mask] { color: var(--label) !important; font-weight: 700; letter-spacing: -0.03em; }
+#admin-total-income { color: var(--label) !important; }
+#view-admin h3.uppercase { color: var(--tertiary) !important; font-size: 11px; letter-spacing: .1em; font-weight: 600; }
+#view-admin table thead { background: transparent !important; color: var(--tertiary) !important; font-family: var(--font-text) !important; letter-spacing: .06em; border-bottom: 1px solid var(--hairline); }
+#view-admin table td { border-color: var(--hairline); }
+#admin-roster-tbody tr { transition: background-color .15s; }
+#admin-roster-tbody tr:hover { background: rgba(255,255,255,.025); }
+#admin-roster-tbody span.rounded-full { background: var(--fill) !important; border-color: transparent !important; color: var(--secondary) !important; font-weight: 600; }
+#admin-roster-tbody span.bg-amber-500 { background: var(--accent) !important; color: #fff !important; }
+#admin-roster-tbody span.bg-emerald-500\/15 { background: rgba(255,204,77,.12) !important; color: var(--amber) !important; }
+#admin-roster-tbody span.bg-rose-500\/15 { background: var(--red-soft) !important; color: var(--red) !important; }
+#admin-roster-tbody button.bg-emerald-500 { padding-inline: 14px; border-radius: 999px !important; }
+#admin-roster-tbody button.bg-slate-800 { border-radius: 999px !important; color: var(--red) !important; }
+[data-eye] { color: var(--tertiary) !important; }
+[data-eye]:hover { color: var(--label) !important; background: var(--fill) !important; }
+
+/* ---------- Misc ---------- */
+#patterns-panel { background: rgba(27,27,33,.86) !important; -webkit-backdrop-filter: saturate(180%) blur(24px); backdrop-filter: saturate(180%) blur(24px); border-color: var(--hairline) !important; border-radius: 22px !important; }
+#patterns-panel .bg-rose-500, #gm-patterns-grid .bg-rose-500, #pattern-pick-grid .bg-rose-500 { background: var(--accent) !important; border-color: transparent !important; }
+#patterns-panel .bg-slate-900, #gm-patterns-grid .bg-slate-900, #pattern-pick-grid .bg-slate-900 { background: var(--fill) !important; border-color: transparent !important; }
+#pattern-pick-grid button { border: 1px solid transparent !important; background: var(--fill) !important; }
+#pattern-pick-grid button[aria-checked="true"] { border-color: var(--label) !important; background: var(--fill-strong) !important; }
+#join-avatar-picker button { border-width: 1px !important; border-color: transparent !important; background: var(--fill) !important; }
+#join-avatar-picker button[aria-checked="true"] { border-color: var(--label) !important; background: var(--fill-strong) !important; }
+#toast-container > div { background: rgba(40,40,46,.88) !important; -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); border: 1px solid var(--hairline) !important; border-radius: 999px !important; padding: 10px 16px !important; font-size: 13px !important; font-weight: 500 !important; }
+#toast-container > div.bg-rose-600 { background: rgba(120,28,36,.92) !important; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  [id^="modal-"].flex > [role=dialog] { animation: fade-in .2s ease both; }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  button:active:not(:disabled) { transform: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  #app-header, #player-call-bar, #patterns-panel, #toast-container > div { background: var(--surface-2) !important; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  [id^="modal-"].fixed.inset-0 { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(0,0,0,.8) !important; }
+}
+
+/* ---------- Refinements ---------- */
+@media (max-width: 480px) { #app-header h1 { display: none; } }
+[data-vol-label] { color: var(--secondary) !important; }
+.bingo-cell[data-idx="12"] { background: var(--fill-strong) !important; }
+#gm-participants-list > div.italic { background: transparent !important; font-style: normal; color: var(--tertiary) !important; }
+/* Called-numbers board: letter headers as coloured text, not blocks */
+#gm-number-board > div > .board-cell:first-child { background: transparent !important; font-weight: 700; }
+#gm-number-board > div:nth-child(1) > .board-cell:first-child { color: #6ea8ff !important; }
+#gm-number-board > div:nth-child(2) > .board-cell:first-child { color: #ff7a9a !important; }
+#gm-number-board > div:nth-child(3) > .board-cell:first-child { color: #ffc861 !important; }
+#gm-number-board > div:nth-child(4) > .board-cell:first-child { color: #4ee3a0 !important; }
+#gm-number-board > div:nth-child(5) > .board-cell:first-child { color: #b597ff !important; }
+/* Prize wheel */
+#wheel-winner-card > div { border: 1px solid var(--hairline-strong) !important; background: rgba(10,10,13,.82) !important; -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border-radius: 20px !important; }
+#modal-wheel .absolute.left-1\/2[aria-hidden] { border-top-color: var(--label) !important; }
+#wheel-history li.bg-amber-500 { background: var(--label) !important; color: #0a0a0d !important; }
+#wheel-history li { border-radius: 999px !important; }
+#pattern-pick-grid .bg-indigo-400\/60 { background: var(--tertiary) !important; }
+</style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-slate-950">
 <svg width="0" height="0" class="absolute" aria-hidden="true" focusable="false"><defs><symbol id="i-volume" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></symbol><symbol id="i-volume-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></symbol><symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol><symbol id="i-music" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol><symbol id="i-music-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/><line x1="2" y1="2" x2="22" y2="22"/></symbol><symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol><symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></symbol><symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3" fill="currentColor"/></symbol><symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></symbol><symbol id="i-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></symbol><symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol><symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></symbol><symbol id="i-trophy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol><symbol id="i-sliders" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></symbol><symbol id="i-clipboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></symbol><symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol><symbol id="i-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></symbol><symbol id="i-move" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></symbol><symbol id="i-qr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></symbol><symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol><symbol id="i-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol><symbol id="i-monitor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></symbol><symbol id="i-wheel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/><line x1="12" y1="2" x2="12" y2="10"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="2" y1="12" x2="10" y2="12"/><line x1="14" y1="12" x2="22" y2="12"/></symbol><symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol><symbol id="i-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></symbol><symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol></defs></svg>
@@ -611,7 +869,7 @@ const $ = id => document.getElementById(id);
 const ROLL_DELAY = 1500; // shake animation only; the server write runs in parallel
 const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
-const APP_BUILD = 20261028170025;
+const APP_BUILD = 20261030114958;
 let BGM_VOLUME = 0.20;
 try { const v = Number(localStorage.getItem('ces-bingo:music-volume')); if (localStorage.getItem('ces-bingo:music-volume') !== null && v >= 0 && v <= 1) BGM_VOLUME = v; } catch (e) {}
 const SFX_VOLUME = 0.80;
