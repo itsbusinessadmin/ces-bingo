@@ -869,7 +869,7 @@ const $ = id => document.getElementById(id);
 const ROLL_DELAY = 1500; // shake animation only; the server write runs in parallel
 const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
-const APP_BUILD = 20261030114958;
+const APP_BUILD = 20261030150749;
 let BGM_VOLUME = 0.20;
 try { const v = Number(localStorage.getItem('ces-bingo:music-volume')); if (localStorage.getItem('ces-bingo:music-volume') !== null && v >= 0 && v <= 1) BGM_VOLUME = v; } catch (e) {}
 const SFX_VOLUME = 0.80;
@@ -2104,7 +2104,7 @@ function updateRoom(data) {
     gmBall.title = `Tap to reveal the ${pendingLetter} number`;
     $('big-ball-letter').textContent = pendingLetter;
     $('big-ball-num').textContent = '';
-    $('gm-announce-msg').textContent = `Letter ${pendingLetter} — tap the ball to reveal the number`;
+    $('gm-announce-msg').textContent = `Letter ${pendingLetter}`;
   } else if (!state.isRolling) {
     gmBall.classList.remove('letter-only', 'ball-awaiting-reveal');
     gmBall.title = 'Roll a letter first';
@@ -2249,7 +2249,7 @@ function drawNextBall() {
     ball.classList.add('letter-only', 'ball-awaiting-reveal', 'ball-reveal');
     ball.title = `Tap to reveal the ${L} number`;
     $('big-ball-letter').textContent = L; $('big-ball-num').textContent = '';
-    $('gm-announce-msg').textContent = `Letter ${L} — tap the ball to reveal the number`;
+    $('gm-announce-msg').textContent = `Letter ${L}`;
     btn.disabled = true;
     playBeep(760, 'triangle', 0.14);
   }, ROLL_DELAY);
