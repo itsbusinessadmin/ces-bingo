@@ -30,8 +30,8 @@
   .ball-rolling{animation:roll .45s linear infinite}
   @keyframes reveal{0%{transform:scale(.4);opacity:.2}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
   .ball-reveal{animation:reveal .5s cubic-bezier(.175,.885,.32,1.275)}
-  @keyframes daubPop{0%{transform:scale(.6) rotate(-12deg);opacity:0}50%{transform:scale(1.15) rotate(4deg)}100%{transform:scale(1) rotate(0);opacity:1}}
-  .stamp-anim{animation:daubPop .28s cubic-bezier(.175,.885,.32,1.275) forwards}
+  @keyframes daubPop{from{opacity:0;transform:scale(.8)}to{opacity:.85;transform:none}}
+  .stamp-anim{animation:daubPop .18s cubic-bezier(.23,1,.32,1) both}
   @keyframes shakeInvalid{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
   .shake-invalid{animation:shakeInvalid .35s ease-in-out;border-color:#ef4444!important;background-color:rgba(239,68,68,.25)!important}
   .bingo-cell{aspect-ratio:1/1}
@@ -49,8 +49,12 @@
   .board-cell{aspect-ratio:1/1}
   .board-cell.latest{box-shadow:0 0 0 3px #fbbf24;transform:scale(1.12);z-index:1}
   @media (prefers-reduced-motion: reduce){
-    *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
-    .animate-pulse,.animate-ping,.animate-bounce{animation:none!important}
+    html{scroll-behavior:auto!important}
+    .ball-rolling,.shake-invalid,.animate-pulse,.animate-ping,.animate-bounce,.trophy-pop{animation:none!important}
+    .ball-reveal{animation:rm-fade .2s ease both!important}
+    .stamp-anim{animation:rm-fade .15s ease both!important}
+    button:active,.active\:scale-95:active,.board-cell.latest{transform:none!important}
+    @keyframes rm-fade{from{opacity:0}to{opacity:1}}
   }
 </style>
 <link rel="stylesheet" href="styles.css">
@@ -86,7 +90,7 @@
   --font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, sans-serif;
   --font-display: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
   --font-code: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --ease-out: cubic-bezier(.22,1,.36,1);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   color-scheme: dark;
 }
 
@@ -311,6 +315,39 @@ input[type=checkbox] { accent-color: var(--accent); }
 #wheel-history li.bg-amber-500 { background: var(--label) !important; color: #0a0a0d !important; }
 #wheel-history li { border-radius: 999px !important; }
 #pattern-pick-grid .bg-indigo-400\/60 { background: var(--tertiary) !important; }
+
+/* ---------- Motion (plans 002–008) ---------- */
+/* 002 toasts: transform + opacity only, symmetric exit */
+#toast-container > .toast { opacity: 0; transform: translateY(12px); transition: transform 220ms var(--ease-out), opacity 220ms var(--ease-out) !important; }
+#toast-container > .toast.toast-in { opacity: 1; transform: none; }
+#toast-container > .toast.toast-out { opacity: 0; transform: translateY(12px); transition-duration: 180ms !important; }
+/* 003 trophy pops once */
+.trophy-pop { animation: trophy-pop 600ms var(--ease-out) both; }
+@keyframes trophy-pop { 0% { transform: translateY(0) scale(.9); } 35% { transform: translateY(-8px) scale(1.05); } 70% { transform: translateY(0) scale(.98); } 100% { transform: none; } }
+/* 004 menus grow from their trigger */
+#gm-staff-menu.flex, #patterns-panel:not(.hidden) { animation: pop-in 180ms var(--ease-out) both; transform-origin: top right; }
+@keyframes pop-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+/* 006 cards stagger in */
+#cards-container > div { animation: card-in 280ms var(--ease-out) both; }
+#cards-container > div:nth-child(2) { animation-delay: 40ms; } #cards-container > div:nth-child(3) { animation-delay: 80ms; }
+#cards-container > div:nth-child(4) { animation-delay: 120ms; } #cards-container > div:nth-child(5) { animation-delay: 160ms; }
+#cards-container > div:nth-child(6) { animation-delay: 200ms; } #cards-container > div:nth-child(7) { animation-delay: 240ms; }
+#cards-container > div:nth-child(8) { animation-delay: 280ms; } #cards-container > div:nth-child(n+9) { animation-delay: 320ms; }
+@keyframes card-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+/* 007 winner banner slides in from the call bar */
+#player-win-banner:not(.hidden) { animation: banner-in 240ms var(--ease-out) both; }
+@keyframes banner-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+/* 008 dialogs fade out (a visual ghost; the real dialog is already hidden) */
+.modal-ghost { pointer-events: none !important; animation: ghost-out 160ms ease-out both !important; }
+.modal-ghost > [role=dialog] { animation: dialog-out 160ms var(--ease-out) both !important; }
+@keyframes ghost-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes dialog-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(6px) scale(.98); } }
+
+@media (prefers-reduced-motion: reduce) {
+  #toast-container > .toast, #toast-container > .toast.toast-out { transform: none !important; }
+  #gm-staff-menu.flex, #patterns-panel:not(.hidden), #cards-container > div, #player-win-banner:not(.hidden) { animation-name: rm-fade !important; animation-duration: 180ms !important; }
+  .modal-ghost > [role=dialog] { animation-name: ghost-out !important; }
+}
 </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-slate-950">
@@ -346,7 +383,7 @@ input[type=checkbox] { accent-color: var(--accent); }
     <div id="player-win-banner" role="status" class="hidden rounded-2xl p-4 bg-gradient-to-r from-brand-pinkdeep to-brand-blue text-white shadow-2xl">
       <div class="flex items-center justify-between gap-3">
         <div class="flex items-center gap-3 min-w-0">
-          <svg class="w-10 h-10 text-amber-200 animate-bounce shrink-0" aria-hidden="true"><use href="#i-trophy"/></svg>
+          <svg class="w-10 h-10 text-amber-200 trophy-pop shrink-0" aria-hidden="true"><use href="#i-trophy"/></svg>
           <div class="min-w-0"><h3 class="font-display font-bold text-xl sm:text-3xl uppercase">BINGO WINNER!</h3><p id="player-win-text" class="text-sm font-semibold text-white">Congratulations!</p></div>
         </div>
         <button id="btn-dismiss-win-banner" type="button" class="bg-white/20 hover:bg-white/30 rounded-xl px-4 text-sm font-bold shrink-0">Dismiss</button>
@@ -869,7 +906,7 @@ const $ = id => document.getElementById(id);
 const ROLL_DELAY = 1500; // shake animation only; the server write runs in parallel
 const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
-const APP_BUILD = 20261030151153;
+const APP_BUILD = 20261030153135;
 let BGM_VOLUME = 0.20;
 try { const v = Number(localStorage.getItem('ces-bingo:music-volume')); if (localStorage.getItem('ces-bingo:music-volume') !== null && v >= 0 && v <= 1) BGM_VOLUME = v; } catch (e) {}
 const SFX_VOLUME = 0.80;
@@ -1488,9 +1525,24 @@ const showModal = id => {
   modalStack.push({ id, opener: document.activeElement });
   setTimeout(() => { if (isOpen(el) && !el.contains(document.activeElement)) { const f = el.querySelector('[autofocus]') || el.querySelector(FOCUSABLE); if (f) f.focus({ preventScroll: true }); } }, 30);
 };
+function ghostOut(el) {
+  if (!el || el.id === 'modal-avatar-camera') return;
+  try {
+    const g = el.cloneNode(true);
+    g.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+    const srcC = el.querySelectorAll('canvas'), dstC = g.querySelectorAll('canvas');
+    srcC.forEach((c, i) => { try { dstC[i].getContext('2d').drawImage(c, 0, 0); } catch (e) {} });
+    const srcI = el.querySelectorAll('input, textarea'), dstI = g.querySelectorAll('input, textarea');
+    srcI.forEach((c, i) => { try { dstI[i].value = c.value; } catch (e) {} });
+    g.setAttribute('aria-hidden', 'true'); g.inert = true; g.classList.add('modal-ghost');
+    document.body.appendChild(g);
+    setTimeout(() => g.remove(), 200);
+  } catch (e) {}
+}
 const hideModal = id => {
   const el = $(id); if (!el) return;
   const wasOpen = isOpen(el);
+  if (wasOpen) ghostOut(el);
   el.classList.add('hidden'); el.classList.remove('flex');
   const i = modalStack.findIndex(m => m.id === id);
   if (i >= 0) { const [m] = modalStack.splice(i, 1); if (wasOpen && m.opener && document.contains(m.opener) && (!modalStack.length || modalStack.some(o => isOpen($(o.id)) && $(o.id).contains(m.opener)))) try { m.opener.focus({ preventScroll: true }); } catch (e) {} }
@@ -1535,10 +1587,11 @@ function toggleStaffMenu() {
 function openJoin() { $('btn-close-join').classList.toggle('hidden', !state.isAdmin); refreshJoinGate(); showModal('modal-join'); }
 function showToast(msg, isError = false) {
   const c = $('toast-container'), t = document.createElement('div');
-  t.className = `px-4 py-2 rounded-lg shadow-lg font-semibold text-xs text-white transition-all duration-300 translate-y-4 opacity-0 ${isError ? 'bg-rose-600' : 'bg-slate-800 border border-slate-700'}`;
+  t.className = `px-4 py-2 rounded-lg shadow-lg font-semibold text-xs text-white toast ${isError ? 'bg-rose-600' : 'bg-slate-800 border border-slate-700'}`;
   t.textContent = msg; c.appendChild(t);
-  requestAnimationFrame(() => t.classList.remove('translate-y-4', 'opacity-0'));
-  setTimeout(() => { t.classList.add('opacity-0'); setTimeout(() => t.remove(), 300); }, 3200);
+  t.getBoundingClientRect(); // commit the start position so the slide always plays
+  t.classList.add('toast-in');
+  setTimeout(() => { t.classList.remove('toast-in'); t.classList.add('toast-out'); setTimeout(() => t.remove(), 200); }, 3200);
 }
 const getLetter = n => n <= 15 ? 'B' : n <= 30 ? 'I' : n <= 45 ? 'N' : n <= 60 ? 'G' : 'O';
 const getColor = l => ({ B: '#3b82f6', I: '#f43f5e', N: '#f59e0b', G: '#10b981', O: '#8b5cf6' }[l] || '#ef4444');
