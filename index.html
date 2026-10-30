@@ -348,6 +348,26 @@ input[type=checkbox] { accent-color: var(--accent); }
   #gm-staff-menu.flex, #patterns-panel:not(.hidden), #cards-container > div, #player-win-banner:not(.hidden) { animation-name: rm-fade !important; animation-duration: 180ms !important; }
   .modal-ghost > [role=dialog] { animation-name: ghost-out !important; }
 }
+
+/* ---------- Game Master toolbar: collapses to the right edge ---------- */
+#gm-toolbar { transition: transform 260ms var(--ease-out), opacity 200ms var(--ease-out); }
+#gm-toolbar.is-collapsing { transform: translateX(calc(100% + 32px)); opacity: 0; pointer-events: none; }
+#btn-gm-toolbar-show {
+  position: fixed; z-index: 35; right: 0; top: calc(var(--hdr-h, 64px) + 16px);
+  padding: 10px 12px 10px 14px; padding-right: max(12px, env(safe-area-inset-right, 0px));
+  border-radius: 999px 0 0 999px !important; background: rgba(27,27,33,.86) !important;
+  -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid var(--hairline); border-right: 0; color: var(--label);
+  display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600;
+  box-shadow: 0 10px 30px -12px rgba(0,0,0,.7);
+  animation: tab-in 220ms var(--ease-out) both;
+}
+#btn-gm-toolbar-show[hidden] { display: none !important; }
+@keyframes tab-in { from { transform: translateX(100%); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  #gm-toolbar, #gm-toolbar.is-collapsing { transform: none !important; }
+  #btn-gm-toolbar-show { animation-name: rm-fade !important; }
+}
 </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-slate-950">
@@ -426,7 +446,7 @@ input[type=checkbox] { accent-color: var(--accent); }
 
   <!-- GAME MASTER VIEW -->
   <div id="view-gm" class="hidden flex-col gap-4 w-full flex-1">
-    <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-900/90 border border-slate-800 rounded-2xl px-3 sm:px-4 py-3">
+    <div id="gm-toolbar" class="flex flex-wrap items-center justify-between gap-2 bg-slate-900/90 border border-slate-800 rounded-2xl px-3 sm:px-4 py-3">
       <span class="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs uppercase tracking-wider">Live Presentation Mode</span>
       <div class="flex flex-wrap items-center gap-2">
         <button id="btn-gm-share-modal" type="button" class="text-sm font-semibold px-3 rounded-xl flex items-center gap-2 active:scale-95 bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/40 text-indigo-200"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-link"/></svg>Share Room</button>
@@ -441,8 +461,10 @@ input[type=checkbox] { accent-color: var(--accent); }
             <button id="btn-exit-gm-mode" type="button" role="menuitem" class="w-full text-left text-sm font-semibold px-3 rounded-xl hover:bg-slate-800 text-slate-100 flex items-center gap-2"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-logout"/></svg>Exit Game Master</button>
           </div>
         </div>
+        <button id="btn-gm-toolbar-hide" type="button" aria-label="Hide toolbar" title="Hide toolbar" class="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-100 flex items-center justify-center active:scale-95"><svg class="w-5 h-5 shrink-0" style="transform:rotate(-90deg)" aria-hidden="true"><use href="#i-chevron"/></svg></button>
       </div>
     </div>
+    <button id="btn-gm-toolbar-show" type="button" hidden aria-label="Show toolbar" title="Show toolbar"><svg class="w-4 h-4 shrink-0" style="transform:rotate(90deg)" aria-hidden="true"><use href="#i-chevron"/></svg>Tools</button>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5">
       <div class="lg:col-span-5 bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col items-center text-center overflow-hidden">
@@ -906,7 +928,7 @@ const $ = id => document.getElementById(id);
 const ROLL_DELAY = 1500; // shake animation only; the server write runs in parallel
 const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
-const APP_BUILD = 20261030161652;
+const APP_BUILD = 20261030165633;
 let BGM_VOLUME = 0.20;
 try { const v = Number(localStorage.getItem('ces-bingo:music-volume')); if (localStorage.getItem('ces-bingo:music-volume') !== null && v >= 0 && v <= 1) BGM_VOLUME = v; } catch (e) {}
 const SFX_VOLUME = 0.80;
@@ -3024,6 +3046,24 @@ function init() {
     try { await roomWrite({ activePattern: name }); hideModal('modal-pattern-pick'); showToast(name ? `Winning pattern set to ${name}.` : 'All patterns count.'); }
     catch (err) { showToast('Could not set the pattern: ' + errMsg(err), true); }
   });
+  /* ---------- Game Master toolbar: hide to the right edge / bring back ---------- */
+  let toolbarTimer = null;
+  const setToolbar = (open, animate = true) => {
+    const bar = $('gm-toolbar'), tab = $('btn-gm-toolbar-show'); if (!bar || !tab) return;
+    clearTimeout(toolbarTimer);
+    if (open) {
+      tab.hidden = true; bar.hidden = false;
+      if (animate) { bar.classList.add('is-collapsing'); bar.getBoundingClientRect(); }
+      bar.classList.remove('is-collapsing');
+    } else {
+      bar.classList.add('is-collapsing');
+      toolbarTimer = setTimeout(() => { bar.hidden = true; tab.hidden = false; }, animate ? 260 : 0);
+    }
+    try { localStorage.setItem('ces-bingo:gm-toolbar', open ? 'open' : 'hidden'); } catch (e) {}
+  };
+  { let open = true; try { open = localStorage.getItem('ces-bingo:gm-toolbar') !== 'hidden'; } catch (e) {} setToolbar(open, false); }
+  on('btn-gm-toolbar-hide', 'click', () => setToolbar(false));
+  on('btn-gm-toolbar-show', 'click', () => setToolbar(true));
   on('btn-export-csv', 'click', () => {
     // Quote every text cell and neutralise leading = + - @ so spreadsheet apps never run a name as a formula.
     const cell = v => { let t = String(v ?? ''); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
