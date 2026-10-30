@@ -435,7 +435,7 @@ input[type=checkbox] { accent-color: var(--accent); }
         <button id="btn-gm-pattern" type="button" class="text-sm font-semibold px-3 rounded-xl flex items-center gap-2 active:scale-95 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-200"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-grid"/></svg><span id="gm-pattern-label">Pattern: All</span></button>
         <button id="btn-gm-help" type="button" aria-label="How to play and patterns" title="How to play &amp; patterns" class="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-300 font-black text-lg flex items-center justify-center active:scale-95">?</button>
         <div class="relative">
-          <button id="btn-gm-staff-menu" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="gm-staff-menu" class="text-sm font-semibold px-3 rounded-xl flex items-center gap-2 active:scale-95 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-100"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-sliders"/></svg>Staff<svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+          <button id="btn-gm-staff-menu" type="button" class="text-sm font-semibold px-3 rounded-xl flex items-center gap-2 active:scale-95 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-100"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-monitor"/></svg>Admin Desk</button>
           <div id="gm-staff-menu" role="menu" aria-label="Staff actions" class="hidden absolute right-0 top-full mt-2 z-40 w-56 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-1.5 flex-col gap-1">
             <button id="btn-open-admin-from-gm" type="button" role="menuitem" class="w-full text-left text-sm font-semibold px-3 rounded-xl hover:bg-slate-800 text-amber-300 flex items-center gap-2"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-monitor"/></svg>Admin Desk</button>
             <button id="btn-exit-gm-mode" type="button" role="menuitem" class="w-full text-left text-sm font-semibold px-3 rounded-xl hover:bg-slate-800 text-slate-100 flex items-center gap-2"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-logout"/></svg>Exit Game Master</button>
@@ -906,7 +906,7 @@ const $ = id => document.getElementById(id);
 const ROLL_DELAY = 1500; // shake animation only; the server write runs in parallel
 const DEFAULT_ADMIN_PINS = ['1234', 'CES2026', 'ces'];
 const MAX_CARDS = 20;
-const APP_BUILD = 20261030153135;
+const APP_BUILD = 20261030161652;
 let BGM_VOLUME = 0.20;
 try { const v = Number(localStorage.getItem('ces-bingo:music-volume')); if (localStorage.getItem('ces-bingo:music-volume') !== null && v >= 0 && v <= 1) BGM_VOLUME = v; } catch (e) {}
 const SFX_VOLUME = 0.80;
@@ -2525,7 +2525,7 @@ function init() {
   on('btn-open-admin-from-gm', 'click', () => switchStaffView('admin'));
   on('btn-exit-gm-mode', 'click', () => { state.isAdmin = false; switchStaffView('player'); if (!state.joined) openJoin(); });
   on('btn-gm-music', 'click', toggleStaffMusic);
-  on('btn-gm-staff-menu', 'click', e => { e.stopPropagation(); toggleStaffMenu(); });
+  on('btn-gm-staff-menu', 'click', () => switchStaffView('admin'));
   on('gm-staff-menu', 'click', e => { if (e.target.closest('[role=menuitem]')) closeStaffMenu(false); });
   on('gm-staff-menu', 'keydown', e => {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
