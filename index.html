@@ -758,7 +758,7 @@ div:has(> #big-bingo-ball)::after {
     <section class="flex flex-col gap-3" aria-labelledby="your-cards-title">
       <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h2 id="your-cards-title" class="font-display font-bold text-base">Your Cards</h2>
-        <p class="text-xs text-slate-400">Tap each called number on your card. Missed numbers mark themselves after 5 seconds.</p>
+        <p class="text-xs text-slate-400">Tap each called number on your card. Missed numbers mark themselves after <span data-auto-daub-secs>5 seconds</span>.</p>
       </div>
       <div id="cards-container" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4 pb-10"></div>
     </section>
@@ -864,6 +864,12 @@ div:has(> #big-bingo-ball)::after {
           <label for="admin-card-price-input" class="text-sm font-bold text-slate-300">Price per card</label>
         <div class="relative w-28"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold" aria-hidden="true">₱</span><input type="number" id="admin-card-price-input" min="1" step="1" value="10" class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-7 pr-3 py-1.5 font-bold text-sm focus:outline-none focus:border-amber-400"></div>
           <button id="btn-save-price" type="button" class="px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-sm active:scale-95">Update Price</button>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <label for="admin-auto-daub-input" class="text-sm font-bold text-slate-300">Auto-mark missed numbers after</label>
+          <span class="flex items-center gap-2"><input type="number" id="admin-auto-daub-input" min="1" max="60" step="1" value="5" inputmode="numeric" aria-describedby="admin-auto-daub-help" style="width:5.5rem" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 font-bold text-sm text-center focus:outline-none focus:border-amber-400"><span class="text-sm font-bold text-slate-400" aria-hidden="true">sec</span></span>
+          <button id="btn-save-auto-daub" type="button" class="px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-sm active:scale-95">Update Time</button>
+          <p id="admin-auto-daub-help" class="w-full text-xs text-slate-400">If a player doesn't tap a called number within this time, it's marked for them. 1–60 seconds, default 5.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <button id="btn-admin-toggle-join" type="button" aria-pressed="false" class="px-3 rounded-xl bg-rose-600/15 hover:bg-rose-600/30 text-rose-200 border border-rose-500/40 text-sm font-semibold flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-lock"/></svg><span id="admin-toggle-join-label">Stop Accepting Players</span></button>
@@ -1190,7 +1196,7 @@ div:has(> #big-bingo-ball)::after {
     <div id="gm-help-page-mechanics">
       <div class="space-y-3 text-sm text-slate-300">
         <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">1. Join before the first ball.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">Players enter through the shared link or QR code, choose their cards, and must finish joining before the Game Master rolls the first number. Once the first number is drawn, the room is locked to new players.</p></div>
-        <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">2. Tap the called numbers.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">Every number revealed by the Game Master is synced to all players. Players tap it on their cards; if they don't within 5 seconds, it is marked automatically. Uncalled numbers cannot be marked.</p></div>
+        <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">2. Tap the called numbers.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">Every number revealed by the Game Master is synced to all players. Players tap it on their cards; if they don't within <span data-auto-daub-secs>5 seconds</span>, it is marked automatically. Uncalled numbers cannot be marked.</p></div>
         <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">3. Bingo is detected automatically.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">As soon as a player's marked numbers complete an approved pattern, Bingo is claimed and verified against the called numbers. No manual claim is required.</p></div>
         <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">4. Winners update live.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">When a player completes a valid pattern, all players see the winner announcement and the Game Master screen lists the winners in order.</p></div>
         <div class="rounded-2xl bg-slate-800/70 border border-slate-700 p-4"><span class="font-black text-amber-400">5. Reset starts a choice period.</span><p class="mt-1 text-xs sm:text-sm text-slate-400">After a round is reset, existing players can stay with the same cards, add more cards, or leave the game. The next first ball locks new entries again.</p></div>
@@ -2107,9 +2113,18 @@ function renderAllPlayerCards() {
 }
 
 /* Daubing: players tap called numbers themselves. Any called number left unmarked
-   for AUTO_DAUB_MS is marked automatically. Numbers already called when the cards
+   for autoDaubSecs seconds is marked automatically. Numbers already called when the cards
    load (refresh mid-game) are marked right away. */
-const AUTO_DAUB_MS = 5000;
+const AUTO_DAUB_DEFAULT_SECS = 5, AUTO_DAUB_MIN_SECS = 1, AUTO_DAUB_MAX_SECS = 60;
+const validAutoDaubSecs = v => { const n = Math.round(Number(v)); return n >= AUTO_DAUB_MIN_SECS && n <= AUTO_DAUB_MAX_SECS ? n : null; };
+let autoDaubSecs = AUTO_DAUB_DEFAULT_SECS;
+// The host sets the delay in the room record (autoDaubSeconds); every device follows it.
+function syncAutoDaubSecs(value) {
+  autoDaubSecs = validAutoDaubSecs(value) || AUTO_DAUB_DEFAULT_SECS;
+  const label = `${autoDaubSecs} ${autoDaubSecs === 1 ? 'second' : 'seconds'}`;
+  document.querySelectorAll('[data-auto-daub-secs]').forEach(el => { el.textContent = label; });
+  const input = $('admin-auto-daub-input'); if (input && document.activeElement !== input) input.value = autoDaubSecs;
+}
 const daubTimers = new Map(), daubSeen = new Set();
 let daubPrimed = false;
 function clearDaubTimers(primed = daubPrimed) { daubTimers.forEach(clearTimeout); daubTimers.clear(); daubSeen.clear(); daubPrimed = primed; }
@@ -2136,7 +2151,7 @@ function applyAutoDaub(drawn) {
     if (!daubSeen.has(n)) {
       daubSeen.add(n);
       if (!daubPrimed) { if (autoMarkNumber(n)) changed = true; }
-      else daubTimers.set(n, setTimeout(() => { if (autoMarkNumber(n)) { playBeep(720, 'triangle', 0.08); persist(); } }, AUTO_DAUB_MS));
+      else daubTimers.set(n, setTimeout(() => { if (autoMarkNumber(n)) { playBeep(720, 'triangle', 0.08); persist(); } }, autoDaubSecs * 1000));
     } else if (!daubTimers.has(n) && autoMarkNumber(n)) changed = true; // e.g. cards rebuilt after the timer fired
   });
   daubPrimed = true;
@@ -2473,6 +2488,7 @@ function updateRoom(data) {
   }
   if (data.pricePerCard && data.pricePerCard !== state.pricePerCard) { state.pricePerCard = data.pricePerCard; const priceInput = $('admin-card-price-input'); if (priceInput) priceInput.value = data.pricePerCard; refreshJoinPrice(); if (state.roundChoicePending) refreshRoundOptions(); if (state.currentView === 'admin' || state.currentView === 'gm') renderPlayers(); }
 
+  syncAutoDaubSecs(data.autoDaubSeconds);
   $('player-balls-count').textContent = String(drawn.length);
   renderNumberBoard(drawn, data.lastDrawn || null);
   $('gm-total-drawn-pill').textContent = `${drawn.length} / 75 Balls`;
@@ -2711,6 +2727,7 @@ async function fullResetGame() {
         pricePerCard: 10,
         gameResetAt: resetAt,
         ...(d.adminPinHash ? { adminPinHash: d.adminPinHash } : {}),
+        ...(validAutoDaubSecs(d.autoDaubSeconds) ? { autoDaubSeconds: validAutoDaubSecs(d.autoDaubSeconds) } : {}),
         ...(d.paymentQr ? { paymentQr: d.paymentQr, paymentPayTo: d.paymentPayTo || '', paymentUpdatedAt: d.paymentUpdatedAt || null } : {})
       };
       // Replace the room state instead of merging so no old game lock/state can survive.
@@ -2972,6 +2989,12 @@ function init() {
     if (!(p > 0)) { showToast('Enter a valid price.', true); return; }
     try { await roomWrite({ pricePerCard: p }); playBeep(880, 'sine', 0.15); showToast(`Price updated to ₱${p}`); }
     catch (e) { showToast('Could not update price: ' + errMsg(e), true); }
+  });
+  on('btn-save-auto-daub', 'click', async () => {
+    const secs = validAutoDaubSecs($('admin-auto-daub-input').value);
+    if (secs == null || String($('admin-auto-daub-input').value).trim() === '') { showToast(`Enter a whole number from ${AUTO_DAUB_MIN_SECS} to ${AUTO_DAUB_MAX_SECS} seconds.`, true); return; }
+    try { await roomWrite({ autoDaubSeconds: secs }); playBeep(880, 'sine', 0.15); showToast(`Missed numbers now auto-mark after ${secs} ${secs === 1 ? 'second' : 'seconds'}`); }
+    catch (e) { showToast('Could not update the time: ' + errMsg(e), true); }
   });
   /* ---------- Prize wheel: one slice per card, so 3 cards = 3 chances ---------- */
   const WHEEL_COLORS = ['#C93B66', '#1E4FB0', '#f59e0b', '#10b981', '#8b5cf6', '#E0567F', '#0ea5e9', '#ef4444', '#14b8a6', '#a855f7'];
