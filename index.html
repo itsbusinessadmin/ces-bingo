@@ -697,7 +697,7 @@ div:has(> #big-bingo-ball)::after {
    ================================================================== */
 .classic-head { display: none; }
 #cards-container[data-card-theme="classic"] > .bingo-card {
-  --ink: #01a0eb;
+  --ink: #01a0eb; --daub: 226,28,116; --daub-shadow: rgba(110,0,50,.45);
   container-type: inline-size;
   background: #fff !important; border: 0 !important; border-radius: 3px !important;
   padding: 10px 12px 14px !important;
@@ -705,6 +705,14 @@ div:has(> #big-bingo-ball)::after {
 }
 #cards-container[data-card-theme="classic"] > .bingo-card[data-tone="orange"] { --ink: #f99e5e; }
 #cards-container[data-card-theme="classic"] > .bingo-card[data-tone="green"] { --ink: #45c567; }
+/* Extra inks in the same printed style */
+#cards-container[data-card-theme="classic"] > .bingo-card[data-tone="pink"] { --ink: #ef4f97; }
+#cards-container[data-card-theme="classic"] > .bingo-card[data-tone="purple"] { --ink: #9a68d8; }
+#cards-container[data-card-theme="classic"] > .bingo-card[data-tone="red"] { --ink: #ec4a47; }
+/* Pink and red inks get a blue blot so marked numbers stand out */
+#cards-container[data-card-theme="classic"] > .bingo-card:is([data-tone="pink"], [data-tone="red"]) { --daub: 37,88,214; --daub-shadow: rgba(10,30,90,.45); }
+#cards-container[data-card-theme="classic"] > .bingo-card[data-tone="teal"] { --ink: #14b3a8; }
+#cards-container[data-card-theme="classic"] > .bingo-card[data-tone="gold"] { --ink: #e3a20f; }
 #cards-container[data-card-theme="classic"] > .bingo-card::before { display: none !important; }
 #cards-container[data-card-theme="classic"] > .bingo-card > .card-meta { display: none !important; }
 #cards-container[data-card-theme="classic"] .classic-head {
@@ -747,8 +755,8 @@ div:has(> #big-bingo-ball)::after {
 }
 /* Marked: a round dauber blot over the number */
 #cards-container[data-card-theme="classic"] .bingo-cell[aria-pressed="true"] {
-  background: radial-gradient(circle closest-side, rgba(226,28,116,.86) 0 86%, rgba(226,28,116,.35) 90%, transparent 94%), #fff !important;
-  color: #fff !important; text-shadow: 0 1px 2px rgba(110,0,50,.45) !important;
+  background: radial-gradient(circle closest-side, rgba(var(--daub),.86) 0 86%, rgba(var(--daub),.35) 90%, transparent 94%), #fff !important;
+  color: #fff !important; text-shadow: 0 1px 2px var(--daub-shadow) !important;
 }
 #cards-container[data-card-theme="classic"] .bingo-cell[aria-pressed="true"] > span { font-family: var(--font-text); font-size: max(8px, 2.2cqw) !important; color: #fff !important; }
 #cards-container[data-card-theme="classic"] .bingo-cell:has(.stamp-anim)::after { border-radius: 50%; inset: 8%; }
@@ -769,7 +777,7 @@ div:has(> #big-bingo-ball)::after {
 /* Admin swatches for the two designs */
 .theme-swatch { width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0; }
 .theme-swatch-default { background: radial-gradient(circle at 34% 28%, rgba(255,255,255,.5) 0 10%, transparent 34%), linear-gradient(135deg, #ff5f97, #a83bd6); }
-.theme-swatch-classic { background: linear-gradient(90deg, #01a0eb 0 33.3%, #f99e5e 33.3% 66.6%, #45c567 66.6%); box-shadow: inset 0 0 0 3px #fff; border: 1px solid rgba(255,255,255,.4); }
+.theme-swatch-classic { background: conic-gradient(#01a0eb 0 12.5%, #f99e5e 0 25%, #45c567 0 37.5%, #ef4f97 0 50%, #9a68d8 0 62.5%, #ec4a47 0 75%, #14b3a8 0 87.5%, #e3a20f 0); box-shadow: inset 0 0 0 3px #fff; border: 1px solid rgba(255,255,255,.4); }
 #admin-card-theme [aria-checked="true"] { border-color: var(--accent) !important; background: var(--accent-soft) !important; box-shadow: 0 0 0 3px rgba(236,63,124,.18); }
 </style>
 </head>
@@ -989,7 +997,7 @@ div:has(> #big-bingo-ball)::after {
           <button type="button" role="radio" aria-checked="true" data-card-theme="default" class="theme-opt px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 flex items-center gap-2 active:scale-95"><span class="theme-swatch theme-swatch-default" aria-hidden="true"></span>Default</button>
           <button type="button" role="radio" aria-checked="false" data-card-theme="classic" class="theme-opt px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 flex items-center gap-2 active:scale-95"><span class="theme-swatch theme-swatch-classic" aria-hidden="true"></span>Classic</button>
         </div>
-        <p class="w-full text-xs text-slate-400">Changes the look of every player's cards right away. Classic is the printed paper card, in blue, orange and green.</p>
+        <p class="w-full text-xs text-slate-400">Changes the look of every player's cards right away. Classic is the printed paper card; each card gets its own ink colour: blue, orange, green, pink, purple, red, teal and gold.</p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <button id="btn-admin-music" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 flex items-center gap-2 active:scale-95" title="Admin background music"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-music"/></svg>Music On</button>
@@ -2207,7 +2215,7 @@ function renderAllPlayerCards() {
 /* Daubing: players tap called numbers themselves. Any called number left unmarked
    for autoDaubSecs seconds is marked automatically. Numbers already called when the cards
    load (refresh mid-game) are marked right away. */
-const CARD_THEMES = ['default', 'classic'], CLASSIC_TONES = ['blue', 'orange', 'green'];
+const CARD_THEMES = ['default', 'classic'], CLASSIC_TONES = ['blue', 'orange', 'green', 'pink', 'purple', 'red', 'teal', 'gold'];
 // The host picks the card design in the room record (cardTheme); every device follows it.
 function syncCardTheme(value) {
   const theme = CARD_THEMES.includes(value) ? value : 'default';
