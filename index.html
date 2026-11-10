@@ -10,7 +10,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,800&family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   [hidden]{display:none!important}
   html,body{min-height:100%}
@@ -688,6 +688,97 @@ div:has(> #big-bingo-ball)::after {
   main .bg-slate-900\/90.border, main section.bg-slate-900\/90, #gm-toolbar, #player-pay-wait { background: var(--surface) !important; backdrop-filter: none; -webkit-backdrop-filter: none; }
   body::before { display: none; }
 }
+
+/* ==================================================================
+   Card design: "Classic" — the printed Bingo Pinoy paper card.
+   White paper, one ink colour per card (blue, orange, green in turn),
+   condensed numbers in a ruled grid, stars around FREE.
+   Switched on by the host: #cards-container[data-card-theme="classic"].
+   ================================================================== */
+.classic-head { display: none; }
+#cards-container[data-card-theme="classic"] > .bingo-card {
+  --ink: #01a0eb; --daub: 226,28,116; --daub-shadow: rgba(110,0,50,.45);
+  container-type: inline-size;
+  background: #fff !important; border: 0 !important; border-radius: 3px !important;
+  padding: 10px 12px 14px !important;
+  box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 22px 44px -24px rgba(0,0,0,.85) !important;
+}
+#cards-container[data-card-theme="classic"] > .bingo-card[data-tone="orange"] { --ink: #f99e5e; }
+#cards-container[data-card-theme="classic"] > .bingo-card[data-tone="green"] { --ink: #45c567; }
+/* Extra inks in the same printed style */
+#cards-container[data-card-theme="classic"] > .bingo-card[data-tone="pink"] { --ink: #ef4f97; }
+#cards-container[data-card-theme="classic"] > .bingo-card[data-tone="purple"] { --ink: #9a68d8; }
+#cards-container[data-card-theme="classic"] > .bingo-card[data-tone="red"] { --ink: #ec4a47; }
+/* Pink and red inks get a blue blot so marked numbers stand out */
+#cards-container[data-card-theme="classic"] > .bingo-card:is([data-tone="pink"], [data-tone="red"]) { --daub: 37,88,214; --daub-shadow: rgba(10,30,90,.45); }
+#cards-container[data-card-theme="classic"] > .bingo-card[data-tone="teal"] { --ink: #14b3a8; }
+#cards-container[data-card-theme="classic"] > .bingo-card[data-tone="gold"] { --ink: #e3a20f; }
+#cards-container[data-card-theme="classic"] > .bingo-card::before { display: none !important; }
+#cards-container[data-card-theme="classic"] > .bingo-card > .card-meta { display: none !important; }
+#cards-container[data-card-theme="classic"] .classic-head {
+  display: flex; width: 100%; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 1cqw;
+}
+#cards-container[data-card-theme="classic"] .classic-title {
+  font-family: "Oswald", "Arial Narrow", Impact, sans-serif; font-weight: 700; color: var(--ink);
+  font-size: 9.2cqw; line-height: 1; letter-spacing: .01em; text-transform: uppercase;
+}
+#cards-container[data-card-theme="classic"] .classic-no {
+  font-family: "Oswald", "Arial Narrow", sans-serif; font-weight: 600; color: var(--ink);
+  font-size: max(9px, 2.7cqw); line-height: 1.15; padding: 1px 4px; margin-top: .6cqw;
+  border: 1.5px solid var(--ink); min-width: 15cqw; text-align: center;
+}
+/* B I N G O: wide, heavy letters over each column */
+#cards-container[data-card-theme="classic"] .grid-cols-5.mb-1\.5 { gap: 0 !important; margin-bottom: .6cqw !important; }
+#cards-container[data-card-theme="classic"] .grid-cols-5 > .bg-blue-600,
+#cards-container[data-card-theme="classic"] .grid-cols-5 > .bg-rose-600,
+#cards-container[data-card-theme="classic"] .grid-cols-5 > .bg-amber-600,
+#cards-container[data-card-theme="classic"] .grid-cols-5 > .bg-emerald-600,
+#cards-container[data-card-theme="classic"] .grid-cols-5 > .bg-purple-600 {
+  background: none !important; box-shadow: none !important; text-shadow: none !important; border-radius: 0 !important;
+  width: auto; aspect-ratio: auto; justify-self: stretch; padding: 0 !important;
+  color: var(--ink) !important; font-family: "Archivo", "Arial Black", sans-serif !important; font-stretch: 125%;
+  font-weight: 800; font-size: 8.4cqw; line-height: 1.05;
+}
+/* Ruled grid */
+#cards-container[data-card-theme="classic"] > .bingo-card > .grid:last-child {
+  gap: 0 !important; border-top: 1.5px solid var(--ink); border-left: 1.5px solid var(--ink);
+}
+#cards-container[data-card-theme="classic"] .bingo-cell {
+  aspect-ratio: 5 / 5.8 !important; border-radius: 0 !important;
+  border-right: 1.5px solid var(--ink) !important; border-bottom: 1.5px solid var(--ink) !important;
+  background: #fff !important; box-shadow: none !important; text-shadow: none !important;
+  color: var(--ink) !important; font-family: "Oswald", "Arial Narrow", Impact, sans-serif !important;
+  font-weight: 600 !important; font-size: 13.2cqw !important; line-height: 1; letter-spacing: -.015em;
+}
+@media (hover: hover) {
+  #cards-container[data-card-theme="classic"] .bingo-cell:hover { background: color-mix(in srgb, var(--ink) 9%, #fff) !important; transform: none; }
+}
+/* Marked: a round dauber blot over the number */
+#cards-container[data-card-theme="classic"] .bingo-cell[aria-pressed="true"] {
+  background: radial-gradient(circle closest-side, rgba(var(--daub),.86) 0 86%, rgba(var(--daub),.35) 90%, transparent 94%), #fff !important;
+  color: #fff !important; text-shadow: 0 1px 2px var(--daub-shadow) !important;
+}
+#cards-container[data-card-theme="classic"] .bingo-cell[aria-pressed="true"] > span { font-family: var(--font-text); font-size: max(8px, 2.2cqw) !important; color: #fff !important; }
+#cards-container[data-card-theme="classic"] .bingo-cell:has(.stamp-anim)::after { border-radius: 50%; inset: 8%; }
+/* FREE with three stars above and below */
+#cards-container[data-card-theme="classic"] .bingo-cell[data-idx="12"] { background: #fff !important; }
+#cards-container[data-card-theme="classic"] .bingo-cell[data-idx="12"] .free-star { display: none; }
+#cards-container[data-card-theme="classic"] .bingo-cell[data-idx="12"] .free-label {
+  color: var(--ink) !important; font-family: "Oswald", "Arial Narrow", sans-serif !important; font-weight: 600;
+  font-size: 4.6cqw !important; letter-spacing: .02em; line-height: 1.05;
+}
+#cards-container[data-card-theme="classic"] .bingo-cell[data-idx="12"]::before,
+#cards-container[data-card-theme="classic"] .bingo-cell[data-idx="12"]::after {
+  content: "★★★"; position: static; inset: auto; border-radius: 0; box-shadow: none; animation: none;
+  color: var(--ink); font-size: 3.4cqw; letter-spacing: .04em; line-height: 1.05;
+}
+#cards-container[data-card-theme="classic"] .shake-invalid { background: #ffe9ec !important; box-shadow: inset 0 0 0 2px #e5484d !important; }
+
+/* Admin swatches for the two designs */
+.theme-swatch { width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0; }
+.theme-swatch-default { background: radial-gradient(circle at 34% 28%, rgba(255,255,255,.5) 0 10%, transparent 34%), linear-gradient(135deg, #ff5f97, #a83bd6); }
+.theme-swatch-classic { background: conic-gradient(#01a0eb 0 12.5%, #f99e5e 0 25%, #45c567 0 37.5%, #ef4f97 0 50%, #9a68d8 0 62.5%, #ec4a47 0 75%, #14b3a8 0 87.5%, #e3a20f 0); box-shadow: inset 0 0 0 3px #fff; border: 1px solid rgba(255,255,255,.4); }
+#admin-card-theme [aria-checked="true"] { border-color: var(--accent) !important; background: var(--accent-soft) !important; box-shadow: 0 0 0 3px rgba(236,63,124,.18); }
 </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-slate-950">
@@ -900,6 +991,14 @@ div:has(> #big-bingo-ball)::after {
     </div>
     <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3" aria-labelledby="admin-sec-settings">
       <h3 id="admin-sec-settings" class="text-xs uppercase tracking-[.18em] font-black text-slate-400">Settings</h3>
+      <div class="flex flex-wrap items-center gap-2">
+        <span id="admin-card-theme-label" class="text-sm font-bold text-slate-300">Card design</span>
+        <div id="admin-card-theme" role="radiogroup" aria-labelledby="admin-card-theme-label" class="flex flex-wrap gap-2">
+          <button type="button" role="radio" aria-checked="true" data-card-theme="default" class="theme-opt px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 flex items-center gap-2 active:scale-95"><span class="theme-swatch theme-swatch-default" aria-hidden="true"></span>Default</button>
+          <button type="button" role="radio" aria-checked="false" data-card-theme="classic" class="theme-opt px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 flex items-center gap-2 active:scale-95"><span class="theme-swatch theme-swatch-classic" aria-hidden="true"></span>Classic</button>
+        </div>
+        <p class="w-full text-xs text-slate-400">Changes the look of every player's cards right away. Classic is the printed paper card; each card gets its own ink colour: blue, orange, green, pink, purple, red, teal and gold.</p>
+      </div>
       <div class="flex flex-wrap items-center gap-2">
         <button id="btn-admin-music" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 flex items-center gap-2 active:scale-95" title="Admin background music"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-music"/></svg>Music On</button>
         <label for="admin-music-volume" class="min-h-[2.75rem] px-3 rounded-xl bg-slate-800 border border-slate-700 flex items-center gap-2 text-xs font-semibold text-slate-300" title="Music volume"><span>Vol</span><input type="range" id="admin-music-volume" min="0" max="100" step="5" value="20" aria-label="Music volume" class="w-24 accent-emerald-400 cursor-pointer" style="min-height:auto"><span data-vol-label class="font-mono w-8 text-right text-emerald-300">20%</span></label>
@@ -2072,7 +2171,7 @@ const CELL_BASE = 'bingo-cell w-full rounded-lg sm:rounded-xl flex flex-col item
 const CELL_ON = 'bg-gradient-to-tr from-brand-pinkdeep to-brand-pinkdark text-white border-brand-pinklight', CELL_OFF = 'bg-slate-800 text-slate-100 border-slate-700 hover:border-slate-500';
 function paintCell(cell, num, idx, marked, animate, auto) {
   cell.className = CELL_BASE + (marked ? CELL_ON : CELL_OFF);
-  if (idx === 12) { cell.innerHTML = '<span class="text-xs font-black text-white">★ FREE</span>'; cell.setAttribute('aria-label', 'Free space, marked'); return; }
+  if (idx === 12) { cell.innerHTML = '<span class="free-label text-xs font-black text-white"><span class="free-star">★ </span>FREE</span>'; cell.setAttribute('aria-label', 'Free space, marked'); return; }
   cell.textContent = num;
   cell.setAttribute('aria-label', `${getLetter(num)} ${num}${marked ? (auto ? ', auto-marked' : ', marked') : ''}`);
   cell.setAttribute('aria-pressed', String(!!marked));
@@ -2095,8 +2194,9 @@ function renderAllPlayerCards() {
         <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center p-3"><svg class="w-8 h-8 text-slate-300" aria-hidden="true"><use href="#i-lock"/></svg><p class="text-sm font-bold text-slate-100">Numbers appear once the host confirms your payment</p><button type="button" data-show-pay class="px-3 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/40 border border-indigo-500/40 text-indigo-100 text-xs font-bold">Show payment QR</button></div></div>`;
       frag.appendChild(wrap); cardViews.push(null); return;
     }
-    wrap.className = 'bg-slate-900/90 border-2 border-slate-800 rounded-3xl p-3 sm:p-4 shadow-xl flex flex-col items-center';
-    wrap.innerHTML = `<div class="w-full flex items-center justify-between mb-2 text-xs"><span class="font-display font-bold text-amber-400 uppercase">Card #${ci + 1}</span><span data-counter class="text-xs text-slate-400 font-mono bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">${card.stamped.size}/25</span></div>
+    wrap.className = 'bingo-card bg-slate-900/90 border-2 border-slate-800 rounded-3xl p-3 sm:p-4 shadow-xl flex flex-col items-center';
+    wrap.dataset.tone = CLASSIC_TONES[ci % CLASSIC_TONES.length];
+    wrap.innerHTML = `<div class="classic-head" aria-hidden="true"><span class="classic-title">BINGO PINOY</span><span class="classic-no">NO.${String(ci + 1).padStart(3, '0')}</span></div><div class="card-meta w-full flex items-center justify-between mb-2 text-xs"><span class="font-display font-bold text-amber-400 uppercase">Card #${ci + 1}</span><span data-counter class="text-xs text-slate-400 font-mono bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">${card.stamped.size}/25</span></div>
       <div class="grid grid-cols-5 gap-1 sm:gap-1.5 w-full mb-1.5 text-center font-display font-bold text-sm text-white"><div class="bg-blue-600 rounded-lg py-1">B</div><div class="bg-rose-600 rounded-lg py-1">I</div><div class="bg-amber-600 rounded-lg py-1">N</div><div class="bg-emerald-600 rounded-lg py-1">G</div><div class="bg-purple-600 rounded-lg py-1">O</div></div>`;
     const grid = document.createElement('div'); grid.className = 'grid grid-cols-5 gap-1 sm:gap-1.5 w-full';
     const cells = card.grid.map((num, idx) => {
@@ -2115,6 +2215,13 @@ function renderAllPlayerCards() {
 /* Daubing: players tap called numbers themselves. Any called number left unmarked
    for autoDaubSecs seconds is marked automatically. Numbers already called when the cards
    load (refresh mid-game) are marked right away. */
+const CARD_THEMES = ['default', 'classic'], CLASSIC_TONES = ['blue', 'orange', 'green', 'pink', 'purple', 'red', 'teal', 'gold'];
+// The host picks the card design in the room record (cardTheme); every device follows it.
+function syncCardTheme(value) {
+  const theme = CARD_THEMES.includes(value) ? value : 'default';
+  const box = $('cards-container'); if (box) box.dataset.cardTheme = theme;
+  document.querySelectorAll('#admin-card-theme [data-card-theme]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.cardTheme === theme)));
+}
 const AUTO_DAUB_DEFAULT_SECS = 5, AUTO_DAUB_MIN_SECS = 1, AUTO_DAUB_MAX_SECS = 60;
 const validAutoDaubSecs = v => { const n = Math.round(Number(v)); return n >= AUTO_DAUB_MIN_SECS && n <= AUTO_DAUB_MAX_SECS ? n : null; };
 let autoDaubSecs = AUTO_DAUB_DEFAULT_SECS;
@@ -2489,6 +2596,7 @@ function updateRoom(data) {
   if (data.pricePerCard && data.pricePerCard !== state.pricePerCard) { state.pricePerCard = data.pricePerCard; const priceInput = $('admin-card-price-input'); if (priceInput) priceInput.value = data.pricePerCard; refreshJoinPrice(); if (state.roundChoicePending) refreshRoundOptions(); if (state.currentView === 'admin' || state.currentView === 'gm') renderPlayers(); }
 
   syncAutoDaubSecs(data.autoDaubSeconds);
+  syncCardTheme(data.cardTheme);
   $('player-balls-count').textContent = String(drawn.length);
   renderNumberBoard(drawn, data.lastDrawn || null);
   $('gm-total-drawn-pill').textContent = `${drawn.length} / 75 Balls`;
@@ -2727,6 +2835,7 @@ async function fullResetGame() {
         pricePerCard: 10,
         gameResetAt: resetAt,
         ...(d.adminPinHash ? { adminPinHash: d.adminPinHash } : {}),
+        ...(CARD_THEMES.includes(d.cardTheme) ? { cardTheme: d.cardTheme } : {}),
         ...(validAutoDaubSecs(d.autoDaubSeconds) ? { autoDaubSeconds: validAutoDaubSecs(d.autoDaubSeconds) } : {}),
         ...(d.paymentQr ? { paymentQr: d.paymentQr, paymentPayTo: d.paymentPayTo || '', paymentUpdatedAt: d.paymentUpdatedAt || null } : {})
       };
@@ -2989,6 +3098,21 @@ function init() {
     if (!(p > 0)) { showToast('Enter a valid price.', true); return; }
     try { await roomWrite({ pricePerCard: p }); playBeep(880, 'sine', 0.15); showToast(`Price updated to ₱${p}`); }
     catch (e) { showToast('Could not update price: ' + errMsg(e), true); }
+  });
+  on('admin-card-theme', 'click', async e => {
+    const btn = e.target.closest('[data-card-theme]'); if (!btn) return;
+    const theme = btn.dataset.cardTheme, prev = $('cards-container').dataset.cardTheme || 'default';
+    if (theme === prev) return;
+    syncCardTheme(theme);
+    try { await roomWrite({ cardTheme: theme }); playBeep(880, 'sine', 0.15); showToast(`Card design: ${theme === 'classic' ? 'Classic' : 'Default'}`); }
+    catch (err) { syncCardTheme(prev); showToast('Could not change the card design: ' + errMsg(err), true); }
+  });
+  on('admin-card-theme', 'keydown', e => {
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+    const opts = [...document.querySelectorAll('#admin-card-theme [data-card-theme]')];
+    const i = opts.indexOf(document.activeElement); if (i < 0) return;
+    e.preventDefault(); const next = opts[(i + (e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? opts.length - 1 : 1)) % opts.length];
+    next.focus(); next.click();
   });
   on('btn-save-auto-daub', 'click', async () => {
     const secs = validAutoDaubSecs($('admin-auto-daub-input').value);
