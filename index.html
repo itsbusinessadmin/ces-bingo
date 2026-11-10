@@ -368,6 +368,7 @@ input[type=checkbox] { accent-color: var(--accent); }
   animation: tab-in 220ms var(--ease-out) both;
 }
 #btn-gm-toolbar-show[hidden] { display: none !important; }
+#btn-export-csv.btn-compact { min-height: 2rem !important; height: 2rem; border-radius: 10px !important; }
 /* Admin totals: closed by default, slide in from / out to the left */
 #admin-totals { transition: transform 260ms var(--ease-out), opacity 200ms var(--ease-out); }
 #admin-totals.is-collapsing { transform: translateX(calc(-100% - 32px)); opacity: 0; pointer-events: none; }
@@ -962,7 +963,7 @@ div:has(> #big-bingo-ball)::after {
     <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col flex-1 overflow-hidden">
       <div class="flex items-center gap-2">
       <button id="btn-toggle-roster" type="button" aria-expanded="true" aria-controls="admin-roster-wrap" class="flex-1 min-w-0 flex items-center justify-between gap-3 text-left rounded-xl hover:bg-slate-800/60 -mx-1 px-1"><h3 class="font-display font-bold text-base">Participant Roster <span id="roster-count" class="ml-1 font-mono text-sm text-amber-300 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-full">0</span></h3><span class="flex items-center gap-1.5 text-xs font-semibold text-slate-400 shrink-0"><span id="roster-toggle-label">Hide players</span><svg id="roster-toggle-icon" class="w-4 h-4 shrink-0 transition-transform" style="transform:rotate(180deg)" aria-hidden="true"><use href="#i-chevron"/></svg></span></button>
-        <button id="btn-export-csv" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-download"/></svg>Export CSV</button>
+        <button id="btn-export-csv" type="button" title="Export CSV" class="btn-compact shrink-0 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-100 flex items-center gap-1.5 active:scale-95"><svg class="shrink-0" style="width:14px;height:14px" aria-hidden="true"><use href="#i-download"/></svg>CSV</button>
       </div>
       <div id="admin-roster-wrap" class="overflow-x-auto flex-1 mt-3">
         <table class="w-full text-left text-sm text-slate-300 whitespace-nowrap">
