@@ -794,7 +794,7 @@ div:has(> #big-bingo-ball)::after {
 <header id="app-header" class="bg-slate-900/95 border-b border-slate-800 backdrop-blur sticky top-0 z-30 select-none pt-[env(safe-area-inset-top)]">
   <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex items-center justify-between gap-2">
     <div class="flex items-center gap-2.5 min-w-0">
-      <div id="brand-logo-trigger" title="CES Fun Club" class="w-11 h-11 sm:w-12 sm:h-12 shrink-0 cursor-pointer select-none active:scale-95 transition-transform"><img src="logo.webp" alt="CES Fun Club" width="48" height="48" class="w-full h-full object-contain drop-shadow-lg" draggable="false"></div>
+      <div id="brand-logo-trigger" title="CES Fun Club" class="w-11 h-11 sm:w-12 sm:h-12 shrink-0 cursor-pointer select-none active:scale-95 transition-transform"><img data-brand-logo src="logo.webp" alt="CES Fun Club" width="48" height="48" class="w-full h-full object-contain drop-shadow-lg" draggable="false"></div>
       <div class="min-w-0">
         <h1 class="font-display font-bold text-lg sm:text-xl text-transparent bg-clip-text bg-gradient-to-r from-brand-pinklight to-brand-bluelight whitespace-nowrap">BINGO <span class="text-xs font-sans font-semibold text-slate-400 hidden sm:inline">by CES Fun Club</span></h1>
         <p class="text-xs text-slate-400 hidden sm:flex items-center gap-1.5 whitespace-nowrap">Room: <span id="header-room-id" class="font-mono font-bold text-slate-200">room-1</span></p>
@@ -978,7 +978,7 @@ div:has(> #big-bingo-ball)::after {
 <!-- JOIN MODAL -->
 <div id="modal-join" class="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-950/85 backdrop-blur-sm">
   <div role="dialog" aria-modal="true" aria-labelledby="modal-join-title" class="modal-box bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-5 sm:p-8 shadow-2xl">
-    <div class="text-center mb-4"><div id="join-logo-trigger" title="CES Fun Club" class="w-24 h-24 sm:w-28 sm:h-28 mx-auto mb-2 cursor-pointer select-none active:scale-95 transition-transform"><img src="logo.webp" alt="CES Fun Club" width="112" height="112" class="w-full h-full object-contain drop-shadow-xl" draggable="false"></div>
+    <div class="text-center mb-4"><div id="join-logo-trigger" title="CES Fun Club" class="w-24 h-24 sm:w-28 sm:h-28 mx-auto mb-2 cursor-pointer select-none active:scale-95 transition-transform"><img data-brand-logo src="logo.webp" alt="CES Fun Club" width="112" height="112" class="w-full h-full object-contain drop-shadow-xl" draggable="false"></div>
       <h2 id="modal-join-title" class="font-display font-bold text-2xl">BINGO by CES Fun Club</h2><p class="text-sm text-slate-400 mt-1">Type your nickname and pick your cards</p></div>
     <div class="bg-brand-blue/20 border border-brand-bluelight/30 rounded-2xl p-3 mb-4 flex items-start gap-3"><svg class="w-5 h-5 mt-0.5 text-brand-bluelight shrink-0" aria-hidden="true"><use href="#i-info"/></svg>
       <p class="text-sm text-slate-200">Each card costs <span id="modal-unit-price-text" class="font-bold text-white">₱10.00</span>. More cards, better chances!</p></div>
@@ -1241,6 +1241,23 @@ div:has(> #big-bingo-ball)::after {
     <div class="flex items-start justify-between gap-3">
       <h3 id="modal-admin-settings-title" class="font-display font-bold text-xl">Settings</h3>
       <button type="button" data-close-window="modal-admin-settings" aria-label="Close" class="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center shrink-0"><svg class="w-5 h-5 shrink-0" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="flex flex-col gap-2 pb-3 border-b border-slate-800">
+      <span class="text-sm font-bold text-slate-300">Logo &amp; name</span>
+      <div class="flex items-center gap-3">
+        <div id="admin-brand-logo-preview" class="w-14 h-14 shrink-0 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden"><img src="logo.webp" alt="Current logo" class="w-full h-full object-contain"></div>
+        <div class="flex flex-wrap gap-2">
+          <label for="admin-brand-logo-file" class="px-3 min-h-[2.75rem] rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 flex items-center gap-2 cursor-pointer active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-camera"/></svg>Change logo</label>
+          <input type="file" id="admin-brand-logo-file" accept="image/*" class="hidden">
+          <button id="btn-admin-brand-reset" type="button" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 active:scale-95">Use default</button>
+        </div>
+      </div>
+      <label for="admin-brand-name-input" class="sr-only">Name shown under the logo</label>
+      <input type="text" id="admin-brand-name-input" maxlength="40" placeholder="BINGO by CES Fun Club" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none">
+      <div class="flex items-center gap-2">
+        <p id="admin-brand-status" aria-live="polite" class="flex-1 text-xs text-slate-400">Shown on the join screen and in the header.</p>
+        <button id="btn-admin-brand-save" type="button" class="px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-sm active:scale-95">Save</button>
+      </div>
     </div>
     <div class="flex flex-wrap items-center gap-2">
       <span id="admin-card-theme-label" class="text-sm font-bold text-slate-300">Card design</span>
@@ -1924,6 +1941,17 @@ function checkAppBuild(d) {
     try { const k = 'ces-bingo:reloaded-for'; if (sessionStorage.getItem(k) === String(live)) return; sessionStorage.setItem(k, String(live)); } catch (e) {}
     const u = new URL(location.href); u.searchParams.set('v', String(live)); location.replace(u.toString());
   } else if (live < APP_BUILD && state.isAdmin && fb) roomWrite({ appBuild: APP_BUILD }).catch(() => {});
+}
+/* ---------- Branding: logo + name chosen by the admin (room.brandLogo / room.brandName) ---------- */
+const DEFAULT_BRAND_NAME = 'BINGO by CES Fun Club';
+state.brand = { logo: null, name: '' };
+function syncBrand(d) {
+  const logo = typeof d.brandLogo === 'string' && /^data:image\/(png|jpeg|webp);base64,/.test(d.brandLogo) ? d.brandLogo : null;
+  const name = String(d.brandName || '').trim().slice(0, 40);
+  state.brand = { logo, name };
+  document.querySelectorAll('img[data-brand-logo]').forEach(img => { const src = logo || 'logo.webp'; if (img.getAttribute('src') !== src) img.src = src; img.alt = name || 'CES Fun Club'; });
+  const t = $('modal-join-title'); if (t) t.textContent = name || DEFAULT_BRAND_NAME;
+  window.__paintBrandAdmin && window.__paintBrandAdmin();
 }
 /* ---------- Local persistence (survive refresh) ---------- */
 const storeKey = () => `ces-bingo:${state.appId}:${state.roomId}`;
@@ -2628,6 +2656,7 @@ function updateRoom(data) {
 
   syncAutoDaubSecs(data.autoDaubSeconds);
   syncCardTheme(data.cardTheme);
+  syncBrand(data);
   $('player-balls-count').textContent = String(drawn.length);
   renderNumberBoard(drawn, data.lastDrawn || null);
   $('gm-total-drawn-pill').textContent = `${drawn.length} / 75 Balls`;
@@ -2867,6 +2896,8 @@ async function fullResetGame() {
         gameResetAt: resetAt,
         ...(d.adminPinHash ? { adminPinHash: d.adminPinHash } : {}),
         ...(CARD_THEMES.includes(d.cardTheme) ? { cardTheme: d.cardTheme } : {}),
+        ...(d.brandLogo ? { brandLogo: d.brandLogo } : {}),
+        ...(d.brandName ? { brandName: d.brandName } : {}),
         ...(validAutoDaubSecs(d.autoDaubSeconds) ? { autoDaubSeconds: validAutoDaubSecs(d.autoDaubSeconds) } : {}),
         ...(d.paymentQr ? { paymentQr: d.paymentQr, paymentPayTo: d.paymentPayTo || '', paymentUpdatedAt: d.paymentUpdatedAt || null } : {})
       };
@@ -3592,6 +3623,48 @@ function init() {
     const b = e.target.closest('#btn-admin-pay-settings, #btn-admin-show-qr, #btn-admin-send-msg, #btn-admin-wheel, #btn-admin-change-pin, #btn-admin-reset-game');
     if (b) hideModal(id);
   }));
+  /* ---------- Admin: change the logo and the name under it ---------- */
+  let brandDraftLogo; // undefined = unchanged, null = back to default
+  const paintBrandAdmin = () => {
+    const prev = $('admin-brand-logo-preview'); if (!prev) return;
+    const logo = brandDraftLogo !== undefined ? brandDraftLogo : state.brand.logo;
+    prev.innerHTML = `<img src="${esc(logo || 'logo.webp')}" alt="Logo preview" class="w-full h-full object-contain">`;
+    const inp = $('admin-brand-name-input'); if (inp && document.activeElement !== inp && brandDraftLogo === undefined) inp.value = state.brand.name || '';
+    $('admin-brand-status').textContent = brandDraftLogo !== undefined ? 'Not saved yet. Tap Save to show it to everyone.' : 'Shown on the join screen and in the header.';
+  };
+  window.__paintBrandAdmin = paintBrandAdmin;
+  async function logoFromFile(file) {
+    if (!file || !String(file.type || '').startsWith('image/')) throw new Error('Choose an image for the logo.');
+    const url = URL.createObjectURL(file);
+    try {
+      const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('Could not read that image.')); im.src = url; });
+      for (const side of [320, 256, 200, 160]) {
+        const scale = Math.min(1, side / Math.max(img.naturalWidth, img.naturalHeight));
+        const cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(img.naturalWidth * scale)); cv.height = Math.max(1, Math.round(img.naturalHeight * scale));
+        const ctx = cv.getContext('2d'); ctx.imageSmoothingQuality = 'high'; ctx.drawImage(img, 0, 0, cv.width, cv.height);
+        for (const [type, q] of [['image/png'], ['image/webp', 0.9], ['image/webp', 0.78]]) { const d = cv.toDataURL(type, q); if (d.length <= 40000 && d.startsWith('data:' + type)) return d; }
+      }
+      throw new Error('That image is too detailed. Try a simpler or smaller logo.');
+    } finally { URL.revokeObjectURL(url); }
+  }
+  on('admin-brand-logo-file', 'change', async e => {
+    const f = e.target.files?.[0]; if (!f) return;
+    try { brandDraftLogo = await logoFromFile(f); paintBrandAdmin(); }
+    catch (err) { showToast(err.message, true); } finally { e.target.value = ''; }
+  });
+  on('btn-admin-brand-reset', 'click', () => { brandDraftLogo = null; $('admin-brand-name-input').value = ''; paintBrandAdmin(); });
+  on('admin-brand-name-input', 'input', () => { $('admin-brand-status').textContent = 'Not saved yet. Tap Save to show it to everyone.'; });
+  on('btn-admin-brand-save', 'click', async () => {
+    if (!fb || !state.connected) { showToast('Not connected to the server.', true); return; }
+    const b = $('btn-admin-brand-save'); b.disabled = true;
+    try {
+      const logo = brandDraftLogo !== undefined ? brandDraftLogo : state.brand.logo;
+      await roomWrite({ brandLogo: logo || null, brandName: $('admin-brand-name-input').value.trim().slice(0, 40) });
+      brandDraftLogo = undefined; showToast('Logo and name saved for everyone.'); paintBrandAdmin();
+    } catch (err) { showToast('Could not save: ' + errMsg(err), true); }
+    finally { b.disabled = false; }
+  });
+  on('btn-open-admin-settings', 'click', () => { brandDraftLogo = undefined; paintBrandAdmin(); });
   on('btn-export-csv', 'click', () => {
     // Quote every text cell and neutralise leading = + - @ so spreadsheet apps never run a name as a formula.
     const cell = v => { let t = String(v ?? ''); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
