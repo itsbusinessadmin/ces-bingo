@@ -848,6 +848,28 @@ html[data-card-theme="classic"] div:has(> #big-bingo-ball.ball-reveal.letter-onl
   html[data-card-theme="classic"] div:has(> #big-bingo-ball.ball-reveal.letter-only) .shaker { animation: none !important; }
   @keyframes alugan-shake-soft { 50% { transform: rotate(-3deg); } }
 }
+
+/* Classic: the drawn ball is a flat white plastic bingo token with
+   black print: small letter on top, big number below. */
+html[data-card-theme="classic"] #big-bingo-ball {
+  width: clamp(7rem, 25vmin, 9.75rem); height: clamp(7rem, 25vmin, 9.75rem);
+  background: radial-gradient(circle at 42% 34%, #fdfcf8 0%, #f1f0eb 55%, #e2e0d8 100%) !important;
+  border: 2px solid #d6d3c8 !important;
+  box-shadow:
+    inset 0 0 0 4px rgba(255,255,255,.55), inset 0 -4px 8px rgba(0,0,0,.07),
+    0 2px 0 #cfccc1, 0 5px 0 #bdb9ad, 0 18px 26px -10px rgba(0,0,0,.7) !important;
+  color: #111 !important; gap: 0;
+}
+html[data-card-theme="classic"] #big-bingo-ball .bl,
+html[data-card-theme="classic"] #big-bingo-ball .bn {
+  color: #141414 !important; text-shadow: none !important; filter: none !important; opacity: 1;
+  font-family: Arial, "Helvetica Neue", Helvetica, "Liberation Sans", sans-serif !important;
+}
+html[data-card-theme="classic"] #big-bingo-ball .bl { font-weight: 800; font-size: clamp(.9rem, 3.4vmin, 1.25rem); line-height: 1; letter-spacing: .02em; margin-bottom: .1em; }
+html[data-card-theme="classic"] #big-bingo-ball .bn { font-weight: 500; font-size: clamp(2.6rem, 9.5vmin, 3.75rem); line-height: .95; letter-spacing: -.03em; }
+/* Letter only (before the tap): the letter fills the token */
+html[data-card-theme="classic"] #big-bingo-ball.letter-only .bl { font-size: clamp(2.8rem, 10vmin, 4rem); font-weight: 800; margin: 0; }
+html[data-card-theme="classic"] #big-bingo-ball.ball-awaiting-reveal { outline: 3px solid rgba(255,211,110,.7); outline-offset: 6px; }
 </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-slate-950">
