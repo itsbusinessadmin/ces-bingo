@@ -785,6 +785,91 @@ div:has(> #big-bingo-ball)::after {
 .theme-swatch-default { background: radial-gradient(circle at 34% 28%, rgba(255,255,255,.5) 0 10%, transparent 34%), linear-gradient(135deg, #ff5f97, #a83bd6); }
 .theme-swatch-classic { background: conic-gradient(#01a0eb 0 12.5%, #f99e5e 0 25%, #45c567 0 37.5%, #ef4f97 0 50%, #9a68d8 0 62.5%, #ec4a47 0 75%, #14b3a8 0 87.5%, #e3a20f 0); box-shadow: inset 0 0 0 3px #fff; border: 1px solid rgba(255,255,255,.4); }
 #admin-card-theme [aria-checked="true"] { border-color: var(--accent) !important; background: var(--accent-soft) !important; box-shadow: 0 0 0 3px rgba(236,63,124,.18); }
+
+/* ==================================================================
+   Classic theme on the Game Master stage: the yellow bingo shaker
+   (alugan). It shakes while a ball is rolled, then the ball pops out
+   of the neck and lands beside it.
+   ================================================================== */
+.shaker { display: none; }
+html[data-card-theme="classic"] div:has(> #big-bingo-ball) {
+  display: flex; align-items: flex-end; justify-content: center; gap: 0;
+  animation: none; padding-top: 6px;
+}
+html[data-card-theme="classic"] div:has(> #big-bingo-ball)::after { display: none; }
+html[data-card-theme="classic"] .shaker {
+  display: block; flex-shrink: 0;
+  height: clamp(12rem, 42vmin, 17rem); width: auto; aspect-ratio: 200 / 310;
+  transform-origin: 50% 92%;
+  filter: drop-shadow(0 16px 22px rgba(0,0,0,.35));
+}
+.shaker-emboss {
+  font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive; font-style: italic;
+  font-size: 30px; fill: #e3ad00; opacity: .7;
+  paint-order: stroke; stroke: #fff2a0; stroke-opacity: .55; stroke-width: 1.2px;
+}
+/* The ball sits on the table beside the shaker */
+html[data-card-theme="classic"] #big-bingo-ball {
+  width: clamp(6.25rem, 22vmin, 8.75rem); height: clamp(6.25rem, 22vmin, 8.75rem);
+  margin-left: -1.25rem; flex-shrink: 0; position: relative; z-index: 1;
+}
+html[data-card-theme="classic"] #big-bingo-ball .bl { font-size: clamp(1rem, 3.6vmin, 1.5rem); }
+html[data-card-theme="classic"] #big-bingo-ball .bn { font-size: clamp(2rem, 7vmin, 3rem); }
+html[data-card-theme="classic"] #big-bingo-ball.letter-only .bl { font-size: clamp(2.6rem, 9vmin, 3.75rem); }
+/* Rolling: the shaker shakes hard, the ball is still inside */
+html[data-card-theme="classic"] div:has(> #big-bingo-ball.ball-rolling) .shaker { animation: alugan-shake .32s linear infinite; }
+html[data-card-theme="classic"] #big-bingo-ball.ball-rolling { animation: none; opacity: 0; transform: scale(.3); }
+@keyframes alugan-shake {
+  0%   { transform: rotate(0) translate(0, 0); }
+  15%  { transform: rotate(-13deg) translate(-8px, -10px); }
+  32%  { transform: rotate(9deg) translate(7px, -4px); }
+  50%  { transform: rotate(-10deg) translate(-6px, -12px); }
+  68%  { transform: rotate(12deg) translate(8px, -6px); }
+  85%  { transform: rotate(-6deg) translate(-4px, -2px); }
+  100% { transform: rotate(0) translate(0, 0); }
+}
+/* A ball comes out: from the neck, arcs over and bounces down */
+html[data-card-theme="classic"] #big-bingo-ball.ball-reveal.letter-only { animation: alugan-pop .7s cubic-bezier(.3,.7,.4,1) both; }
+@keyframes alugan-pop {
+  0%   { transform: translate(-95%, -175%) scale(.28); opacity: 0; }
+  12%  { opacity: 1; }
+  45%  { transform: translate(-35%, -105%) scale(.75); }
+  72%  { transform: translate(0, 0) scale(1.04, .94); }
+  86%  { transform: translate(0, -9%) scale(.98, 1.02); }
+  100% { transform: none; opacity: 1; }
+}
+/* The shaker gives a little settle after the ball drops out */
+html[data-card-theme="classic"] div:has(> #big-bingo-ball.ball-reveal.letter-only) .shaker { animation: alugan-settle .5s ease-out both; }
+@keyframes alugan-settle { 0% { transform: rotate(-7deg); } 55% { transform: rotate(3deg); } 100% { transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-card-theme="classic"] div:has(> #big-bingo-ball.ball-rolling) .shaker { animation: alugan-shake-soft .5s ease-in-out infinite !important; }
+  html[data-card-theme="classic"] #big-bingo-ball.ball-reveal.letter-only { animation: rm-fade .2s ease both !important; }
+  html[data-card-theme="classic"] div:has(> #big-bingo-ball.ball-reveal.letter-only) .shaker { animation: none !important; }
+  @keyframes alugan-shake-soft { 50% { transform: rotate(-3deg); } }
+}
+
+/* Classic: the drawn ball is a flat white plastic bingo token with
+   black print: small letter on top, big number below. */
+html[data-card-theme="classic"] #big-bingo-ball {
+  width: clamp(7rem, 25vmin, 9.75rem); height: clamp(7rem, 25vmin, 9.75rem);
+  background: radial-gradient(circle at 42% 34%, #fdfcf8 0%, #f1f0eb 55%, #e2e0d8 100%) !important;
+  border: 2px solid #d6d3c8 !important;
+  box-shadow:
+    inset 0 0 0 4px rgba(255,255,255,.55), inset 0 -4px 8px rgba(0,0,0,.07),
+    0 2px 0 #cfccc1, 0 5px 0 #bdb9ad, 0 18px 26px -10px rgba(0,0,0,.7) !important;
+  color: #111 !important; gap: 0;
+}
+html[data-card-theme="classic"] #big-bingo-ball .bl,
+html[data-card-theme="classic"] #big-bingo-ball .bn {
+  color: #141414 !important; text-shadow: none !important; filter: none !important; opacity: 1;
+  font-family: Arial, "Helvetica Neue", Helvetica, "Liberation Sans", sans-serif !important;
+}
+html[data-card-theme="classic"] #big-bingo-ball .bl { font-weight: 800; font-size: clamp(.9rem, 3.4vmin, 1.25rem); line-height: 1; letter-spacing: .02em; margin-bottom: .1em; }
+html[data-card-theme="classic"] #big-bingo-ball .bn { font-weight: 500; font-size: clamp(2.6rem, 9.5vmin, 3.75rem); line-height: .95; letter-spacing: -.03em; }
+/* Letter only (before the tap): the letter fills the token */
+html[data-card-theme="classic"] #big-bingo-ball.letter-only .bl { font-size: clamp(2.8rem, 10vmin, 4rem); font-weight: 800; margin: 0; }
+html[data-card-theme="classic"] #big-bingo-ball.ball-awaiting-reveal { outline: 3px solid rgba(255,211,110,.7); outline-offset: 6px; }
 </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-slate-950">
@@ -890,6 +975,29 @@ div:has(> #big-bingo-ball)::after {
           <span id="gm-total-drawn-pill" class="bg-slate-800 px-3 py-1 rounded-full border border-slate-700 font-mono">0 / 75 Balls</span>
         </div>
         <div class="my-4 sm:my-6">
+          <svg id="gm-shaker" class="shaker" viewBox="0 0 200 310" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="shk-body" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stop-color="#c99200"/><stop offset=".16" stop-color="#f2c200"/><stop offset=".38" stop-color="#ffe14a"/>
+                <stop offset=".55" stop-color="#ffd61c"/><stop offset=".82" stop-color="#e9b400"/><stop offset="1" stop-color="#b98400"/>
+              </linearGradient>
+              <linearGradient id="shk-shade" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#fff" stop-opacity=".0"/><stop offset=".58" stop-color="#fff" stop-opacity=".10"/>
+                <stop offset=".72" stop-color="#7a5200" stop-opacity=".0"/><stop offset="1" stop-color="#7a5200" stop-opacity=".28"/>
+              </linearGradient>
+              <radialGradient id="shk-glow" cx=".36" cy=".66" r=".42"><stop offset="0" stop-color="#fff7c2" stop-opacity=".75"/><stop offset="1" stop-color="#fff7c2" stop-opacity="0"/></radialGradient>
+            </defs>
+            <ellipse class="shaker-floor" cx="100" cy="300" rx="78" ry="7" fill="#000" opacity=".45"/>
+            <path d="M83,16 L117,16 C119,62 121,92 124,110 C130,146 168,158 188,192 C197,207 196,224 187,238 L171,294 C170,297 167,298 164,298 L36,298 C33,298 30,297 29,294 L13,238 C4,224 3,207 12,192 C32,158 70,146 76,110 C79,92 81,62 83,16 Z" fill="url(#shk-body)"/>
+            <path d="M83,16 L117,16 C119,62 121,92 124,110 C130,146 168,158 188,192 C197,207 196,224 187,238 L171,294 C170,297 167,298 164,298 L36,298 C33,298 30,297 29,294 L13,238 C4,224 3,207 12,192 C32,158 70,146 76,110 C79,92 81,62 83,16 Z" fill="url(#shk-shade)"/>
+            <ellipse cx="78" cy="214" rx="56" ry="40" fill="url(#shk-glow)"/>
+            <path d="M90,24 C88,64 87,94 84,116" stroke="#fff6b8" stroke-opacity=".55" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M16,226 C30,234 60,240 100,240 C140,240 170,234 184,226" stroke="#a87700" stroke-opacity=".25" stroke-width="1.5" fill="none"/>
+            <rect x="77" y="6" width="46" height="14" rx="7" fill="#f7c800"/>
+            <rect x="77" y="6" width="46" height="14" rx="7" fill="none" stroke="#b98400" stroke-opacity=".45" stroke-width="1.2"/>
+            <rect x="82" y="8" width="20" height="4" rx="2" fill="#fff6b8" opacity=".7"/>
+            <text x="100" y="268" text-anchor="middle" class="shaker-emboss" transform="rotate(-6 100 268)">Bingo Pinoy</text>
+          </svg>
           <div id="big-bingo-ball" role="button" tabindex="0" aria-label="Bingo ball" title="Roll a letter first" style="--ball-color:#3b82f6" class="big-ball ball-3d rounded-full flex flex-col items-center justify-center text-white border-4 border-white/25">
             <span id="big-ball-letter" class="bl font-display font-bold text-amber-300 drop-shadow">READY</span>
             <span id="big-ball-num" class="bn font-display font-bold leading-none drop-shadow-lg">--</span>
@@ -2279,6 +2387,7 @@ const CARD_THEMES = ['default', 'classic'], CLASSIC_TONES = ['blue', 'orange', '
 function syncCardTheme(value) {
   const theme = CARD_THEMES.includes(value) ? value : 'default';
   const box = $('cards-container'); if (box) box.dataset.cardTheme = theme;
+  document.documentElement.dataset.cardTheme = theme; // the Game Master stage follows it too
   document.querySelectorAll('#admin-card-theme [data-card-theme]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.cardTheme === theme)));
 }
 const AUTO_DAUB_DEFAULT_SECS = 5, AUTO_DAUB_MIN_SECS = 1, AUTO_DAUB_MAX_SECS = 60;
