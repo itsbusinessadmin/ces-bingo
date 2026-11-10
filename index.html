@@ -576,12 +576,12 @@ input[type=text]:focus, input[type=password]:focus, input[type=number]:focus, te
   text-shadow: 0 1px 2px rgba(90,0,40,.5);
 }
 .bingo-cell .stamp-anim, .bingo-cell span.uppercase { font-family: var(--font-text); font-weight: 800 !important; opacity: .92; }
-.bingo-cell:has(.stamp-anim)::after {
+.bingo-cell.daub-new::after {
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
   box-shadow: 0 0 0 0 rgba(255,95,151,.7); animation: daub-ring .6s var(--ease-out) both;
 }
 @keyframes daub-ring { to { box-shadow: 0 0 0 12px rgba(255,95,151,0); } }
-.bingo-cell:has(.stamp-anim) { animation: daub-bounce .38s var(--ease-spring) both; }
+.bingo-cell.daub-new { animation: daub-bounce .38s var(--ease-spring) both; }
 @keyframes daub-bounce { 0% { transform: scale(.88); } 100% { transform: none; } }
 /* FREE: gold star tile */
 .bingo-cell[data-idx="12"] {
@@ -686,7 +686,7 @@ div:has(> #big-bingo-ball)::after {
 /* ---------- Motion & transparency preferences ---------- */
 @media (prefers-reduced-motion: reduce) {
   body::before, #join-logo-trigger img, div:has(> #big-bingo-ball), .board-cell.latest, #player-win-banner,
-  .bingo-cell:has(.stamp-anim), .bingo-cell:has(.stamp-anim)::after, #gm-participants-list > div { animation: none !important; }
+  .bingo-cell.daub-new, .bingo-cell.daub-new::after, #gm-participants-list > div { animation: none !important; }
   #brand-logo-trigger:hover img, #join-avatar-picker button:hover, .bingo-cell:hover { transform: none !important; }
   button:hover, button:active { transform: none !important; }
 }
@@ -765,7 +765,7 @@ div:has(> #big-bingo-ball)::after {
   color: #fff !important; text-shadow: 0 1px 2px var(--daub-shadow) !important;
 }
 #cards-container[data-card-theme="classic"] .bingo-cell[aria-pressed="true"] > span { font-family: var(--font-text); font-size: max(8px, 2.2cqw) !important; color: #fff !important; }
-#cards-container[data-card-theme="classic"] .bingo-cell:has(.stamp-anim)::after { border-radius: 50%; inset: 8%; }
+#cards-container[data-card-theme="classic"] .bingo-cell.daub-new::after { border-radius: 50%; inset: 8%; }
 /* FREE with three stars above and below */
 #cards-container[data-card-theme="classic"] .bingo-cell[data-idx="12"] { background: #fff !important; }
 #cards-container[data-card-theme="classic"] .bingo-cell[data-idx="12"] .free-star { display: none; }
@@ -2342,7 +2342,8 @@ function paintCell(cell, num, idx, marked, animate, auto) {
   cell.textContent = num;
   cell.setAttribute('aria-label', `${getLetter(num)} ${num}${marked ? (auto ? ', auto-marked' : ', marked') : ''}`);
   cell.setAttribute('aria-pressed', String(!!marked));
-  if (marked) { const st = document.createElement('span'); st.className = 'text-xs uppercase font-sans font-black text-white leading-none' + (animate ? ' stamp-anim' : ''); st.textContent = auto ? 'AUTO' : '✓'; st.setAttribute('aria-hidden', 'true'); cell.appendChild(st); }
+  // Marked numbers show only the daub, no AUTO/✓ label; a fresh mark gets a one-off pop.
+  cell.classList.toggle('daub-new', !!(marked && animate));
 }
 function renderAllPlayerCards() {
   const box = $('cards-container'); box.innerHTML = ''; cardViews = [];
