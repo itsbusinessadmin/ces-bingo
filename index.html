@@ -368,6 +368,11 @@ input[type=checkbox] { accent-color: var(--accent); }
   animation: tab-in 220ms var(--ease-out) both;
 }
 #btn-gm-toolbar-show[hidden] { display: none !important; }
+/* Admin totals: closed by default, slide in from / out to the left */
+#admin-totals { transition: transform 260ms var(--ease-out), opacity 200ms var(--ease-out); }
+#admin-totals.is-collapsing { transform: translateX(calc(-100% - 32px)); opacity: 0; pointer-events: none; }
+#totals-toggle-icon { transition: transform 260ms var(--ease-out); }
+@media (prefers-reduced-motion: reduce) { #admin-totals, #admin-totals.is-collapsing, #totals-toggle-icon { transform: none !important; } }
 @keyframes tab-in { from { transform: translateX(100%); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   #gm-toolbar, #gm-toolbar.is-collapsing { transform: none !important; }
@@ -943,7 +948,10 @@ div:has(> #big-bingo-ball)::after {
         <button id="btn-launch-gm-from-admin" type="button" class="px-4 rounded-xl bg-gradient-to-r from-brand-pinkdeep to-brand-blue text-white font-display font-bold text-sm flex items-center gap-2 active:scale-95"><svg class="w-4 h-4 shrink-0" aria-hidden="true"><use href="#i-play"/></svg>Launch Game Master</button>
       </div>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+    <div class="flex items-center gap-2">
+      <button id="btn-toggle-totals" type="button" aria-expanded="false" aria-controls="admin-totals" class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-slate-100 flex items-center gap-2 active:scale-95"><svg id="totals-toggle-icon" class="w-4 h-4 shrink-0" style="transform:rotate(-90deg)" aria-hidden="true"><use href="#i-chevron"/></svg><span id="totals-toggle-label">Show totals</span></button>
+    </div>
+    <div id="admin-totals" hidden class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
       <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4"><div class="flex items-center justify-between gap-2"><span class="text-xs text-slate-400 uppercase font-semibold">Total Players</span><button type="button" data-eye="admin-total-players" aria-pressed="false" aria-label="Hide Total Players" title="Hide Total Players" class="w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 flex items-center justify-center shrink-0" style="min-height:2.25rem"><svg class="w-5 h-5 shrink-0" aria-hidden="true"><use href="#i-eye"/></svg></button></div><div id="admin-total-players" class="font-display font-bold text-3xl mt-1">0</div><div data-eye-mask="admin-total-players" hidden class="font-display font-bold text-3xl mt-1 tracking-widest" aria-label="Total Players hidden">****</div></div>
       <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4"><div class="flex items-center justify-between gap-2"><span class="text-xs text-slate-400 uppercase font-semibold">Total Cards</span><button type="button" data-eye="admin-total-cards" aria-pressed="false" aria-label="Hide Total Cards" title="Hide Total Cards" class="w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 flex items-center justify-center shrink-0" style="min-height:2.25rem"><svg class="w-5 h-5 shrink-0" aria-hidden="true"><use href="#i-eye"/></svg></button></div><div id="admin-total-cards" class="font-display font-bold text-3xl text-amber-400 mt-1">0</div><div data-eye-mask="admin-total-cards" hidden class="font-display font-bold text-3xl text-amber-400 mt-1 tracking-widest" aria-label="Total Cards hidden">****</div></div>
       <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4"><div class="flex items-center justify-between gap-2"><span class="text-xs text-slate-400 uppercase font-semibold">Gross Income</span><button type="button" data-eye="admin-total-income" aria-pressed="false" aria-label="Hide Gross Income" title="Hide Gross Income" class="w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 flex items-center justify-center shrink-0" style="min-height:2.25rem"><svg class="w-5 h-5 shrink-0" aria-hidden="true"><use href="#i-eye"/></svg></button></div><div id="admin-total-income" class="font-display font-bold text-3xl text-emerald-400 mt-1">₱0.00</div><div data-eye-mask="admin-total-income" hidden class="font-display font-bold text-3xl text-emerald-400 mt-1 tracking-widest" aria-label="Gross Income hidden">****</div></div>
@@ -3531,6 +3539,26 @@ function init() {
   { let open = true; try { open = localStorage.getItem('ces-bingo:gm-toolbar') !== 'hidden'; } catch (e) {} setToolbar(open, false); }
   on('btn-gm-toolbar-hide', 'click', () => setToolbar(false));
   on('btn-gm-toolbar-show', 'click', () => setToolbar(true));
+  /* ---------- Admin totals: slide closed to the left (closed by default, remembered per device) ---------- */
+  let totalsTimer = null;
+  const setTotals = (open, animate = true) => {
+    const box = $('admin-totals'), btn = $('btn-toggle-totals'); if (!box || !btn) return;
+    clearTimeout(totalsTimer);
+    btn.setAttribute('aria-expanded', String(open));
+    $('totals-toggle-label').textContent = open ? 'Hide totals' : 'Show totals';
+    $('totals-toggle-icon').style.transform = open ? 'rotate(90deg)' : 'rotate(-90deg)';
+    if (open) {
+      box.hidden = false;
+      if (animate) { box.classList.add('is-collapsing'); box.getBoundingClientRect(); }
+      box.classList.remove('is-collapsing');
+    } else {
+      box.classList.add('is-collapsing');
+      totalsTimer = setTimeout(() => { box.hidden = true; }, animate ? 260 : 0);
+    }
+    try { localStorage.setItem('ces-bingo:totals-open', open ? '1' : '0'); } catch (e) {}
+  };
+  { let open = false; try { open = localStorage.getItem('ces-bingo:totals-open') === '1'; } catch (e) {} setTotals(open, false); }
+  on('btn-toggle-totals', 'click', () => setTotals($('admin-totals').hidden || $('admin-totals').classList.contains('is-collapsing')));
   on('btn-export-csv', 'click', () => {
     // Quote every text cell and neutralise leading = + - @ so spreadsheet apps never run a name as a formula.
     const cell = v => { let t = String(v ?? ''); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
