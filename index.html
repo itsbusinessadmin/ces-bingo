@@ -929,7 +929,7 @@ html[data-card-theme="classic"] #big-bingo-ball.ball-awaiting-reveal { outline: 
     background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.6) 0 9%, transparent 34%), var(--c);
     box-shadow: inset -2px -3px 6px rgba(0,0,0,.3);
   }
-  .join-balls { display: flex; gap: 8px; margin-top: 4px; }
+  .join-balls { display: flex; justify-content: center; gap: 8px; margin-top: 4px; }
   .join-balls span {
     width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
     font-family: var(--font-display); font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.4);
@@ -1194,11 +1194,6 @@ main { padding-left: max(12px, env(safe-area-inset-left)) !important; padding-ri
       <h2 id="modal-join-title" class="font-display font-bold text-2xl">BINGO by CES Fun Club</h2><p class="text-sm text-slate-400 mt-1">Type your nickname and pick your cards</p></div>
     <div class="bg-brand-blue/20 border border-brand-bluelight/30 rounded-2xl p-3 mb-4 flex items-start gap-3"><svg class="w-5 h-5 mt-0.5 text-brand-bluelight shrink-0" aria-hidden="true"><use href="#i-info"/></svg>
       <p class="text-sm text-slate-200">Each card costs <span id="modal-unit-price-text" class="font-bold text-white">₱10.00</span>. More cards, better chances!</p></div>
-    <ol class="join-steps" aria-label="How to join">
-      <li><span class="join-step-no" style="--c:var(--col-b)">1</span><span><b>Type your nickname</b> and pick an avatar</span></li>
-      <li><span class="join-step-no" style="--c:var(--col-i)">2</span><span><b>Choose your cards</b>, the more the better</span></li>
-      <li><span class="join-step-no" style="--c:var(--col-g)">3</span><span><b>Pay the host</b>, then mark your numbers as they're called</span></li>
-    </ol>
     <div class="join-balls" aria-hidden="true"><span style="--c:var(--col-b)">B</span><span style="--c:var(--col-i)">I</span><span style="--c:var(--col-n)">N</span><span style="--c:var(--col-g)">G</span><span style="--c:var(--col-o)">O</span></div>
     </div>
     <div class="join-form space-y-4">
