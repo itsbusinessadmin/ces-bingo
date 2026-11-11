@@ -870,6 +870,109 @@ html[data-card-theme="classic"] #big-bingo-ball .bn { font-weight: 500; font-siz
 /* Letter only (before the tap): the letter fills the token */
 html[data-card-theme="classic"] #big-bingo-ball.letter-only .bl { font-size: clamp(2.8rem, 10vmin, 4rem); font-weight: 800; margin: 0; }
 html[data-card-theme="classic"] #big-bingo-ball.ball-awaiting-reveal { outline: 3px solid rgba(255,211,110,.7); outline-offset: 6px; }
+
+/* ==================================================================
+   Join screen: adapts to every screen.
+   - Phones / portrait tablets: one column (the original layout).
+   - Short landscape phones: compact header so the form starts sooner.
+   - Laptops, desktops, landscape tablets (900px+): two panels — brand,
+     price and how-it-works on the left, the form on the right — sized
+     so the Pay button is visible without scrolling on a 720px screen.
+   ================================================================== */
+#modal-join {
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+           max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)) !important;
+}
+.join-steps, .join-balls { display: none; }
+
+@media (max-height: 520px) and (orientation: landscape) and (max-width: 899px) {
+  .join-dialog { max-width: 34rem !important; padding: 16px 20px !important; }
+  .join-brand { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center; text-align: left; margin-bottom: 10px !important; }
+  #join-logo-trigger { grid-row: span 2; width: 3.5rem !important; height: 3.5rem !important; margin: 0 !important; }
+  .join-hero .bg-brand-blue\/20 { padding: 8px 12px !important; margin-bottom: 12px !important; }
+  #modal-join-title { font-size: 1.25rem !important; }
+  .join-brand p { margin-top: 0; }
+}
+
+@media (min-width: 640px) and (max-width: 899px) and (min-height: 700px) {
+  .join-dialog { max-width: 34rem !important; }
+  #join-logo-trigger { width: 7.5rem !important; height: 7.5rem !important; }
+}
+@media (min-width: 900px) {
+  .join-dialog {
+    max-width: 960px !important; padding: 0 !important;
+    display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    max-height: min(92dvh, 760px);
+  }
+  .join-hero {
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: center; gap: 18px;
+    padding: 40px 40px 36px;
+    background:
+      radial-gradient(90% 60% at 20% 0%, rgba(236,63,124,.28), transparent 65%),
+      radial-gradient(80% 60% at 100% 100%, rgba(77,139,255,.20), transparent 70%),
+      rgba(12,9,32,.35);
+    border-right: 1px solid var(--hairline);
+  }
+  .join-brand { text-align: left !important; margin-bottom: 0 !important; }
+  #join-logo-trigger { width: 8rem !important; height: 8rem !important; margin: 0 0 14px !important; }
+  #modal-join-title { font-size: 2.1rem !important; line-height: 1.1; }
+  .join-brand p { font-size: 1rem; margin-top: 6px; }
+  .join-hero .bg-brand-blue\/20 { margin-bottom: 0 !important; }
+
+  .join-steps { display: flex; flex-direction: column; gap: 12px; margin: 2px 0 0; padding: 0; list-style: none; }
+  .join-steps li { display: flex; align-items: flex-start; gap: 12px; font-size: 14px; color: var(--secondary); line-height: 1.45; }
+  .join-steps b { color: var(--label); font-weight: 800; }
+  .join-step-no {
+    flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 700; font-size: 14px; color: #fff;
+    background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.6) 0 9%, transparent 34%), var(--c);
+    box-shadow: inset -2px -3px 6px rgba(0,0,0,.3);
+  }
+  .join-balls { display: flex; gap: 8px; margin-top: 4px; }
+  .join-balls span {
+    width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.4);
+    background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.75) 0 8%, transparent 32%), radial-gradient(circle, var(--c) 55%, color-mix(in srgb, var(--c) 55%, #000) 100%);
+    box-shadow: inset -2px -3px 6px rgba(0,0,0,.35), 0 6px 14px -6px var(--c);
+    animation: join-ball-bob 3.2s ease-in-out infinite;
+  }
+  .join-balls span:nth-child(2) { animation-delay: .2s; } .join-balls span:nth-child(3) { animation-delay: .4s; }
+  .join-balls span:nth-child(4) { animation-delay: .6s; } .join-balls span:nth-child(5) { animation-delay: .8s; }
+
+  .join-form { padding: 32px 36px 28px; overflow-y: auto; }
+  .join-form > * + * { margin-top: 14px !important; }
+  .join-qty-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: end; }
+  .join-qty-row > * + * { margin-top: 0 !important; }
+  .join-qty-row > div:last-child { flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; min-height: 76px; border-radius: 18px !important; padding: 10px 16px !important; }
+  #join-total-due-text { font-size: 1.6rem; }
+}
+@media (min-width: 1500px) and (min-height: 860px) {
+  .join-dialog { max-width: 1060px !important; }
+  .join-hero { padding: 52px 52px 44px; }
+  .join-form { padding: 40px 44px 32px; }
+}
+@keyframes join-ball-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@media (prefers-reduced-motion: reduce) { .join-balls span { animation: none !important; } }
+
+/* ---------- Every screen: notch-safe sides, compact phone landscape ---------- */
+#app-header > div { padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
+main { padding-left: max(12px, env(safe-area-inset-left)) !important; padding-right: max(12px, env(safe-area-inset-right)) !important; }
+@media (min-width: 640px) {
+  main { padding-left: max(20px, env(safe-area-inset-left)) !important; padding-right: max(20px, env(safe-area-inset-right)) !important; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  #app-header > div { padding-top: 4px; padding-bottom: 4px; }
+  #brand-logo-trigger { width: 2.5rem !important; height: 2.5rem !important; }
+  #player-call-bar { padding-top: 4px !important; padding-bottom: 4px !important; }
+  #player-ball-sphere { width: 2.75rem !important; height: 2.75rem !important; }
+  #player-ball-sphere #player-ball-letter { font-size: 10px !important; }
+  #player-ball-sphere #player-ball-num { font-size: 1rem !important; }
+  #player-caller-text { font-size: 1.3rem !important; }
+  section[aria-labelledby="your-cards-title"] > div:first-child > p { display: none; }
+  #gm-toolbar { padding-top: 6px !important; padding-bottom: 6px !important; }
+  #gm-toolbar > span:first-child { display: none; }
+}
 </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-slate-950">
@@ -1085,12 +1188,20 @@ html[data-card-theme="classic"] #big-bingo-ball.ball-awaiting-reveal { outline: 
 
 <!-- JOIN MODAL -->
 <div id="modal-join" class="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-950/85 backdrop-blur-sm">
-  <div role="dialog" aria-modal="true" aria-labelledby="modal-join-title" class="modal-box bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-5 sm:p-8 shadow-2xl">
-    <div class="text-center mb-4"><div id="join-logo-trigger" title="CES Fun Club" class="w-24 h-24 sm:w-28 sm:h-28 mx-auto mb-2 cursor-pointer select-none active:scale-95 transition-transform"><img data-brand-logo src="logo.webp" alt="CES Fun Club" width="112" height="112" class="w-full h-full object-contain drop-shadow-xl" draggable="false"></div>
+  <div role="dialog" aria-modal="true" aria-labelledby="modal-join-title" class="join-dialog modal-box bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-5 sm:p-8 shadow-2xl">
+    <div class="join-hero">
+    <div class="join-brand text-center mb-4"><div id="join-logo-trigger" title="CES Fun Club" class="w-24 h-24 sm:w-28 sm:h-28 mx-auto mb-2 cursor-pointer select-none active:scale-95 transition-transform"><img data-brand-logo src="logo.webp" alt="CES Fun Club" width="112" height="112" class="w-full h-full object-contain drop-shadow-xl" draggable="false"></div>
       <h2 id="modal-join-title" class="font-display font-bold text-2xl">BINGO by CES Fun Club</h2><p class="text-sm text-slate-400 mt-1">Type your nickname and pick your cards</p></div>
     <div class="bg-brand-blue/20 border border-brand-bluelight/30 rounded-2xl p-3 mb-4 flex items-start gap-3"><svg class="w-5 h-5 mt-0.5 text-brand-bluelight shrink-0" aria-hidden="true"><use href="#i-info"/></svg>
       <p class="text-sm text-slate-200">Each card costs <span id="modal-unit-price-text" class="font-bold text-white">₱10.00</span>. More cards, better chances!</p></div>
-    <div class="space-y-4">
+    <ol class="join-steps" aria-label="How to join">
+      <li><span class="join-step-no" style="--c:var(--col-b)">1</span><span><b>Type your nickname</b> and pick an avatar</span></li>
+      <li><span class="join-step-no" style="--c:var(--col-i)">2</span><span><b>Choose your cards</b>, the more the better</span></li>
+      <li><span class="join-step-no" style="--c:var(--col-g)">3</span><span><b>Pay the host</b>, then mark your numbers as they're called</span></li>
+    </ol>
+    <div class="join-balls" aria-hidden="true"><span style="--c:var(--col-b)">B</span><span style="--c:var(--col-i)">I</span><span style="--c:var(--col-n)">N</span><span style="--c:var(--col-g)">G</span><span style="--c:var(--col-o)">O</span></div>
+    </div>
+    <div class="join-form space-y-4">
       <div><label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">Your Nickname</label>
         <input type="text" id="join-name-input" maxlength="24" placeholder="Type your nickname" autocomplete="off" autocapitalize="words" spellcheck="false" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 font-semibold focus:outline-none focus:border-amber-400">
         <p id="join-name-error" class="hidden mt-1.5 text-xs font-bold text-rose-300">Please type your nickname to join.</p></div>
@@ -1103,6 +1214,7 @@ html[data-card-theme="classic"] #big-bingo-ball.ball-awaiting-reveal { outline: 
           <button id="btn-use-emoji-avatar" type="button" class="px-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-bold shrink-0">Use Emoji</button>
         </div>
       </div>
+      <div class="join-qty-row space-y-4">
       <div><label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">Quantity of Cards</label>
         <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 rounded-2xl p-2">
           <button id="btn-card-minus" type="button" aria-label="Fewer cards" class="w-11 h-11 rounded-xl bg-slate-700 hover:bg-slate-600 font-black text-xl active:scale-90">−</button>
@@ -1110,6 +1222,7 @@ html[data-card-theme="classic"] #big-bingo-ball.ball-awaiting-reveal { outline: 
           <button id="btn-card-plus" type="button" aria-label="More cards" class="w-11 h-11 rounded-xl bg-slate-700 hover:bg-slate-600 font-black text-xl active:scale-90">+</button>
         </div></div>
       <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-3 flex items-center justify-between"><span class="text-xs text-slate-400">Total Payment Due:</span><span id="join-total-due-text" class="font-mono font-black text-lg text-emerald-400">₱10.00</span></div>
+      </div>
       <p id="join-gate-msg" class="hidden text-xs font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-xl p-3"></p>
       <button id="btn-confirm-join" type="button" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-brand-pinkdeep to-brand-blue text-white font-display font-bold text-lg hover:brightness-110 shadow-lg active:scale-95">PAY &amp; GET CARDS</button>
       <div class="border-t border-slate-800 pt-3 text-center">
